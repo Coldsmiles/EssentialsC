@@ -1,5 +1,6 @@
 package cn.infstar.essentialsC.commands;
 
+import cn.infstar.essentialsC.EssentialsC;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -29,30 +30,34 @@ public class AdminMenuCommand extends BaseCommand implements Listener {
     }
     
     private void openMenu(Player player) {
-        String title = getLang().getString("admin-menu-title");
-        Inventory menu = Bukkit.createInventory(null, MENU_SIZE, title);
+        String title = plugin.getConfig().getString("admin-menu.title", "&6EssentialsC 管理菜单");
+        Inventory menu = Bukkit.createInventory(null, MENU_SIZE, translateColor(title));
         
-        // 时间控制
-        addItem(menu, 10, Material.CLOCK, getLang().getString("admin-time-control"), 
-                Arrays.asList("§7左键: 设为白天", "§7右键: 设为夜晚"));
-        addItem(menu, 11, Material.SUNFLOWER, getLang().getString("admin-weather-control"), 
-                Arrays.asList("§7左键: 晴天", "§7右键: 雨天"));
+        // 从配置中读取所有物品
+        var itemsConfig = plugin.getConfig().getConfigurationSection("admin-menu.items");
+        if (itemsConfig == null) return;
         
-        // 状态恢复
-        addItem(menu, 13, Material.GOLDEN_APPLE, getLang().getString("admin-heal-self"), 
-                Arrays.asList("§7补满生命值和饱食度"));
-        addItem(menu, 14, Material.BREAD, getLang().getString("admin-feed-self"), 
-                Arrays.asList("§7补满饱食度"));
-        addItem(menu, 15, Material.ANVIL, getLang().getString("admin-repair-hand"), 
-                Arrays.asList("§7修复当前手持物品"));
-        
-        // 管理员功能
-        addItem(menu, 21, Material.ENDER_PEARL, getLang().getString("admin-vanish"), 
-                Arrays.asList("§7点击切换隐身状态"));
-        addItem(menu, 22, Material.BOOK, getLang().getString("admin-reload"), 
-                Arrays.asList("§7重新加载配置文件"));
+        for (String key : itemsConfig.getKeys(false)) {
+            var section = itemsConfig.getConfigurationSection(key);
+            if (section == null) continue;
+            
+            int slot = section.getInt("slot");
+            Material material = Material.matchMaterial(section.getString("material", "STONE"));
+            if (material == null) material = Material.STONE;
+            
+            String name = translateColor(section.getString("name", "&fItem"));
+            java.util.List<String> lore = section.getStringList("lore").stream()
+                .map(this::translateColor)
+                .collect(java.util.stream.Collectors.toList());
+            
+            addItem(menu, slot, material, name, lore);
+        }
         
         player.openInventory(menu);
+    }
+    
+    private String translateColor(String text) {
+        return text.replace("&", "§");
     }
     
     private void addItem(Inventory inv, int slot, Material material, String name, java.util.List<String> lore) {
@@ -68,61 +73,71 @@ public class AdminMenuCommand extends BaseCommand implements Listener {
     
     @EventHandler
     public void onMenuClick(InventoryClickEvent event) {
-        String title = getLang().getString("admin-menu-title");
-        if (!event.getView().getTitle().equals(title)) return;
+        // 检查是否是管理员菜单
+        String configTitle = translateColor(plugin.getConfig().getString("admin-menu.title", "&6EssentialsC 管理菜单"));
+        if (!event.getView().getTitle().equals(configTitle)) return;
         if (!(event.getWhoClicked() instanceof Player player)) return;
         
+        // 取消事件，防止拿出物品
         event.setCancelled(true);
+        
         ItemStack clicked = event.getCurrentItem();
         if (clicked == null || !clicked.hasItemMeta()) return;
         
-        String name = clicked.getItemMeta().getDisplayName();
-        String timeControl = getLang().getString("admin-time-control");
-        String weatherControl = getLang().getString("admin-weather-control");
-        String healSelf = getLang().getString("admin-heal-self");
-        String feedSelf = getLang().getString("admin-feed-self");
-        String repairHand = getLang().getString("admin-repair-hand");
-        String vanish = getLang().getString("admin-vanish");
-        String reload = getLang().getString("admin-reload");
+        String displayName = clicked.getItemMeta().getDisplayName();
         
-        switch (name) {
-            case String t when t.equals(timeControl) -> {
-                if (event.isLeftClick()) player.getWorld().setTime(1000);
-                else player.getWorld().setTime(13000);
-                player.sendMessage(getLang().getString("admin-time-set"));
-            }
-            case String w when w.equals(weatherControl) -> {
-                if (event.isLeftClick()) player.getWorld().setStorm(false);
-                else player.getWorld().setStorm(true);
-                player.sendMessage(getLang().getString("admin-weather-set"));
-            }
-            case String h when h.equals(healSelf) -> {
-                player.setHealth(player.getMaxHealth());
-                player.setFoodLevel(20);
-                player.sendMessage(getLang().getString("admin-heal-success"));
-            }
-            case String f when f.equals(feedSelf) -> {
-                player.setFoodLevel(20);
-                player.setSaturation(20f);
-                player.sendMessage(getLang().getString("admin-feed-success"));
-            }
-            case String r when r.equals(repairHand) -> {
-                var item = player.getInventory().getItemInMainHand();
-                if (item.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable d) {
-                    d.setDamage(0);
-                    item.setItemMeta((org.bukkit.inventory.meta.ItemMeta) d);
-                    player.sendMessage(getLang().getString("admin-repair-success"));
+        // 从配置中读取所有物品配置，通过名称匹配
+        var itemsConfig = plugin.getConfig().getConfigurationSection("admin-menu.items");
+        if (itemsConfig == null) return;
+        
+        for (String key : itemsConfig.getKeys(false)) {
+            var section = itemsConfig.getConfigurationSection(key);
+            if (section == null) continue;
+            
+            String itemName = translateColor(section.getString("name", ""));
+            if (!displayName.equals(itemName)) continue;
+            
+            // 找到匹配的物品，执行对应操作
+            switch (key) {
+                case "time-control" -> {
+                    if (event.isLeftClick()) player.getWorld().setTime(1000);
+                    else player.getWorld().setTime(13000);
+                    player.sendMessage(getLang().getString("admin-time-set"));
+                }
+                case "weather-control" -> {
+                    if (event.isLeftClick()) player.getWorld().setStorm(false);
+                    else player.getWorld().setStorm(true);
+                    player.sendMessage(getLang().getString("admin-weather-set"));
+                }
+                case "heal-self" -> {
+                    player.setHealth(player.getMaxHealth());
+                    player.setFoodLevel(20);
+                    player.sendMessage(getLang().getString("admin-heal-success"));
+                }
+                case "feed-self" -> {
+                    player.setFoodLevel(20);
+                    player.setSaturation(20f);
+                    player.sendMessage(getLang().getString("admin-feed-success"));
+                }
+                case "repair-hand" -> {
+                    var item = player.getInventory().getItemInMainHand();
+                    if (item.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable d) {
+                        d.setDamage(0);
+                        item.setItemMeta((org.bukkit.inventory.meta.ItemMeta) d);
+                        player.sendMessage(getLang().getString("admin-repair-success"));
+                    }
+                }
+                case "vanish" -> {
+                    HelpCommand.COMMAND_CACHE.get("vanish").execute(player, new String[]{});
+                    openMenu(player); // 刷新菜单
+                }
+                case "reload" -> {
+                    plugin.reloadConfig();
+                    EssentialsC.getLangManager().reload();
+                    player.sendMessage(getLang().getString("admin-reload-success"));
                 }
             }
-            case String v when v.equals(vanish) -> {
-                new VanishCommand().execute(player, new String[]{});
-                openMenu(player); // 刷新菜单
-            }
-            case String rl when rl.equals(reload) -> {
-                plugin.reloadConfig();
-                player.sendMessage(getLang().getString("admin-reload-success"));
-            }
-            default -> {} // 忽略其他点击
+            break; // 找到后退出循环
         }
     }
 }

@@ -1,6 +1,9 @@
 # English Language File (en_US)
 # You can customize all messages here
 
+# Plugin prefix
+prefix: "&6[EssentialsC] &r"
+
 # Command messages
 messages:
   no-permission: "&cYou don't have permission to use this command!\n&7Required permission: {permission}"
@@ -14,14 +17,6 @@ messages:
   vanish-enabled: "&aYou are now vanished!"
   vanish-disabled: "&cYou are no longer vanished!"
   seen-usage: "&cUsage: /seen <player>"
-  admin-menu-title: "&6EssentialsC Admin Menu"
-  admin-time-control: "&eTime Control"
-  admin-weather-control: "&eWeather Control"
-  admin-heal-self: "&aHeal Self"
-  admin-feed-self: "&aFeed Self"
-  admin-repair-hand: "&aRepair Hand Item"
-  admin-vanish: "&dVanish Mode"
-  admin-reload: "&dReload Plugin"
   admin-time-set: "&aTime set!"
   admin-weather-set: "&aWeather set!"
   admin-heal-success: "&aHealed!"

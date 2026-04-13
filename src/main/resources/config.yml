@@ -9,6 +9,52 @@ language: "zh_CN"
 settings:
   # 启用或禁用命令反馈消息
   enable-feedback: true
-  
-  # 所有插件消息的前缀
-  message-prefix: "&6[EssentialsC] &r"
+
+# 管理员菜单配置
+admin-menu:
+  title: "&6EssentialsC 管理菜单"
+  items:
+    time-control:
+      slot: 10
+      material: CLOCK
+      name: "&e时间控制"
+      lore:
+        - "&7左键: 设为白天"
+        - "&7右键: 设为夜晚"
+    weather-control:
+      slot: 11
+      material: SUNFLOWER
+      name: "&e天气控制"
+      lore:
+        - "&7左键: 晴天"
+        - "&7右键: 雨天"
+    heal-self:
+      slot: 13
+      material: GOLDEN_APPLE
+      name: "&a治疗自己"
+      lore:
+        - "&7补满生命值和饱食度"
+    feed-self:
+      slot: 14
+      material: BREAD
+      name: "&6喂饱自己"
+      lore:
+        - "&7补满饱食度"
+    repair-hand:
+      slot: 15
+      material: ANVIL
+      name: "&b修复手持物品"
+      lore:
+        - "&7修复当前手持物品"
+    vanish:
+      slot: 21
+      material: ENDER_PEARL
+      name: "&d隐身模式"
+      lore:
+        - "&7点击切换隐身状态"
+    reload:
+      slot: 22
+      material: BOOK
+      name: "&c重载配置"
+      lore:
+        - "&7重新加载配置文件"

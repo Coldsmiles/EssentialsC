@@ -57,7 +57,6 @@ public final class EssentialsC extends JavaPlugin {
             registerCommand(commandMap, "heal", new HealCommand());
             registerCommand(commandMap, "vanish", new VanishCommand());
             registerCommand(commandMap, "seen", new SeenCommand());
-            registerCommand(commandMap, "admin", new AdminMenuCommand());
             registerCommand(commandMap, "feed", new FeedCommand());
             registerCommand(commandMap, "repair", new RepairCommand());
             registerCommand(commandMap, "essentialsc", new HelpCommand());
@@ -74,6 +73,14 @@ public final class EssentialsC extends JavaPlugin {
             @Override
             public boolean execute(CommandSender sender, String commandLabel, String[] args) {
                 return executor.onCommand(sender, this, commandLabel, args);
+            }
+            
+            @Override
+            public java.util.List<String> tabComplete(CommandSender sender, String alias, String[] args) throws IllegalArgumentException {
+                if (executor instanceof org.bukkit.command.TabCompleter) {
+                    return ((org.bukkit.command.TabCompleter) executor).onTabComplete(sender, this, alias, args);
+                }
+                return super.tabComplete(sender, alias, args);
             }
         };
         

@@ -83,6 +83,13 @@ public class LangManager {
     }
     
     /**
+     * 获取插件前缀
+     */
+    public String getPrefix() {
+        return translateColorCodes(langFile.getString("prefix", "&6[EssentialsC] &r"));
+    }
+    
+    /**
      * 获取翻译文本
      */
     public String getString(String path) {
@@ -102,6 +109,23 @@ public class LangManager {
             value = value.replace("{" + entry.getKey() + "}", entry.getValue());
         }
         return value;
+    }
+    
+    /**
+     * 获取字符串列表（用于 Lore 等多行文本）
+     */
+    public java.util.List<String> getStringList(String path) {
+        java.util.List<String> values = langFile.getStringList(path);
+        if (values.isEmpty()) {
+            // 如果找不到，返回包含错误信息的列表
+            return java.util.Arrays.asList("&cMissing translation: " + path);
+        }
+        // 翻译颜色代码
+        java.util.List<String> translated = new java.util.ArrayList<>();
+        for (String value : values) {
+            translated.add(translateColorCodes(value));
+        }
+        return translated;
     }
     
     /**

@@ -1,6 +1,9 @@
 # Chinese Language File (zh_CN)
 # 中文语言文件
 
+# 插件前缀
+prefix: "&6[EssentialsC] &r"
+
 # 命令消息
 messages:
   no-permission: "&c你没有权限执行此命令！\n&7需要权限: {permission}"
@@ -14,14 +17,7 @@ messages:
   vanish-enabled: "&a你已进入隐身模式！"
   vanish-disabled: "&c你已退出隐身模式！"
   seen-usage: "&c用法: /seen <玩家名>"
-  admin-menu-title: "&6EssentialsC 管理菜单"
-  admin-time-control: "&e时间控制"
-  admin-weather-control: "&e天气控制"
-  admin-heal-self: "&a治疗自己"
-  admin-feed-self: "&a喂饱自己"
-  admin-repair-hand: "&a修复手中物品"
-  admin-vanish: "&d隐身模式"
-  admin-reload: "&d重载插件"
+  # 管理员菜单操作提示
   admin-time-set: "&a时间已设置！"
   admin-weather-set: "&a天气已设置！"
   admin-heal-success: "&a已治疗！"
