@@ -1,5 +1,5 @@
 name: EssentialsC
-description: A CMI-like essentials plugin for Paper servers
+description: 精简版基础插件
 version: '${version}'
 
 main: cn.infstar.essentialsC.EssentialsC
