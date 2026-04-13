@@ -1,0 +1,14 @@
+# EssentialsC 配置文件
+# 你可以编辑此文件来自定义插件行为
+
+# 语言设置
+# 可用语言: en_US, zh_CN (你可以添加更多)
+language: "zh_CN"
+
+# 通用设置
+settings:
+  # 启用或禁用命令反馈消息
+  enable-feedback: true
+  
+  # 所有插件消息的前缀
+  message-prefix: "&6[EssentialsC] &r"

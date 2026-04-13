@@ -1,0 +1,92 @@
+name: EssentialsC
+description: A CMI-like essentials plugin for Paper servers
+version: '${version}'
+
+main: cn.infstar.essentialsC.EssentialsC
+api-version: '1.21'
+load: POSTWORLD
+
+authors: [ Coldsmiles_7 ]
+website: www.infstar.cn
+
+permissions:
+  essentialsc.command.workbench:
+    description: Allows use of /workbench command
+    default: op
+  essentialsc.command.anvil:
+    description: Allows use of /anvil command
+    default: op
+  essentialsc.command.enchantingtable:
+    description: Allows use of /enchantingtable command
+    default: op
+  essentialsc.command.cartographytable:
+    description: Allows use of /cartographytable command
+    default: op
+  essentialsc.command.grindstone:
+    description: Allows use of /grindstone command
+    default: op
+  essentialsc.command.loom:
+    description: Allows use of /loom command
+    default: op
+  essentialsc.command.smithingtable:
+    description: Allows use of /smithingtable command
+    default: op
+  essentialsc.command.stonecutter:
+    description: Allows use of /stonecutter command
+    default: op
+  essentialsc.command.enderchest:
+    description: Allows use of /enderchest command
+    default: op
+  essentialsc.command.hat:
+    description: Allows use of /hat command
+    default: op
+  essentialsc.command.suicide:
+    description: Allows use of /suicide command
+    default: op
+  essentialsc.command.fly:
+    description: Allows use of /fly command
+    default: op
+  essentialsc.command.heal:
+    description: Allows use of /heal command
+    default: op
+  essentialsc.command.vanish:
+    description: Allows use of /vanish command
+    default: op
+  essentialsc.command.seen:
+    description: Allows use of /seen command
+    default: op
+  essentialsc.command.admin:
+    description: Allows use of /admin command
+    default: op
+  essentialsc.command.feed:
+    description: Allows use of /feed command
+    default: op
+  essentialsc.command.repair:
+    description: Allows use of /repair command
+    default: op
+  essentialsc.command.help:
+    description: Allows use of /essentialsc help command
+    default: true
+  essentialsc.*:
+    description: All EssentialsC permissions
+    default: false
+    children:
+      essentialsc.command.workbench: true
+      essentialsc.command.anvil: true
+      essentialsc.command.enchantingtable: true
+      essentialsc.command.cartographytable: true
+      essentialsc.command.grindstone: true
+      essentialsc.command.loom: true
+      essentialsc.command.smithingtable: true
+      essentialsc.command.stonecutter: true
+      essentialsc.command.enderchest: true
+      essentialsc.command.hat: true
+      essentialsc.command.suicide: true
+      essentialsc.command.fly: true
+      essentialsc.command.heal: true
+      essentialsc.command.vanish: true
+      essentialsc.command.seen: true
+      essentialsc.command.admin: true
+      essentialsc.command.feed: true
+      essentialsc.command.repair: true
+      essentialsc.command.help: true
