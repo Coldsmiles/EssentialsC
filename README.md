@@ -127,7 +127,7 @@ shulkerbox:
 
 ## 🔐 权限节点
 
-所有命令默认需要 OP 权限。使用权限插件（如 LuckPerms）授予权限：
+所有命令默认需要 OP 权限。使用权限插件授予权限：
 
 ### 基础权限
 ```
@@ -162,18 +162,6 @@ essentialsc.command.help              # 帮助（默认开放）
 essentialsc.*                         # 所有权限
 ```
 
-### 💡 LuckPerms 授权示例
-```bash
-# 给单个玩家授权
-/lp user <玩家名> permission set essentialsc.command.workbench true
-
-# 给用户组授权
-/lp group vip permission set essentialsc.command.workbench true
-
-# 授权所有命令
-/lp group admin permission set essentialsc.* true
-```
-
 ## 🔨 从源码构建
 
 ```bash
@@ -183,40 +171,6 @@ mvn clean package
 ```
 
 编译后的文件位于 `target/essentialsc-*.jar`
-
----
-
-## 🔄 更新日志
-
-### v1.2.0 (当前版本)
-#### ✨ 新功能
-- **潜影盒快捷打开** - 潜行+右键直接打开（类似 CMI）
-  - 支持自定义标题（config.yml 配置）
-  - 防刷物品机制（快照验证 + 数量检查）
-  - 防止套娃（不能放入另一个潜影盒）
-  - 异常恢复（物品丢失自动掉落）
-- **末影箱优化** - 改用 EssentialsX 实现方式，100% 数据安全
-
-#### ⚡ 优化
-- 功能方块菜单配置化（从 config.yml 读取）
-- 功能方块菜单添加音效反馈
-- CMI 风格命令别名系统
-- 代码结构和性能优化
-
-#### 🗑️ 移除
-- 管理员菜单
-- 附魔台功能
-
-### v1.1.0
-- ✨ 新增功能方块菜单 (`/essc blocks`)
-- ✨ 添加命令别名系统
-- ⚡ 优化代码结构和性能
-
-### v1.0.0
-- 🎉 首次发布
-- 实现基础功能方块命令
-- 添加多语言支持
-- 实现权限控制系统
 
 ## 🤝 贡献
 
