@@ -1,6 +1,7 @@
 package cn.infstar.essentialsC;
 
 import cn.infstar.essentialsC.commands.*;
+import cn.infstar.essentialsC.listeners.InventoryTitleListener;
 import cn.infstar.essentialsC.listeners.ShulkerBoxListener;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -12,11 +13,23 @@ import java.lang.reflect.Field;
 public final class EssentialsC extends JavaPlugin {
 
     private static LangManager langManager;
+    private static InventoryTitleListener inventoryTitleListener;
 
     @Override
     public void onEnable() {
         // 初始化语言管理器
         langManager = new LangManager(this);
+        
+        // 检查 ProtocolLib 是否可用
+        boolean protocolLibAvailable = checkProtocolLib();
+        
+        // 如果 ProtocolLib 可用，注册 InventoryTitleListener
+        if (protocolLibAvailable) {
+            inventoryTitleListener = new InventoryTitleListener(this);
+            getLogger().info("ProtocolLib 已检测到，启用自定义标题功能！");
+        } else {
+            getLogger().warning("ProtocolLib 未检测到，将使用默认标题。");
+        }
         
         // 注册监听器
         registerListeners();
@@ -30,6 +43,10 @@ public final class EssentialsC extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        // 清理 InventoryTitleListener
+        if (inventoryTitleListener != null) {
+            inventoryTitleListener.cleanup();
+        }
         getLogger().info("EssentialsC 插件已禁用！");
     }
     
@@ -38,6 +55,20 @@ public final class EssentialsC extends JavaPlugin {
      */
     public static LangManager getLangManager() {
         return langManager;
+    }
+    
+    /**
+     * 获取 InventoryTitleListener 实例
+     */
+    public static InventoryTitleListener getInventoryTitleListener() {
+        return inventoryTitleListener;
+    }
+    
+    /**
+     * 检查 ProtocolLib 是否可用
+     */
+    private boolean checkProtocolLib() {
+        return Bukkit.getPluginManager().isPluginEnabled("ProtocolLib");
     }
     
     /**

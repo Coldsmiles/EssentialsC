@@ -208,16 +208,22 @@ public class ShulkerBoxListener implements Listener {
             // 使用配置文件中的默认标题
             String defaultTitle = plugin.getConfig().getString("shulkerbox.default-title", "");
             if (defaultTitle != null && !defaultTitle.isEmpty()) {
-                // 转换颜色代码 & -> §
-                title = defaultTitle.replace('&', '§');
+                title = defaultTitle;
             } else {
-                // 如果配置为空，使用 "Shulker Box"（客户端会自动翻译）
-                title = "Shulker Box";
+                title = "&e潜影盒";
             }
         }
         
+        // 如果 ProtocolLib 可用，标记需要修改标题
+        InventoryTitleListener titleListener = EssentialsC.getInventoryTitleListener();
+        if (titleListener != null) {
+            titleListener.markForTitleChange(player, title);
+        }
+        
         // 创建一个新的 inventory（基于潜影盒的内容）
-        Inventory inventory = Bukkit.createInventory(null, 27, title);
+        // 注意：如果使用 ProtocolLib，标题会被拦截修改，这里用临时标题
+        String inventoryTitle = titleListener != null ? "Opening..." : title.replace('&', '§');
+        Inventory inventory = Bukkit.createInventory(null, 27, inventoryTitle);
         
         // 复制潜影盒的内容到新 inventory
         ItemStack[] contents = shulkerBoxBlock.getInventory().getContents();

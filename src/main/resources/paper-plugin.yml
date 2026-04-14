@@ -6,6 +6,14 @@ main: cn.infstar.essentialsC.EssentialsC
 api-version: '1.21'
 load: POSTWORLD
 
+# ProtocolLib 依赖（可选）
+dependencies:
+  server:
+    ProtocolLib:
+      load: BEFORE
+      required: false
+      join-classpath: true
+
 authors: [ Coldsmiles_7 ]
 website: www.infstar.cn
 
