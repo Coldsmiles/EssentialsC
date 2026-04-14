@@ -1,8 +1,11 @@
 package cn.infstar.essentialsC.commands;
 
-import cn.infstar.essentialsC.EssentialsC;
 import org.bukkit.entity.Player;
 
+/**
+ * 末影箱命令 - 参考 EssentialsX 实现
+ * 直接打开玩家的末影箱，确保数据安全
+ */
 public class EnderChestCommand extends BaseCommand {
     
     public EnderChestCommand() {
@@ -11,18 +14,9 @@ public class EnderChestCommand extends BaseCommand {
     
     @Override
     protected boolean execute(Player player, String[] args) {
-        EssentialsC plugin = EssentialsC.getInstance();
-        
-        // 如果启用了 ProtocolLib，使用自定义标题
-        if (plugin.isProtocolLibEnabled()) {
-            // 从配置读取标题
-            String title = plugin.getConfig().getString("enderchest.title", "&5随身末影箱");
-            
-            // 标记下一个打开的 inventory 需要修改标题
-            plugin.getInventoryTitleListener().markForTitleChange(player, title);
-        }
-        
-        // 直接打开玩家的末影箱（参考 EssentialsX 实现）
+        // 直接打开玩家的末影箱（EssentialsX 方式）
+        // 优点：100% 安全，不会吞物品或刷物品
+        // 缺点：标题显示为 "Ender Chest"（由客户端语言决定）
         player.openInventory(player.getEnderChest());
         return true;
     }
