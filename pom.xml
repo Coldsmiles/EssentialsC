@@ -52,16 +52,9 @@
                         <phase>package</phase>
                         <configuration>
                             <target>
-                                <echo message="Cleaning old plugin files..."/>
-                                <!-- 删除测试服务器中所有旧版本的插件文件 -->
-                                <delete>
-                                    <fileset dir="${test.server.path}" includes="essentialsc-*.jar"/>
-                                </delete>
-                                <echo message="Copying plugin to test server..."/>
-                                <copy file="${project.build.directory}/${project.build.finalName}.jar"
-                                      tofile="${test.server.path}/${project.build.finalName}.jar"
-                                      overwrite="true"/>
-                                <echo message="Plugin copied successfully!"/>
+                                <!-- 仅在 test-server 目录存在时执行 -->
+                                <available file="${test.server.path}" property="test.server.exists"/>
+                                <antcall target="copy-if-exists"/>
                             </target>
                         </configuration>
                         <goals>
@@ -71,6 +64,32 @@
                 </executions>
             </plugin>
         </plugins>
+        
+        <!-- Ant 目标定义 -->
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>3.1.0</version>
+                    <configuration>
+                        <target>
+                            <target name="copy-if-exists" if="test.server.exists">
+                                <echo message="Cleaning old plugin files..."/>
+                                <delete>
+                                    <fileset dir="${test.server.path}" includes="essentialsc-*.jar"/>
+                                </delete>
+                                <echo message="Copying plugin to test server..."/>
+                                <copy file="${project.build.directory}/${project.build.finalName}.jar"
+                                      tofile="${test.server.path}/${project.build.finalName}.jar"
+                                      overwrite="true"/>
+                                <echo message="Plugin copied successfully!"/>
+                            </target>
+                        </target>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
