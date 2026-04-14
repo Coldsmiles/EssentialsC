@@ -1,0 +1,72 @@
+name: CMI
+main: com.Zrips.CMI.CMI
+version: 9.8.4.10
+website: https://www.spigotmc.org/resources/content-management-interface.3742/
+author: Zrips
+api-version: 1.13
+folia-supported: true
+description: Powerful server management tool
+depend: [CMILib]
+commands:
+  cmi:
+      description: basic command
+permissions:
+  cmi.command:
+    description: Grants access to base command
+    default: true
+  cmi.deathlocation:
+    description: Grants access to see death location after you die
+    default: op
+  cmi.buttonteleport:
+    description: Grants access to the teleport button
+    default: op
+  cmi.invedit:
+    description: Grants option to edit inventory
+    default: op
+  cmi.enderedit:
+    description: Grants option to edit ender chest
+    default: op
+  cmi.elytra:
+    description: Grants access to elytra usage
+    default: true
+  cmi.chorusteleport:
+    description: Grants access to chorus fruit teleport usage
+    default: true
+  cmi.safeteleport:
+    description: Safe teleportations
+    default: op
+  cmi.permisiononerror:
+    description: Shows missing permission node when hovering over error message
+    default: true
+  cmi.bossbar.hpbar:
+    description: Shows boss bar hp bar when dealing damage
+    default: true
+  cmi.egginteract.*:
+    description: Allows to use all eggs on spawners
+    default: op
+  cmi.command.ctext:
+    description: Shows custom text
+    default: true
+  cmi.command.kit:
+    description: Gives predefined kit.
+    default: true
+  cmi.command.warp.showlist:
+    default: true
+  cmi.command.checkban.seereason:
+    description: Allows to see players ban reason
+    default: true
+  cmi.command.mail.send:
+    description: Allows to send mail
+    default: true
+  cmi.command.mail.read:
+    description: Allows to read mail
+    default: true
+  cmi.command.mail.clear:
+    description: Allows to clear mail
+    default: true
+  cmi.openshulker.edit:
+    description: Allows to edit shulker backpack
+    default: true
+  cmi.command.itemlore.modification:
+    description: Allows to modify existing item lore
+    default: true

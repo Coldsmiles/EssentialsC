@@ -1,0 +1,123 @@
+# 你可以设置一些指令，并在一个设置好的时间或者每隔特定时间执行
+# Enabled: (true/false) 只有启用才会执行
+# 有两种模式, 间隔一定时间秒执行一次，以及特定时间执行一次
+# Delay: (number) 每个事件执行的间隔时间, 600 代表该事件每10分钟执行一次
+# Randomize: (true/false) 如果设置为true, 那么会从已存在的指令中随机抽一条来执行，可以用于随机公告等等
+# DuplicateRandomize: (true/false) 如果设置为true, 那么会从已存在的指令中随机抽一条来执行，但可能重复执行某条指令，适合需要重复的随机公告
+# SingleLinear: (true/false) 如果设置为true, 会从已经存在的指令第一条开始，一次只执行一条指令，一条一条按顺序执行下去直到全部指令执行完
+# PerformOn: 在特定时间执行，首先要指定一个名字，然后要设置执行时间
+#   时间设置包括: Month, Day, Hour, Minute, Second 部分. 时间表示使用24小时制
+#   例如
+#   PerformOn:
+#     FirstTimeFrame:
+#       Hour: 4
+#     SecondTimeFrame:
+#       Hour: 22
+#       Minute: 30
+#   这将会使事件在凌晨 4 点以及晚上 22:30 被执行，可以用此特性在玩家较少的时段来备份服务器数据
+#   你还可以设置让指令在固定星期几来执行，例如 - Day: Monday
+# Repeat: (true/false) 如果设置为 false, 这个事件只会被执行一次，无视那些时间间隔或者特定时间设置
+# MinPlayers: (amount) 全服玩家只有大于这个数量才会执行此事件
+# MinPlayersCommands: 若全服玩家没有达到这个数量门槛，实际执行的指令
+# MaxPlayers: (amount) 全服玩家只有小于这个数量才会执行此事件
+# Feedback: (true/false) 设置为 false 将不会向控制台输出任何反馈消息
+# Commands: 执行的指令
+#   如果指令开头是 msg! 而且指令中有玩家名，如果该玩家在线，玩家将收到该消息
+#   如果指令开头是 broadcast! 那么消息将会被发送到全服玩家
+#   如果指令开头是 actionbar! 那么消息将以actionbar消息的形式会被发送到全服玩家
+#   如果指令开头是 title! 那么消息将以Title消息的形式会被发送到全服玩家
+#   如果指令开头是 subtitle! 那么消息将以subtitle消息的形式会被发送到全服玩家
+#   如果指令开头是 kickall! 那么玩家将被全部踢出
+#   如果指令开头是 per:[权限名]! 那么指令只有玩家拥有相应权限时才执行，当目标玩家未指定时此项将失效，举例: perm:cmi.announce.vip! broadcast! 如果你能看到此消息说明你是VIP玩家
+#   如果指令开头是 moneycost:[amount]! 那么指令只有玩家拥有足够金钱时才执行
+#   如果指令开头是 expcost:[amount]! 那么指令只有玩家拥有足够经验时才执行
+#   如果指令开头是 allPlayers! 那么指令会被所有玩家执行一遍当然指令中必须包含玩家名变量 [allPlayers]
+#   指令中含有 'delay! 5' 将会延后5秒再执行指令的余下部分
+#   [randomPlayer] 变量代表服务器中的随机在线玩家（该玩家必须没有 cmi.scheduler.exclude 权限） 可以用来制作定时给予某一随机玩家在线奖励，例如: - cmi give [randomPlayer] diamond %rand/1-5% 最后那个变量代表从1到5之间的随机数字
+# 变量支持 PlaceHolderAPI 变量
+# 欲了解更多信息请参考 https://www.zrips.net/cmi/commands/specialized/
+
+saveMaps:
+  Enabled: false
+  Delay: 600
+  Repeat: true
+  Commands:
+  - save-all
+GiveDiamonds:
+  Enabled: false
+  MinPlayers: 3
+  FeedBack: true
+  Repeat: true
+  PerformOn:
+    '1':
+      Hour: 18
+  Commands:
+  - cmi give [randomPlayer] diamond %rand/1-5%
+  - msg! [randomPlayer] &e你获得了钻石！
+StopServer:
+  Enabled: false
+  PerformOn:
+    '1':
+      Hour: 3
+      Minute: 59
+      Second: 30
+  Commands:
+  - actionbar! &e服务器将在 &630 &e秒内关服！
+  - delay! 5
+  - actionbar! &e服务器将在 &625 &e秒内关服！
+  - delay! 5
+  - actionbar! &e服务器将在 &620 &e秒内关服！
+  - delay! 5
+  - actionbar! &e服务器将在 &615 &e秒内关服！
+  - delay! 5
+  - actionbar! &e服务器将在 &610 &e秒内关服！
+  - delay! 5
+  - actionbar! &e服务器将在 &65 &e秒内关服！
+  - delay! 1
+  - actionbar! &e服务器将在 &64 &e秒内关服！
+  - delay! 1
+  - actionbar! &e服务器将在 &63 &e秒内关服！
+  - delay! 1
+  - actionbar! &e服务器将在 &62 &e秒内关服！
+  - delay! 1
+  - actionbar! &e服务器将在 &61 &e秒内关服！
+  - delay! 1
+  - kickall! &e已关服，请耐心等待服务器重启
+  - delay! 1
+  - stop
+AllInOneJustExample:
+  Enabled: false
+  MinPlayers: 3
+  MaxPlayers: 10
+  FeedBack: false
+  Delay: 600
+  Repeat: true
+  PerformOn:
+    '1':
+      Month: 12
+      Day: monday
+      Hour: 18
+      Minute: 36
+      Second: 15
+    '2':
+      Hour: 18
+  Commands:
+  - cmi give [randomPlayer] diamond %rand/1-5%
+  - msg! [randomPlayer] &e你获得了钻石！
+  - broadcast! &e大家猜猜 [randomPlayer] 获得了什么！
+  - delay! 1
+  - actionbar! &e服务器将在 &61 &e秒内关服！
+  - kickall! &e已关服，请耐心等待服务器重启
+Announcer:
+  Enabled: false
+  MinPlayers: 1
+  FeedBack: false
+  Delay: 600
+  Repeat: true
+  Randomize: true
+  Commands:
+  - broadcast! &e欲参考服务器规章制度请使用 &e/rules
+  - broadcast! &e欲获得礼包请使用 &e/kits
+  - broadcast! &e不知道服务器的玩法？请咨询服务器管理员
+  - broadcast! &e不许在本服打广告，否则你将被封禁
+    

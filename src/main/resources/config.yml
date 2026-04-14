@@ -10,51 +10,78 @@ settings:
   # 启用或禁用命令反馈消息
   enable-feedback: true
 
-# 管理员菜单配置
-admin-menu:
-  title: "&6EssentialsC 管理菜单"
+# 功能方块菜单配置
+blocks-menu:
+  title: "&6&lEssentialsC &8- &e&l功能方块菜单"
   items:
-    time-control:
+    workbench:
       slot: 10
-      material: CLOCK
-      name: "&e时间控制"
+      material: CRAFTING_TABLE
+      name: "&e工作台"
       lore:
-        - "&7左键: 设为白天"
-        - "&7右键: 设为夜晚"
-    weather-control:
+        - "&7/workbench"
+        - "&7打开工作台"
+      permission: essentialsc.command.workbench
+    anvil:
       slot: 11
-      material: SUNFLOWER
-      name: "&e天气控制"
-      lore:
-        - "&7左键: 晴天"
-        - "&7右键: 雨天"
-    heal-self:
-      slot: 13
-      material: GOLDEN_APPLE
-      name: "&a治疗自己"
-      lore:
-        - "&7补满生命值和饱食度"
-    feed-self:
-      slot: 14
-      material: BREAD
-      name: "&6喂饱自己"
-      lore:
-        - "&7补满饱食度"
-    repair-hand:
-      slot: 15
       material: ANVIL
-      name: "&b修复手持物品"
+      name: "&e铁砧"
       lore:
-        - "&7修复当前手持物品"
-    vanish:
+        - "&7/anvil"
+        - "&7打开铁砧"
+      permission: essentialsc.command.anvil
+    cartographytable:
+      slot: 19
+      material: CARTOGRAPHY_TABLE
+      name: "&e制图台"
+      lore:
+        - "&7/cartographytable"
+        - "&7打开制图台"
+      permission: essentialsc.command.cartographytable
+    grindstone:
+      slot: 20
+      material: GRINDSTONE
+      name: "&e砂轮"
+      lore:
+        - "&7/grindstone"
+        - "&7打开砂轮"
+      permission: essentialsc.command.grindstone
+    loom:
       slot: 21
-      material: ENDER_PEARL
-      name: "&d隐身模式"
+      material: LOOM
+      name: "&e织布机"
       lore:
-        - "&7点击切换隐身状态"
-    reload:
+        - "&7/loom"
+        - "&7打开织布机"
+      permission: essentialsc.command.loom
+    smithingtable:
       slot: 22
-      material: BOOK
-      name: "&c重载配置"
+      material: SMITHING_TABLE
+      name: "&e锻造台"
       lore:
-        - "&7重新加载配置文件"
+        - "&7/smithingtable"
+        - "&7打开锻造台"
+      permission: essentialsc.command.smithingtable
+    stonecutter:
+      slot: 23
+      material: STONECUTTER
+      name: "&e切石机"
+      lore:
+        - "&7/stonecutter"
+        - "&7打开切石机"
+      permission: essentialsc.command.stonecutter
+    enderchest:
+      slot: 31
+      material: ENDER_CHEST
+      name: "&e末影箱"
+      lore:
+        - "&7/enderchest"
+        - "&7打开末影箱"
+      permission: essentialsc.command.enderchest
+
+# 潜影盒设置
+shulkerbox:
+  # 潜影盒默认标题（当潜影盒没有自定义名称时使用）
+  # 支持颜色代码（使用 & 符号）
+  # 留空则使用 "Shulker Box"（客户端语言）
+  default-title: "&e潜影盒"

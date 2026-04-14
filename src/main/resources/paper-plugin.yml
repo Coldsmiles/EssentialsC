@@ -55,20 +55,23 @@ permissions:
   essentialsc.command.seen:
     description: Allows use of /seen command
     default: op
-  essentialsc.command.admin:
-    description: Allows use of /admin command
-    default: op
   essentialsc.command.feed:
     description: Allows use of /feed command
     default: op
   essentialsc.command.repair:
     description: Allows use of /repair command
     default: op
+  essentialsc.command.blocks:
+    description: Allows use of /essc blocks command
+    default: true
   essentialsc.command.help:
     description: Allows use of /essentialsc help command
     default: true
   essentialsc.command.reload:
     description: Allows use of /essc reload command
+    default: op
+  essentialsc.shulkerbox.open:
+    description: Allows right-click to open shulker boxes without placing them
     default: op
   essentialsc.*:
     description: All EssentialsC permissions
@@ -89,8 +92,8 @@ permissions:
       essentialsc.command.heal: true
       essentialsc.command.vanish: true
       essentialsc.command.seen: true
-      essentialsc.command.admin: true
       essentialsc.command.reload: true
       essentialsc.command.feed: true
       essentialsc.command.repair: true
       essentialsc.command.help: true
+      essentialsc.shulkerbox.open: true

@@ -21,7 +21,6 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
     static {
         COMMAND_CACHE.put("workbench", new WorkbenchCommand());
         COMMAND_CACHE.put("anvil", new AnvilCommand());
-        COMMAND_CACHE.put("enchantingtable", new EnchantingTableCommand());
         COMMAND_CACHE.put("cartographytable", new CartographyTableCommand());
         COMMAND_CACHE.put("grindstone", new GrindstoneCommand());
         COMMAND_CACHE.put("loom", new LoomCommand());
@@ -36,7 +35,7 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
         COMMAND_CACHE.put("seen", new SeenCommand());
         COMMAND_CACHE.put("feed", new FeedCommand());
         COMMAND_CACHE.put("repair", new RepairCommand());
-        COMMAND_CACHE.put("admin", new AdminMenuCommand());
+        COMMAND_CACHE.put("blocks", new BlocksMenuCommand());
     }
     
     public HelpCommand() {
@@ -49,14 +48,7 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
             String subCommand = args[0].toLowerCase();
             
             // 管理相关
-            if (subCommand.equals("admin")) {
-                if (!player.hasPermission("essentialsc.command.admin")) {
-                    player.sendMessage(getLang().getString("messages.no-permission"));
-                    return true;
-                }
-                COMMAND_CACHE.get("admin").execute(player, new String[]{});
-                return true;
-            } else if (subCommand.equals("reload")) {
+            if (subCommand.equals("reload")) {
                 if (!player.hasPermission("essentialsc.command.reload")) {
                     player.sendMessage(getLang().getString("messages.no-permission"));
                     return true;
@@ -119,10 +111,6 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
             blockCommands.append(lang.getString("help.commands.anvil")).append("\n");
             hasBlockCommands = true;
         }
-        if (player.hasPermission("essentialsc.command.enchantingtable")) {
-            blockCommands.append(lang.getString("help.commands.enchantingtable")).append("\n");
-            hasBlockCommands = true;
-        }
         if (player.hasPermission("essentialsc.command.cartographytable")) {
             blockCommands.append(lang.getString("help.commands.cartographytable")).append("\n");
             hasBlockCommands = true;
@@ -182,10 +170,6 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
             otherCommands.append(lang.getString("help.commands.seen")).append("\n");
             hasOtherCommands = true;
         }
-        if (player.hasPermission("essentialsc.command.admin")) {
-            otherCommands.append(lang.getString("help.commands.admin")).append("\n");
-            hasOtherCommands = true;
-        }
         
         if (hasOtherCommands) {
             player.sendMessage(lang.getString("help.section-other"));
@@ -203,7 +187,6 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
     private String getActualCommand(String alias) {
         return switch (alias) {
             case "wb" -> "workbench";
-            case "enchant", "et" -> "enchantingtable";
             case "cartography", "ct" -> "cartographytable";
             case "gs" -> "grindstone";
             case "smithing", "st" -> "smithingtable";
@@ -231,14 +214,11 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
             
             // 所有可能的子命令及其权限（包括别名）
             String[][] subCommands = {
-                {"admin", "essentialsc.command.admin"},
                 {"reload", "essentialsc.command.reload"},
+                {"blocks", "essentialsc.command.blocks"},
                 {"workbench", "essentialsc.command.workbench"},
                 {"wb", "essentialsc.command.workbench"},
                 {"anvil", "essentialsc.command.anvil"},
-                {"enchantingtable", "essentialsc.command.enchantingtable"},
-                {"enchant", "essentialsc.command.enchantingtable"},
-                {"et", "essentialsc.command.enchantingtable"},
                 {"cartographytable", "essentialsc.command.cartographytable"},
                 {"cartography", "essentialsc.command.cartographytable"},
                 {"ct", "essentialsc.command.cartographytable"},
