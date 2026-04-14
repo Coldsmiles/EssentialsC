@@ -68,5 +68,8 @@ Thumbs.db
 # Test server (不要上传测试服务器文件)
 test-server/
 
+# Reference files (不要上传参考资料)
+references/
+
 # Plugin build output
 *.jar.asc
