@@ -14,6 +14,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.List;
+
 public class BlocksMenuCommand extends BaseCommand implements Listener {
 
     private static final int MENU_SIZE = 36;
@@ -50,7 +52,7 @@ public class BlocksMenuCommand extends BaseCommand implements Listener {
     }
 
     private void openMenu(Player player) {
-        String title = plugin.getConfig().getString("blocks-menu.title", "&6&lEssentialsC &8- &e&l鍔熻兘鏂瑰潡鑿滃崟");
+        String title = plugin.getConfig().getString("blocks-menu.title", "&6&lEssentialsC &8- &e&lBlocks Menu");
         Inventory menu = new BlocksMenuHolder(translateColor(title)).getInventory();
 
         var itemsConfig = plugin.getConfig().getConfigurationSection("blocks-menu.items");
@@ -76,7 +78,7 @@ public class BlocksMenuCommand extends BaseCommand implements Listener {
             }
 
             String name = translateColor(section.getString("name", "&fItem"));
-            java.util.List<String> lore = section.getStringList("lore").stream()
+            List<String> lore = section.getStringList("lore").stream()
                 .map(this::translateColor)
                 .toList();
 
@@ -86,7 +88,7 @@ public class BlocksMenuCommand extends BaseCommand implements Listener {
         player.openInventory(menu);
     }
 
-    private void addItem(Inventory inv, int slot, Material material, String name, java.util.List<String> lore, String key) {
+    private void addItem(Inventory inv, int slot, Material material, String name, List<String> lore, String key) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
@@ -115,9 +117,10 @@ public class BlocksMenuCommand extends BaseCommand implements Listener {
 
         ItemMeta meta = clicked.getItemMeta();
         String key = meta.getPersistentDataContainer().get(this.blockKey, PersistentDataType.STRING);
-        if (key != null && HelpCommand.COMMAND_CACHE.containsKey(key)) {
+        BaseCommand blockCommand = CommandRegistry.getCommand(key);
+        if (blockCommand != null) {
             playBlockOpenSound(player, key);
-            HelpCommand.COMMAND_CACHE.get(key).execute(player, new String[0]);
+            blockCommand.execute(player, new String[0]);
         }
     }
 
