@@ -33,20 +33,23 @@ public abstract class BaseCommand implements CommandExecutor {
     
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage(getLang().getString("messages.player-only"));
-            return true;
+        if (sender instanceof Player player) {
+            if (!player.hasPermission(permission)) {
+                String message = getLang().getString("messages.no-permission", 
+                    java.util.Map.of("permission", permission));
+                player.sendMessage(message);
+                return true;
+            }
+            return execute(player, args);
+        } else {
+            return executeConsole(sender, args);
         }
-        
-        if (!player.hasPermission(permission)) {
-            String message = getLang().getString("messages.no-permission", 
-                java.util.Map.of("permission", permission));
-            player.sendMessage(message);
-            return true;
-        }
-        
-        return execute(player, args);
     }
     
     protected abstract boolean execute(Player player, String[] args);
+    
+    protected boolean executeConsole(CommandSender sender, String[] args) {
+        sender.sendMessage(getLang().getString("messages.player-only"));
+        return true;
+    }
 }

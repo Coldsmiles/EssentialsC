@@ -1,10 +1,11 @@
 name: EssentialsC
 description: 精简版基础插件
-version: '${version}'
+version: ${version}
 
 main: cn.infstar.essentialsC.EssentialsC
 api-version: '1.21'
 load: POSTWORLD
+folia-supported: true
 
 authors: [ Coldsmiles_7 ]
 website: www.infstar.cn
@@ -73,6 +74,9 @@ permissions:
   essentialsc.shulkerbox.open:
     description: Allows right-click to open shulker boxes without placing them
     default: op
+  essentialsc.mobdrops.enderman:
+    description: Allows control of enderman drops
+    default: op
   essentialsc.*:
     description: All EssentialsC permissions
     default: false
@@ -97,3 +101,4 @@ permissions:
       essentialsc.command.repair: true
       essentialsc.command.help: true
       essentialsc.shulkerbox.open: true
+      essentialsc.mobdrops.enderman: true

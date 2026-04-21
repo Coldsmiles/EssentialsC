@@ -85,3 +85,20 @@ shulkerbox:
   # 支持颜色代码（使用 & 符号）
   # 留空则使用 "Shulker Box"（客户端语言）
   default-title: "&e潜影盒"
+
+# JEI/REI 配方同步设置（MC 1.21.2+）
+# 解决 Fabric/NeoForge 客户端配方不同步问题
+jei-sync:
+  # 是否启用 JEI 配方同步功能
+  enabled: true
+  # 是否在控制台显示同步日志
+  debug: true
+  # 是否向玩家发送同步提示消息
+  send-player-message: true
+
+# 生物掉落物控制
+mob-drops:
+  # 末影人掉落物控制
+  enderman:
+    # 是否允许末影人死亡后掉落物品和经验
+    enabled: true

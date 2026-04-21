@@ -14,6 +14,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,16 +49,56 @@ public class ShulkerBoxListener implements Listener {
     );
     
     /**
+     * 潜影盒 Inventory Holder - 用于识别自定义 inventory
+     */
+    private static class ShulkerBoxHolder implements org.bukkit.inventory.InventoryHolder {
+        private final Inventory inventory;
+        private final ItemStack shulkerBoxItem;
+        private final ItemStack[] currentContents; // 实时追踪的物品内容
+        
+        ShulkerBoxHolder(ItemStack shulkerBoxItem, String title) {
+            this.shulkerBoxItem = shulkerBoxItem;
+            this.inventory = Bukkit.createInventory(this, 27, title);
+            this.currentContents = new ItemStack[27];
+        }
+        
+        @Override
+        public @NotNull Inventory getInventory() {
+            return this.inventory;
+        }
+        
+        public ItemStack getShulkerBoxItem() {
+            return shulkerBoxItem;
+        }
+        
+        /**
+         * 更新指定槽位的物品（供外部调用）
+         */
+        public void updateSlot(int slot, ItemStack item) {
+            if (slot >= 0 && slot < 27) {
+                currentContents[slot] = item;
+            }
+        }
+        
+        /**
+         * 获取当前追踪的所有物品内容
+         */
+        public ItemStack[] getCurrentContents() {
+            return currentContents.clone();
+        }
+    }
+    
+    /**
      * 潜影盒数据记录
      */
     private static class ShulkerBoxData {
+        int slotIndex;              // 玩家背包中的槽位索引
         ItemStack originalSnapshot; // 打开时的物品快照（用于验证）
-        ItemStack currentItem;      // 当前物品引用（用于更新）
         int totalItems;             // 打开时的物品总数（用于防刷）
         
-        ShulkerBoxData(ItemStack snapshot, ItemStack current, int items) {
+        ShulkerBoxData(int slot, ItemStack snapshot, int items) {
+            this.slotIndex = slot;
             this.originalSnapshot = snapshot;
-            this.currentItem = current;
             this.totalItems = items;
         }
     }
@@ -94,13 +135,30 @@ public class ShulkerBoxListener implements Listener {
         // 取消默认行为（防止放置潜影盒）
         event.setCancelled(true);
         
-        // 打开潜影盒
-        openShulkerBox(player, item);
+        // 查找物品在玩家背包中的槽位
+        int slotIndex = -1;
+        for (int i = 0; i < player.getInventory().getSize(); i++) {
+            ItemStack invItem = player.getInventory().getItem(i);
+            if (invItem != null && invItem.isSimilar(item)) {
+                slotIndex = i;
+                break;
+            }
+        }
+        
+        // 打开潜影盒（传入槽位索引）
+        openShulkerBox(player, item, slotIndex);
     }
     
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
         if (!(event.getPlayer() instanceof Player player)) {
+            return;
+        }
+        
+        Inventory closedInventory = event.getInventory();
+        
+        // 检查是否是潜影盒 inventory
+        if (!(closedInventory.getHolder(false) instanceof ShulkerBoxHolder holder)) {
             return;
         }
         
@@ -111,58 +169,121 @@ public class ShulkerBoxListener implements Listener {
             return;
         }
         
-        Inventory closedInventory = event.getInventory();
-        ItemStack currentItem = data.currentItem;
-        
-        // 验证物品是否还存在
-        if (currentItem == null || currentItem.getType().isAir()) {
-            // 物品已不存在，丢弃 inventory 中的所有物品
-            for (ItemStack item : closedInventory.getContents()) {
-                if (item != null && !item.getType().isAir()) {
-                    player.getWorld().dropItemNaturally(player.getLocation(), item);
-                }
-            }
-            return;
-        }
-        
-        // 更新潜影盒物品中的内容
-        if (currentItem.getItemMeta() instanceof BlockStateMeta blockStateMeta) {
-            if (blockStateMeta.getBlockState() instanceof ShulkerBox shulkerBox) {
-                // 将 inventory 的内容复制回潜影盒
-                ItemStack[] contents = closedInventory.getContents();
-                for (int i = 0; i < 27 && i < contents.length; i++) {
-                    shulkerBox.getInventory().setItem(i, contents[i]);
-                }
-                
-                // 更新物品元数据
-                blockStateMeta.setBlockState(shulkerBox);
-                currentItem.setItemMeta(blockStateMeta);
-            }
-        }
+        plugin.getLogger().info("=== 潜影盒关闭（数据已在点击时实时保存） ===");
     }
     
     @EventHandler
-    public void onInventoryClick(InventoryClickEvent event) {
+    public void onInventoryOpen(org.bukkit.event.inventory.InventoryOpenEvent event) {
+        if (!(event.getPlayer() instanceof Player player)) {
+            return;
+        }
+        
+        Inventory openedInventory = event.getInventory();
+        if (openedInventory.getHolder(false) instanceof ShulkerBoxHolder) {
+            plugin.getLogger().info("[Open] ✅ 潜影盒 inventory 已打开");
+        }
+    }
+    
+    @EventHandler(priority = org.bukkit.event.EventPriority.LOWEST)
+    public void onInventoryClickDebug(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) {
             return;
         }
         
-        // 检查是否是玩家打开的潜影盒（使用 get 避免两次查找）
-        if (openShulkerBoxes.get(player.getUniqueId()) == null) {
+        Inventory clickedInventory = event.getClickedInventory();
+        if (clickedInventory == null) {
             return;
         }
         
-        // 获取点击的物品
+        if (clickedInventory.getHolder(false) instanceof ShulkerBoxHolder) {
+            plugin.getLogger().info("[Click-LOWEST] 检测到点击事件 | 槽位: " + event.getSlot() + 
+                " | 物品: " + (event.getCurrentItem() != null ? event.getCurrentItem().getType() : "null"));
+        }
+    }
+        if (!(event.getWhoClicked() instanceof Player player)) {
+            return;
+        }
+        
+        Inventory clickedInventory = event.getClickedInventory();
+        if (clickedInventory == null) {
+            return;
+        }
+        
+        // 检查是否是潜影盒 inventory
+        if (!(clickedInventory.getHolder(false) instanceof ShulkerBoxHolder holder)) {
+            return;
+        }
+        
+        UUID playerId = player.getUniqueId();
+        ShulkerBoxData data = openShulkerBoxes.get(playerId);
+        if (data == null) {
+            return;
+        }
+        
+        // 阻止嵌套潜影盒
         ItemStack clickedItem = event.getCurrentItem();
-        if (clickedItem == null) {
+        if (clickedItem != null && isShulkerBox(clickedItem)) {
+            event.setCancelled(true);
+            player.sendMessage(EssentialsC.getLangManager().getString("prefix") + 
+                EssentialsC.getLangManager().getString("messages.shulkerbox-nested"));
             return;
         }
         
-        // 检查是否是潜影盒，如果是则阻止放置
-        if (isShulkerBox(clickedItem)) {
-            event.setCancelled(true);
-            player.sendMessage("§c不能在潜影盒中放入另一个潜影盒！");
-        }
+        // ✅ CMILib 方式：延迟 1 tick 后立即保存到潜影盒 NBT
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            plugin.getLogger().info("[Click] === 开始处理点击事件 ===");
+            
+            // 读取当前 inventory 内容
+            ItemStack[] contents = clickedInventory.getContents();
+            
+            // 调试
+            int nonEmpty = 0;
+            StringBuilder items = new StringBuilder();
+            for (int i = 0; i < contents.length; i++) {
+                if (contents[i] != null && !contents[i].getType().isAir()) {
+                    nonEmpty++;
+                    items.append(String.format("\n  [%d] %s x%d", i, contents[i].getType(), contents[i].getAmount()));
+                }
+            }
+            plugin.getLogger().info("[Click] 非空槽位: " + nonEmpty);
+            plugin.getLogger().info("[Click] 物品详情:" + items);
+            
+            // 获取玩家背包中的潜影盒物品
+            ItemStack shulkerItem = null;
+            if (data.slotIndex >= 0 && data.slotIndex < player.getInventory().getSize()) {
+                shulkerItem = player.getInventory().getItem(data.slotIndex);
+                plugin.getLogger().info("[Click] 槽位 " + data.slotIndex + " 物品: " + 
+                    (shulkerItem != null ? shulkerItem.getType() : "null"));
+            }
+            
+            if (shulkerItem == null || shulkerItem.getType().isAir()) {
+                plugin.getLogger().warning("[Click] ❌ 潜影盒物品不存在");
+                return;
+            }
+            
+            // 更新潜影盒的 BlockState
+            if (shulkerItem.getItemMeta() instanceof BlockStateMeta blockStateMeta) {
+                if (blockStateMeta.getBlockState() instanceof ShulkerBox shulkerBox) {
+                    // 设置 inventory 内容
+                    for (int i = 0; i < 27 && i < contents.length; i++) {
+                        shulkerBox.getInventory().setItem(i, contents[i]);
+                    }
+                    
+                    // 更新元数据
+                    blockStateMeta.setBlockState(shulkerBox);
+                    shulkerItem.setItemMeta(blockStateMeta);
+                    
+                    // 写回玩家背包
+                    player.getInventory().setItem(data.slotIndex, shulkerItem);
+                    
+                    plugin.getLogger().info("[Click] ✅ 已实时保存 " + nonEmpty + " 个物品槽");
+                } else {
+                    plugin.getLogger().warning("[Click] ❌ BlockState 不是 ShulkerBox");
+                }
+            } else {
+                plugin.getLogger().warning("[Click] ❌ 没有 BlockStateMeta");
+            }
+        });
     }
     
 
@@ -177,7 +298,7 @@ public class ShulkerBoxListener implements Listener {
     /**
      * 打开潜影盒
      */
-    private void openShulkerBox(Player player, ItemStack shulkerBox) {
+    private void openShulkerBox(Player player, ItemStack shulkerBox, int slotIndex) {
         // 获取潜影盒的 BlockStateMeta
         if (!(shulkerBox.getItemMeta() instanceof BlockStateMeta blockStateMeta)) {
             return;
@@ -216,17 +337,18 @@ public class ShulkerBoxListener implements Listener {
             }
         }
         
-        // 创建一个新的 inventory（基于潜影盒的内容）
-        Inventory inventory = Bukkit.createInventory(null, 27, title);
+        // 创建 ShulkerBoxHolder（会自动创建 inventory）
+        ShulkerBoxHolder holder = new ShulkerBoxHolder(shulkerBox, title);
+        Inventory inventory = holder.getInventory();
         
-        // 复制潜影盒的内容到新 inventory
+        // 复制潜影盒的内容到 inventory
         ItemStack[] contents = shulkerBoxBlock.getInventory().getContents();
         for (int i = 0; i < 27 && i < contents.length; i++) {
             inventory.setItem(i, contents[i]);
         }
         
-        // 记录玩家打开的潜影盒（包含快照和当前引用）
-        openShulkerBoxes.put(player.getUniqueId(), new ShulkerBoxData(snapshot, shulkerBox, totalItems));
+        // 记录玩家打开的潜影盒（保存槽位索引和快照）
+        openShulkerBoxes.put(player.getUniqueId(), new ShulkerBoxData(slotIndex, snapshot, totalItems));
         
         // 打开 inventory
         player.openInventory(inventory);

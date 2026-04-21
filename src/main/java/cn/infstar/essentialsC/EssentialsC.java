@@ -1,7 +1,6 @@
 package cn.infstar.essentialsC;
 
 import cn.infstar.essentialsC.commands.*;
-import cn.infstar.essentialsC.listeners.ShulkerBoxListener;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -15,17 +14,12 @@ public final class EssentialsC extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        // 初始化语言管理器
         langManager = new LangManager(this);
-        
-        // 注册监听器
+        registerPluginChannels();
         registerListeners();
-        
-        // 注册命令
         registerCommands();
         
-        getLogger().info("EssentialsC 插件已启用！");
-        getLogger().info("当前语言: " + langManager.getCurrentLanguage());
+        getLogger().info("插件已启用！版本: " + getDescription().getVersion());
     }
 
     @Override
@@ -33,52 +27,147 @@ public final class EssentialsC extends JavaPlugin {
         getLogger().info("EssentialsC 插件已禁用！");
     }
     
-    /**
-     * 获取语言管理器实例
-     */
     public static LangManager getLangManager() {
         return langManager;
     }
     
     /**
-     * 注册所有监听器
+     * 注册 JEI 配方同步所需的插件频道
      */
+    private void registerPluginChannels() {
+        org.bukkit.plugin.messaging.Messenger messenger = getServer().getMessenger();
+        // 注册 Fabric 和 NeoForge 的配方同步频道
+        messenger.registerOutgoingPluginChannel(this, "fabric:recipe_sync");
+        messenger.registerOutgoingPluginChannel(this, "neoforge:recipe_content");
+    }
+    
     private void registerListeners() {
-        // 注册潜影盒右键打开监听器
-        new ShulkerBoxListener(this);
-        getLogger().info("成功注册监听器！");
+        if (registerListener("cn.infstar.essentialsC.listeners.ShulkerBoxListener")) {
+            getLogger().info("- 潜影盒模块");
+        }
+        
+        if (registerListener("cn.infstar.essentialsC.listeners.JeiRecipeSyncListener")) {
+            getLogger().info("- JEI 配方同步");
+        }
+        
+        if (registerListener("cn.infstar.essentialsC.listeners.MobDropListener")) {
+            try {
+                Class.forName("cn.infstar.essentialsC.listeners.MobDropMenuListener");
+                new cn.infstar.essentialsC.listeners.MobDropMenuListener(this);
+            } catch (ClassNotFoundException e) {
+            }
+            getLogger().info("- 生物掉落控制");
+        }
+    }
+    
+    private boolean registerListener(String className) {
+        try {
+            Class<?> listenerClass = Class.forName(className);
+            Object listenerInstance = listenerClass.getConstructor(EssentialsC.class).newInstance(this);
+            getServer().getPluginManager().registerEvents((org.bukkit.event.Listener) listenerInstance, this);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
     
     private void registerCommands() {
         try {
-            // 获取 CommandMap
             Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
             bukkitCommandMap.setAccessible(true);
             org.bukkit.command.CommandMap commandMap = (org.bukkit.command.CommandMap) bukkitCommandMap.get(Bukkit.getServer());
             
-            // 注册所有命令（使用 CMI 风格：独立命令 + 别名）
-            registerCommandWithAliases(commandMap, "workbench", new WorkbenchCommand(), "wb");
-            registerCommandWithAliases(commandMap, "anvil", new AnvilCommand());
-            registerCommandWithAliases(commandMap, "cartographytable", new CartographyTableCommand(), "ct", "cartography");
-            registerCommandWithAliases(commandMap, "grindstone", new GrindstoneCommand(), "gs");
-            registerCommandWithAliases(commandMap, "loom", new LoomCommand());
-            registerCommandWithAliases(commandMap, "smithingtable", new SmithingTableCommand(), "st", "smithing");
-            registerCommandWithAliases(commandMap, "stonecutter", new StonecutterCommand(), "sc");
-            registerCommandWithAliases(commandMap, "enderchest", new EnderChestCommand(), "ec");
-            registerCommandWithAliases(commandMap, "hat", new HatCommand());
-            registerCommandWithAliases(commandMap, "suicide", new SuicideCommand(), "die");
-            registerCommandWithAliases(commandMap, "fly", new FlyCommand());
-            registerCommandWithAliases(commandMap, "heal", new HealCommand());
-            registerCommandWithAliases(commandMap, "vanish", new VanishCommand(), "v");
-            registerCommandWithAliases(commandMap, "seen", new SeenCommand(), "info");
-            registerCommandWithAliases(commandMap, "feed", new FeedCommand());
-            registerCommandWithAliases(commandMap, "repair", new RepairCommand(), "rep");
-            registerCommandWithAliases(commandMap, "essentialsc", new HelpCommand(), "essc");
+            int commandCount = 0;
             
-            getLogger().info("成功注册所有命令！");
+            if (classExists("cn.infstar.essentialsC.commands.WorkbenchCommand")) {
+                registerCommandWithAliases(commandMap, "workbench", new WorkbenchCommand(), "wb");
+                commandCount++;
+            }
+            if (classExists("cn.infstar.essentialsC.commands.AnvilCommand")) {
+                registerCommandWithAliases(commandMap, "anvil", new AnvilCommand());
+                commandCount++;
+            }
+            if (classExists("cn.infstar.essentialsC.commands.CartographyTableCommand")) {
+                registerCommandWithAliases(commandMap, "cartographytable", new CartographyTableCommand(), "ct", "cartography");
+                commandCount++;
+            }
+            if (classExists("cn.infstar.essentialsC.commands.GrindstoneCommand")) {
+                registerCommandWithAliases(commandMap, "grindstone", new GrindstoneCommand(), "gs");
+                commandCount++;
+            }
+            if (classExists("cn.infstar.essentialsC.commands.LoomCommand")) {
+                registerCommandWithAliases(commandMap, "loom", new LoomCommand());
+                commandCount++;
+            }
+            if (classExists("cn.infstar.essentialsC.commands.SmithingTableCommand")) {
+                registerCommandWithAliases(commandMap, "smithingtable", new SmithingTableCommand(), "st", "smithing");
+                commandCount++;
+            }
+            if (classExists("cn.infstar.essentialsC.commands.StonecutterCommand")) {
+                registerCommandWithAliases(commandMap, "stonecutter", new StonecutterCommand(), "sc");
+                commandCount++;
+            }
+            if (classExists("cn.infstar.essentialsC.commands.EnderChestCommand")) {
+                registerCommandWithAliases(commandMap, "enderchest", new EnderChestCommand(), "ec");
+                commandCount++;
+            }
+            if (classExists("cn.infstar.essentialsC.commands.BlocksMenuCommand")) {
+                registerCommandWithAliases(commandMap, "blocks", new BlocksMenuCommand());
+                commandCount++;
+            }
+            
+            if (classExists("cn.infstar.essentialsC.commands.FlyCommand")) {
+                registerCommandWithAliases(commandMap, "fly", new FlyCommand());
+                commandCount++;
+            }
+            if (classExists("cn.infstar.essentialsC.commands.HealCommand")) {
+                registerCommandWithAliases(commandMap, "heal", new HealCommand());
+                commandCount++;
+            }
+            if (classExists("cn.infstar.essentialsC.commands.FeedCommand")) {
+                registerCommandWithAliases(commandMap, "feed", new FeedCommand());
+                commandCount++;
+            }
+            if (classExists("cn.infstar.essentialsC.commands.VanishCommand")) {
+                registerCommandWithAliases(commandMap, "vanish", new VanishCommand(), "v");
+                commandCount++;
+            }
+            if (classExists("cn.infstar.essentialsC.commands.SeenCommand")) {
+                registerCommandWithAliases(commandMap, "seen", new SeenCommand(), "info");
+                commandCount++;
+            }
+            if (classExists("cn.infstar.essentialsC.commands.HatCommand")) {
+                registerCommandWithAliases(commandMap, "hat", new HatCommand());
+                commandCount++;
+            }
+            if (classExists("cn.infstar.essentialsC.commands.SuicideCommand")) {
+                registerCommandWithAliases(commandMap, "suicide", new SuicideCommand(), "die");
+                commandCount++;
+            }
+            if (classExists("cn.infstar.essentialsC.commands.RepairCommand")) {
+                registerCommandWithAliases(commandMap, "repair", new RepairCommand(), "rep");
+                commandCount++;
+            }
+            
+            if (classExists("cn.infstar.essentialsC.commands.MobDropCommand")) {
+                registerCommandWithAliases(commandMap, "mobdrops", new MobDropCommand());
+                commandCount++;
+            }
+            
+            registerCommandWithAliases(commandMap, "essentialsc", new HelpCommand(), "essc");
+            commandCount++;
         } catch (Exception e) {
             getLogger().severe("无法注册命令: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+    
+    private boolean classExists(String className) {
+        try {
+            Class.forName(className);
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
         }
     }
     

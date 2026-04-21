@@ -2,7 +2,7 @@
 # 中文语言文件
 
 # 插件前缀
-prefix: "&6[EssentialsC] &r"
+prefix: "&7[&6EssentialsC&7]&f:"
 
 # 命令消息
 messages:
@@ -33,6 +33,14 @@ messages:
   no-permission-repair-all: "&c你没有权限修复所有物品！"
   player-not-found: "&c未找到玩家: {player}"
   no-permission-others: "&c你没有权限治疗其他玩家！"
+  seen-usage-console: "&c用法: /seen <玩家名>"
+  unknown-subcommand: "&c未知子命令: {command}"
+  help-usage: "&7使用 §f/essc help &7查看所有可用命令"
+  mobdrop-save-failed: "&c保存配置失败: {error}"
+  mobdrop-toggled: "&a末影人掉落已{status}！"
+  shulkerbox-nested: "&c不能在潜影盒中放入另一个潜影盒！"
+  jei-sync-fabric: "&6JEI-FIX&8(&bFabric&8):&e正在同步合成配方..."
+  jei-sync-neoforge: "&6JEI-FIX&8(&bNeoForge&8):&e正在同步合成配方..."
 
 # 帮助命令
 help:

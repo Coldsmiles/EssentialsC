@@ -36,6 +36,7 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
         COMMAND_CACHE.put("feed", new FeedCommand());
         COMMAND_CACHE.put("repair", new RepairCommand());
         COMMAND_CACHE.put("blocks", new BlocksMenuCommand());
+        COMMAND_CACHE.put("mobdrops", new MobDropCommand());
     }
     
     public HelpCommand() {
@@ -44,18 +45,37 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
     
     @Override
     protected boolean execute(@NotNull Player player, String[] args) {
+        return handleCommand(player, player, args);
+    }
+    
+    @Override
+    protected boolean executeConsole(org.bukkit.command.CommandSender sender, String[] args) {
+        if (args.length > 0 && args[0].equalsIgnoreCase("reload")) {
+            if (!sender.hasPermission("essentialsc.command.reload")) {
+                sender.sendMessage(getLang().getString("messages.no-permission"));
+                return true;
+            }
+            plugin.reloadConfig();
+            EssentialsC.getLangManager().reload();
+            sender.sendMessage(getLang().getString("prefix") + "§a配置已重载！");
+            return true;
+        }
+        sender.sendMessage(getLang().getString("messages.player-only"));
+        return true;
+    }
+    
+    private boolean handleCommand(CommandSender sender, Player player, String[] args) {
         if (args.length > 0) {
             String subCommand = args[0].toLowerCase();
             
-            // 管理相关
             if (subCommand.equals("reload")) {
-                if (!player.hasPermission("essentialsc.command.reload")) {
-                    player.sendMessage(getLang().getString("messages.no-permission"));
+                if (!sender.hasPermission("essentialsc.command.reload")) {
+                    sender.sendMessage(getLang().getString("messages.no-permission"));
                     return true;
                 }
                 plugin.reloadConfig();
                 EssentialsC.getLangManager().reload();
-                player.sendMessage("§a配置已重载！");
+                sender.sendMessage(getLang().getString("prefix") + "§a配置已重载！");
                 return true;
             }
             // 功能方块和其他命令 - 使用别名映射
@@ -70,7 +90,7 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
                 // seen 需要特殊处理参数
                 if (actualCommand.equals("seen")) {
                     if (args.length < 2) {
-                        player.sendMessage("§c用法: /essc seen <玩家名>");
+                        player.sendMessage(getLang().getString("prefix") + getLang().getString("messages.seen-usage-console"));
                         return true;
                     }
                     COMMAND_CACHE.get("seen").execute(player, new String[]{args[1]});
@@ -79,13 +99,13 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
                 }
                 return true;
             } else if (subCommand.equals("version") || subCommand.equals("v")) {
-                player.sendMessage("§6EssentialsC §fv" + plugin.getDescription().getVersion());
-                player.sendMessage("§7运行在 Paper " + Bukkit.getVersion());
+                player.sendMessage(getLang().getString("prefix") + "§6EssentialsC §fv" + plugin.getDescription().getVersion());
+                player.sendMessage(getLang().getString("prefix") + "§7运行在 Paper " + Bukkit.getVersion());
                 return true;
             } else {
-                // 未知子命令
-                player.sendMessage("§c未知子命令: " + subCommand);
-                player.sendMessage("§7使用 §f/essc help §7查看所有可用命令");
+                player.sendMessage(getLang().getString("prefix") + getLang().getString("messages.unknown-subcommand",
+                    java.util.Map.of("command", subCommand)));
+                player.sendMessage(getLang().getString("prefix") + getLang().getString("messages.help-usage"));
                 return true;
             }
         }
@@ -244,6 +264,7 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
                 {"feed", "essentialsc.command.feed"},
                 {"repair", "essentialsc.command.repair"},
                 {"rep", "essentialsc.command.repair"},
+                {"mobdrops", "essentialsc.mobdrops.enderman"},
                 {"version", null},
                 {"help", null}
             };
