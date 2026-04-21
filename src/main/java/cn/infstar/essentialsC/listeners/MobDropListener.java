@@ -21,7 +21,6 @@ public class MobDropListener implements Listener {
         loadConfig();
         
         // 注册监听器
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     
     /**

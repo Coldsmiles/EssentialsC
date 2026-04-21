@@ -7,10 +7,8 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class HelpCommand extends BaseCommand implements TabCompleter {
@@ -44,7 +42,7 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
     }
     
     @Override
-    protected boolean execute(@NotNull Player player, String[] args) {
+    protected boolean execute(Player player, String[] args) {
         return handleCommand(player, player, args);
     }
     
@@ -223,11 +221,14 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
      * 获取命令对应的权限节点
      */
     private String getPermissionForCommand(String command) {
+        if (command.equals("mobdrops")) {
+            return "essentialsc.mobdrops.enderman";
+        }
         return "essentialsc.command." + command;
     }
     
     @Override
-    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
+    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
             List<String> completions = new ArrayList<>();
             String partial = args[0].toLowerCase();

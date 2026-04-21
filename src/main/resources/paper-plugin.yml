@@ -5,7 +5,7 @@ version: ${version}
 main: cn.infstar.essentialsC.EssentialsC
 api-version: '1.21'
 load: POSTWORLD
-folia-supported: true
+folia-supported: false
 
 authors: [ Coldsmiles_7 ]
 website: www.infstar.cn
@@ -62,6 +62,9 @@ permissions:
   essentialsc.command.repair:
     description: Allows use of /repair command
     default: op
+  essentialsc.command.repair.all:
+    description: Allows use of /repair all
+    default: op
   essentialsc.command.blocks:
     description: Allows use of /essc blocks command
     default: true
@@ -99,6 +102,7 @@ permissions:
       essentialsc.command.reload: true
       essentialsc.command.feed: true
       essentialsc.command.repair: true
+      essentialsc.command.repair.all: true
       essentialsc.command.help: true
       essentialsc.shulkerbox.open: true
       essentialsc.mobdrops.enderman: true

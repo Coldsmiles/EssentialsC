@@ -25,7 +25,7 @@ public class MobDropMenuListener implements Listener {
     
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (!event.getView().getTitle().equals("§6§l生物掉落控制")) {
+        if (!(event.getView().getTopInventory().getHolder(false) instanceof cn.infstar.essentialsC.commands.MobDropCommand.MobDropMenuHolder)) {
             return;
         }
         
@@ -71,7 +71,7 @@ public class MobDropMenuListener implements Listener {
     private void openMobDropMenu(Player player) {
         boolean endermanEnabled = plugin.getConfig().getBoolean("mob-drops.enderman.enabled", true);
         
-        Inventory menu = Bukkit.createInventory(null, 27, "§6§l生物掉落控制");
+        Inventory menu = new cn.infstar.essentialsC.commands.MobDropCommand.MobDropMenuHolder("§6§l生物掉落控制").getInventory();
         
         ItemStack endermanItem = new ItemStack(Material.ENDER_PEARL);
         ItemMeta endermanMeta = endermanItem.getItemMeta();

@@ -1,5 +1,6 @@
 package cn.infstar.essentialsC;
 
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -147,6 +148,6 @@ public class LangManager {
      * 翻译颜色代码
      */
     private String translateColorCodes(String text) {
-        return text.replace("&", "§");
+        return text == null ? "" : ChatColor.translateAlternateColorCodes('&', text);
     }
 }

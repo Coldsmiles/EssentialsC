@@ -5,6 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -15,6 +16,19 @@ import java.util.Arrays;
  * /mobdrops - 打开控制菜单
  */
 public class MobDropCommand extends BaseCommand {
+
+    public static final class MobDropMenuHolder implements InventoryHolder {
+        private final Inventory inventory;
+
+        public MobDropMenuHolder(String title) {
+            this.inventory = Bukkit.createInventory(this, 27, title);
+        }
+
+        @Override
+        public Inventory getInventory() {
+            return inventory;
+        }
+    }
     
     public MobDropCommand() {
         super("essentialsc.mobdrops.enderman");
@@ -34,7 +48,7 @@ public class MobDropCommand extends BaseCommand {
         boolean endermanEnabled = plugin.getConfig().getBoolean("mob-drops.enderman.enabled", true);
         
         // 创建菜单
-        Inventory menu = Bukkit.createInventory(null, 27, "§6§l生物掉落控制");
+        Inventory menu = new MobDropMenuHolder("§6§l生物掉落控制").getInventory();
         
         // 末影人控制项
         ItemStack endermanItem = new ItemStack(Material.ENDER_PEARL);
