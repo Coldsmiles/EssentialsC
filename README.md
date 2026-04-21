@@ -18,9 +18,9 @@
 - **织布机** (`/loom`)
 - **锻造台** (`/smithingtable`, `/st`)
 - **切石机** (`/stonecutter`, `/sc`)
+- **末影箱** (`/enderchest`, `/ec`)
 
 ### 📦 智能容器管理
-- **末影箱** (`/enderchest`, `/ec`) - 参考 EssentialsX 实现，100% 数据安全
 - **潜影盒快捷打开** - 潜行+右键直接打开（类似 CMI）
   - ✅ 支持自定义标题（可配置）
   - ✅ 防刷物品机制（快照验证 + 数量检查）
@@ -167,10 +167,10 @@ essentialsc.*                         # 所有权限
 ```bash
 git clone https://github.com/Coldsmiles/EssentialsC.git
 cd EssentialsC
-mvn clean package
+./gradlew build
 ```
 
-编译后的文件位于 `target/essentialsc-*.jar`
+编译后的文件位于 `build/libs/essentialsc-*.jar`
 
 ## 🤝 贡献
 
@@ -181,9 +181,6 @@ mvn clean package
 本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件
 
 ## 👨‍💻 作者
-
-**Coldsmiles_7**
-
 - GitHub: [@Coldsmiles](https://github.com/Coldsmiles)
 - 网站: www.infstar.cn
 
