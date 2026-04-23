@@ -4,7 +4,7 @@
 # Log files
 *.log
 
-# Package Files
+# Package files
 *.jar
 *.war
 *.nar
@@ -50,14 +50,14 @@ bin/
 # VS Code
 .vscode/
 
-# macOS
+# System files
 .DS_Store
 Thumbs.db
 
-# Test server (不要上传测试服务器文件)
+# 测试服务器目录
 test-server/
 
-# Reference files (不要上传参考资料)
+# 参考资料目录
 references/
 
 # Plugin build output

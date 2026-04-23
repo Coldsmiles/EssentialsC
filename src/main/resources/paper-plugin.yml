@@ -1,5 +1,5 @@
 name: EssentialsC
-description: 适用于 Paper 服务端的轻量基础插件。
+description: 适用于 Paper 服务端的轻量基础功能插件。
 version: ${version}
 
 main: cn.infstar.essentialsC.EssentialsC
@@ -69,7 +69,7 @@ permissions:
     description: 允许使用 /feed
     default: op
   essentialsc.command.feed.others:
-    description: 允许为其他玩家补食
+    description: 允许为其他玩家补充饥饿值
     default: op
   essentialsc.command.repair:
     description: 允许使用 /repair
@@ -86,11 +86,14 @@ permissions:
   essentialsc.command.reload:
     description: 允许使用 /essc reload
     default: op
+  essentialsc.command.tpsbar:
+    description: 允许使用 /tpsbar
+    default: op
   essentialsc.shulkerbox.open:
     description: 允许通过 Shift+右键快捷打开潜影盒
     default: op
   essentialsc.mobdrops.enderman:
-    description: 允许控制末影人掉落
+    description: 允许控制末影人掉落方块
     default: op
   essentialsc.*:
     description: 授予 EssentialsC 的全部权限
@@ -121,5 +124,6 @@ permissions:
       essentialsc.command.admin: true
       essentialsc.command.help: true
       essentialsc.command.reload: true
+      essentialsc.command.tpsbar: true
       essentialsc.shulkerbox.open: true
       essentialsc.mobdrops.enderman: true

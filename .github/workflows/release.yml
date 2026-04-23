@@ -11,25 +11,28 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
-      
-      - name: 设置 Java
+
+      - name: 设置 Java 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-          cache: maven
-      
-      - name: 构建插件
-        run: mvn clean package -B
-      
+          cache: gradle
+
+      - name: 授予执行权限
+        run: chmod +x gradlew
+
+      - name: 构建全部版本
+        run: ./gradlew buildAllVersions
+
       - name: 创建发行版
         uses: softprops/action-gh-release@v1
         with:
-          files: target/essentialsc-*.jar
+          files: build/libs/EssentialsC*.jar
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
