@@ -1,22 +1,36 @@
-# English Language File (en_US)
-# You can customize all messages here
+# English language file
 
-# Plugin prefix
 prefix: "&6[EssentialsC] &r"
 
-# Command messages
 messages:
   no-permission: "&cYou don't have permission to use this command!\n&7Required permission: {permission}"
   player-only: "&cThis command can only be executed by players!"
+  config-reloaded: "&aConfiguration reloaded."
+  version: "&fEssentialsC v{version}"
+  paper-version: "&7Running on Paper {version}"
+  unknown-subcommand: "&cUnknown subcommand: {command}"
+  help-usage: "&7Use &f/essc help &7to view available commands."
+  blocks-menu-empty: "&cYou do not currently have any available shortcut menu entries."
+
   hat-success: "&aYou are now wearing {item} on your head!"
-  hat-failed: "&cFailed to wear item on head!"
+  hat-failed: "&cFailed to wear the item on your head!"
   hat-no-item: "&cYou need to hold an item in your hand!"
   suicide-message: "&e{player} has committed suicide!"
   fly-enabled: "&aFlight mode enabled!"
   fly-disabled: "&cFlight mode disabled!"
+  nightvision-enabled: "&aNight vision enabled!"
+  nightvision-disabled: "&cNight vision disabled!"
+  nightvision-usage: "&cUsage: /nightvision [on|off|toggle]"
+  glow-enabled: "&aGlowing enabled!"
+  glow-disabled: "&cGlowing disabled!"
+  glow-usage: "&cUsage: /glow [on|off|toggle]"
   vanish-enabled: "&aYou are now vanished!"
   vanish-disabled: "&cYou are no longer vanished!"
   seen-usage: "&cUsage: /seen <player>"
+  seen-usage-console: "&cUsage: /seen <player>"
+  player-not-found: "&cPlayer not found: {player}"
+  no-permission-others: "&cYou don't have permission to affect other players!"
+
   anvil-opened: "&aAnvil opened!"
   enchantingtable-opened: "&aEnchanting table opened!"
   heal-self: "&aYour health and hunger have been restored!"
@@ -31,19 +45,23 @@ messages:
   repair-no-item-in-hand: "&cYou don't have an item in your hand!"
   repair-no-items: "&cNo repairable items in inventory!"
   no-permission-repair-all: "&cYou don't have permission to repair all items!"
-  player-not-found: "&cPlayer not found: {player}"
-  no-permission-others: "&cYou don't have permission to heal others!"
-  
-# Help command
+
+  mobdrop-save-failed: "&cFailed to save config: {error}"
+  mobdrop-toggled: "&aEnderman drops are now {status}&a."
+  shulkerbox-nested: "&cYou cannot put a shulker box inside another shulker box."
+  shulkerbox-unstack-first: "&cPlease unstack the shulker box before using quick open."
+  jei-sync-fabric: "&6JEI-FIX&8(&bFabric&8): &eSynchronizing recipes..."
+  jei-sync-neoforge: "&6JEI-FIX&8(&bNeoForge&8): &eSynchronizing recipes..."
+
 help:
   title: "&6========== &eEssentialsC Help &6=========="
   version: "&7Plugin Version: &f{version}"
   section-blocks: "&6Functional Block Commands:"
   section-other: "&6Other Commands:"
-  footer: "&7Permissions required for each command"
-  
+  footer: "&7Each command requires the corresponding permission."
+
   commands:
-    workbench: "  &f/workbench &7- Open a workbench"
+    workbench: "  &f/workbench &7- Open a crafting table"
     anvil: "  &f/anvil &7- Open an anvil"
     enchantingtable: "  &f/enchantingtable &7- Open an enchanting table"
     cartographytable: "  &f/cartographytable &7- Open a cartography table"
@@ -52,11 +70,102 @@ help:
     smithingtable: "  &f/smithingtable &7- Open a smithing table"
     stonecutter: "  &f/stonecutter &7- Open a stonecutter"
     enderchest: "  &f/enderchest &7- Open your ender chest"
-    hat: "  &f/hat &7- Wear held item as a hat"
+    blocks: "  &f/blocks &7- Open the shortcut menu"
+    hat: "  &f/hat &7- Wear the held item as a hat"
     suicide: "  &f/suicide &7- Commit suicide"
     fly: "  &f/fly &7- Toggle flight mode"
+    nightvision: "  &f/nightvision &7- Toggle night vision"
+    glow: "  &f/glow &7- Toggle glowing"
     heal: "  &f/heal &7- Restore health and hunger"
     vanish: "  &f/vanish &7- Toggle vanish mode"
     seen: "  &f/seen &7- View player information"
     feed: "  &f/feed &7- Restore hunger"
-    repair: "  &f/repair &7- Repair hand or all items"
+    repair: "  &f/repair &7- Repair held or all items"
+    admin: "  &f/essc admin &7- Toggle admin mode"
+    tpsbar: "  &f/tpsbar [player] &7- Toggle TPS boss bar"
+
+blocks-menu:
+  title: "&6&lEssentialsC &8- &e&lShortcut Menu"
+  items:
+    workbench:
+      name: "&eWorkbench"
+      lore:
+        - "&7/workbench"
+        - "&7Open a crafting table"
+    enderchest:
+      name: "&eEnder Chest"
+      lore:
+        - "&7/enderchest"
+        - "&7Open your ender chest"
+    anvil:
+      name: "&eAnvil"
+      lore:
+        - "&7/anvil"
+        - "&7Open an anvil"
+    grindstone:
+      name: "&eGrindstone"
+      lore:
+        - "&7/grindstone"
+        - "&7Open a grindstone"
+    smithingtable:
+      name: "&eSmithing Table"
+      lore:
+        - "&7/smithingtable"
+        - "&7Open a smithing table"
+    stonecutter:
+      name: "&eStonecutter"
+      lore:
+        - "&7/stonecutter"
+        - "&7Open a stonecutter"
+    loom:
+      name: "&eLoom"
+      lore:
+        - "&7/loom"
+        - "&7Open a loom"
+    cartographytable:
+      name: "&eCartography Table"
+      lore:
+        - "&7/cartographytable"
+        - "&7Open a cartography table"
+    nightvision:
+      name: "&bNight Vision"
+      lore:
+        - "&7/nightvision"
+        - "&7Toggle night vision"
+    glow:
+      name: "&eGlow"
+      lore:
+        - "&7/glow"
+        - "&7Toggle your glowing effect"
+
+admin-mode:
+  actionbar: "&c&lAdmin Mode"
+  messages:
+    enabled: "&aAdmin mode enabled, normal inventory has been saved."
+    disabled: "&cAdmin mode disabled, normal inventory has been restored."
+    crash-restored: "&eThe previous admin mode session has been restored safely."
+
+tpsbar:
+  title-format: "&eTPS&7: {tps_1m} &8| &eMSPT&7: {mspt} &8| &ePing&7: {ping}"
+  messages:
+    enabled-self: "&aTPSBar enabled."
+    disabled-self: "&cTPSBar disabled."
+    enabled-other: "&aEnabled TPSBar for {player}."
+    disabled-other: "&cDisabled TPSBar for {player}."
+    usage: "&cUsage: /tpsbar [player]"
+    player-not-found: "&cPlayer not found: {player}"
+    no-targets: "&cNo matching players were found to toggle."
+    native-detected: "&7Detected a native /tpsbar command on this server, skipped plugin implementation."
+    plugin-enabled: "&7No native /tpsbar command was detected, plugin implementation enabled."
+    plugin-forced-but-native-exists: "&eThe configuration requests the plugin TPSBar, but a native /tpsbar already exists, so the plugin implementation was skipped to avoid conflicts."
+    mode-changed-reload: "&eTPSBar mode has been updated, but command registration changes require a server restart to fully take effect."
+
+mobdrops-menu:
+  title: "&6&lMob Drop Control"
+  status:
+    enabled: "&aEnabled"
+    disabled: "&cDisabled"
+  enderman:
+    name: "&dEnderman Drops"
+    status: "&7Current status: {status}"
+    toggle: "&eClick to toggle"

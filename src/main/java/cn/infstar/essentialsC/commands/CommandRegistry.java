@@ -1,5 +1,8 @@
 package cn.infstar.essentialsC.commands;
 
+import cn.infstar.essentialsC.EssentialsC;
+import cn.infstar.essentialsC.tpsbar.TpsBarService;
+
 import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,20 +32,32 @@ public final class CommandRegistry {
         register("hat", "essentialsc.command.hat", "cn.infstar.essentialsC.commands.HatCommand");
         register("suicide", "essentialsc.command.suicide", "cn.infstar.essentialsC.commands.SuicideCommand", "die");
         register("fly", "essentialsc.command.fly", "cn.infstar.essentialsC.commands.FlyCommand");
+        register("nightvision", "essentialsc.command.nightvision", "cn.infstar.essentialsC.commands.NightVisionCommand", "nv");
+        register("glow", "essentialsc.command.glow", "cn.infstar.essentialsC.commands.GlowCommand");
         register("heal", "essentialsc.command.heal", "cn.infstar.essentialsC.commands.HealCommand");
         register("vanish", "essentialsc.command.vanish", "cn.infstar.essentialsC.commands.VanishCommand", "v");
         register("seen", "essentialsc.command.seen", "cn.infstar.essentialsC.commands.SeenCommand", "info");
         register("feed", "essentialsc.command.feed", "cn.infstar.essentialsC.commands.FeedCommand");
         register("repair", "essentialsc.command.repair", "cn.infstar.essentialsC.commands.RepairCommand", "rep");
+        register("tpsbar", "essentialsc.command.tpsbar", "cn.infstar.essentialsC.commands.TpsBarCommand");
         register("mobdrops", "essentialsc.mobdrops.enderman", "cn.infstar.essentialsC.commands.MobDropCommand");
+        registerSubCommand("admin", "essentialsc.command.admin", "cn.infstar.essentialsC.commands.AdminCommand");
     }
 
     private CommandRegistry() {
     }
 
     private static void register(String name, String permission, String className, String... aliases) {
+        register(name, permission, className, true, aliases);
+    }
+
+    private static void registerSubCommand(String name, String permission, String className, String... aliases) {
+        register(name, permission, className, false, aliases);
+    }
+
+    private static void register(String name, String permission, String className, boolean standalone, String... aliases) {
         List<String> aliasList = List.of(aliases);
-        CommandSpec spec = new CommandSpec(name, permission, className, aliasList);
+        CommandSpec spec = new CommandSpec(name, permission, className, aliasList, standalone);
         COMMANDS.put(name, spec);
         ALIAS_TO_COMMAND.put(name, name);
         for (String alias : aliasList) {
@@ -83,6 +98,9 @@ public final class CommandRegistry {
         if (UNAVAILABLE_COMMANDS.contains(resolvedName)) {
             return null;
         }
+        if (isRuntimeDisabled(resolvedName)) {
+            return null;
+        }
 
         CommandSpec spec = COMMANDS.get(resolvedName);
         if (spec == null) {
@@ -106,6 +124,20 @@ public final class CommandRegistry {
         }
     }
 
-    public record CommandSpec(String name, String permission, String className, List<String> aliases) {
+    private static boolean isRuntimeDisabled(String resolvedName) {
+        if (!"tpsbar".equals(resolvedName)) {
+            return false;
+        }
+
+        try {
+            EssentialsC plugin = EssentialsC.getPlugin(EssentialsC.class);
+            TpsBarService tpsBarService = plugin.getTpsBarManager();
+            return tpsBarService == null || !tpsBarService.isPluginCommandEnabled();
+        } catch (IllegalStateException ignored) {
+            return false;
+        }
+    }
+
+    public record CommandSpec(String name, String permission, String className, List<String> aliases, boolean standalone) {
     }
 }

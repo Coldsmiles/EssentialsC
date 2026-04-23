@@ -1,11 +1,14 @@
 package cn.infstar.essentialsC;
 
+import cn.infstar.essentialsC.admin.AdminModeManager;
 import cn.infstar.essentialsC.commands.BaseCommand;
 import cn.infstar.essentialsC.commands.CommandRegistry;
 import cn.infstar.essentialsC.commands.HelpCommand;
+import cn.infstar.essentialsC.tpsbar.TpsBarService;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Field;
@@ -13,10 +16,18 @@ import java.lang.reflect.Field;
 public final class EssentialsC extends JavaPlugin {
 
     private static LangManager langManager;
+    private AdminModeManager adminModeManager;
+    private TpsBarService tpsBarManager;
 
     @Override
     public void onEnable() {
         langManager = new LangManager(this);
+        adminModeManager = new AdminModeManager(this);
+        getServer().getPluginManager().registerEvents(adminModeManager, this);
+        tpsBarManager = createOptionalService("cn.infstar.essentialsC.tpsbar.TpsBarManager", TpsBarService.class);
+        if (tpsBarManager instanceof Listener listener) {
+            getServer().getPluginManager().registerEvents(listener, this);
+        }
         registerPluginChannels();
         registerListeners();
         registerCommands();
@@ -26,11 +37,25 @@ public final class EssentialsC extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (tpsBarManager != null) {
+            tpsBarManager.shutdown();
+        }
+        if (adminModeManager != null) {
+            adminModeManager.shutdown();
+        }
         getLogger().info("EssentialsC disabled.");
     }
 
     public static LangManager getLangManager() {
         return langManager;
+    }
+
+    public AdminModeManager getAdminModeManager() {
+        return adminModeManager;
+    }
+
+    public TpsBarService getTpsBarManager() {
+        return tpsBarManager;
     }
 
     private void registerPluginChannels() {
@@ -73,6 +98,16 @@ public final class EssentialsC extends JavaPlugin {
         }
     }
 
+    private <T> T createOptionalService(String className, Class<T> serviceType) {
+        try {
+            Class<?> targetClass = Class.forName(className);
+            Object instance = targetClass.getConstructor(EssentialsC.class).newInstance(this);
+            return serviceType.cast(instance);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
     private void registerCommands() {
         try {
             Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
@@ -80,6 +115,9 @@ public final class EssentialsC extends JavaPlugin {
             org.bukkit.command.CommandMap commandMap = (org.bukkit.command.CommandMap) bukkitCommandMap.get(Bukkit.getServer());
 
             for (CommandRegistry.CommandSpec spec : CommandRegistry.getCommandSpecs()) {
+                if (!spec.standalone()) {
+                    continue;
+                }
                 BaseCommand executor = CommandRegistry.getCommand(spec.name());
                 if (executor == null) {
                     continue;

@@ -10,7 +10,7 @@ plugins {
 }
 
 group = 'cn.infstar'
-version = '1.3.0'
+version = '1.3.1'
 
 repositories {
     mavenCentral()
@@ -43,13 +43,18 @@ def moduleExcludes = [
     ],
     'player': [
         '**/commands/FlyCommand.java',
+        '**/commands/NightVisionCommand.java',
+        '**/commands/GlowCommand.java',
         '**/commands/HealCommand.java',
         '**/commands/FeedCommand.java',
         '**/commands/VanishCommand.java',
         '**/commands/SeenCommand.java',
         '**/commands/HatCommand.java',
         '**/commands/SuicideCommand.java',
-        '**/commands/RepairCommand.java'
+        '**/commands/RepairCommand.java',
+        '**/commands/AdminCommand.java',
+        '**/commands/TpsBarCommand.java',
+        '**/tpsbar/TpsBarManager.java'
     ],
     'jei-fix': [
         '**/listeners/JeiRecipeSyncListener.java'

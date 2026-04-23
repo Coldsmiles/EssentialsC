@@ -1,55 +1,65 @@
-# Chinese Language File (zh_CN)
-# 中文语言文件
+# 简体中文语言文件
 
-# 插件前缀
-prefix: "&7[&6EssentialsC&7]&f:"
+prefix: "&7[&6EssentialsC&7]&f：&r"
 
-# 命令消息
 messages:
-  no-permission: "&c你没有权限执行此命令！\n&7需要权限: {permission}"
-  player-only: "&c该命令只能由玩家执行！"
-  hat-success: "&a你现在将 {item} 戴在头上！"
-  hat-failed: "&c无法将物品戴在头上！"
-  hat-no-item: "&c你需要在手中持有物品！"
+  no-permission: "&c你没有权限执行此命令！\n&7需要权限：{permission}"
+  player-only: "&c此命令只能由玩家执行！"
+  config-reloaded: "&a配置已重载。"
+  version: "&fEssentialsC v{version}"
+  paper-version: "&7当前运行于 Paper {version}"
+  unknown-subcommand: "&c未知子命令：{command}"
+  help-usage: "&7使用 &f/essc help &7查看可用命令。"
+  blocks-menu-empty: "&c你当前没有可用的便捷菜单项目。"
+
+  hat-success: "&a你已将 {item} 戴在头上！"
+  hat-failed: "&c无法将该物品戴在头上！"
+  hat-no-item: "&c你需要手持一个物品！"
   suicide-message: "&e{player} 自杀了！"
-  fly-enabled: "&a飞行模式已启用！"
-  fly-disabled: "&c飞行模式已禁用！"
+  fly-enabled: "&a飞行模式已开启！"
+  fly-disabled: "&c飞行模式已关闭！"
+  nightvision-enabled: "&a夜视已开启！"
+  nightvision-disabled: "&c夜视已关闭！"
+  nightvision-usage: "&c用法：/nightvision [on|off|toggle]"
+  glow-enabled: "&a发光已开启！"
+  glow-disabled: "&c发光已关闭！"
+  glow-usage: "&c用法：/glow [on|off|toggle]"
   vanish-enabled: "&a你已进入隐身模式！"
   vanish-disabled: "&c你已退出隐身模式！"
-  seen-usage: "&c用法: /seen <玩家名>"
+  seen-usage: "&c用法：/seen <玩家>"
+  seen-usage-console: "&c用法：/seen <玩家>"
+  player-not-found: "&c未找到玩家：{player}"
+  no-permission-others: "&c你没有权限影响其他玩家！"
+
   anvil-opened: "&a已打开铁砧！"
   enchantingtable-opened: "&a已打开附魔台！"
-  heal-self: "&a你的生命值和饱食度已补满！"
-  heal-other: "&a你已治疗了玩家 {player}！"
-  heal-by-other: "&a你被管理员 {admin} 治疗了！"
-  feed-self: "&a你的饱食度已补满！"
+  heal-self: "&a你的生命值和饥饿值已恢复！"
+  heal-other: "&a你已治疗玩家 {player}！"
+  heal-by-other: "&a管理员 {admin} 治疗了你！"
+  feed-self: "&a你的饥饿值已恢复！"
   feed-other: "&a你已喂饱玩家 {player}！"
-  feed-by-other: "&a你被管理员 {admin} 喂饱了！"
+  feed-by-other: "&a管理员 {admin} 喂饱了你！"
   repair-hand-success: "&a手中物品已修复！"
-  repair-all-success: "&a已修复 {count} 件物品！"
+  repair-all-success: "&a已修复 {count} 个物品！"
   repair-not-damaged: "&c该物品没有损坏！"
   repair-no-item-in-hand: "&c你手中没有物品！"
   repair-no-items: "&c背包中没有可修复的物品！"
-  no-permission-repair-all: "&c你没有权限修复所有物品！"
-  player-not-found: "&c未找到玩家: {player}"
-  no-permission-others: "&c你没有权限治疗其他玩家！"
-  seen-usage-console: "&c用法: /seen <玩家名>"
-  unknown-subcommand: "&c未知子命令: {command}"
-  help-usage: "&7使用 §f/essc help &7查看所有可用命令"
-  mobdrop-save-failed: "&c保存配置失败: {error}"
-  mobdrop-toggled: "&a末影人掉落已{status}！"
-  shulkerbox-nested: "&c不能在潜影盒中放入另一个潜影盒！"
-  jei-sync-fabric: "&6JEI-FIX&8(&bFabric&8):&e正在同步合成配方..."
-  jei-sync-neoforge: "&6JEI-FIX&8(&bNeoForge&8):&e正在同步合成配方..."
+  no-permission-repair-all: "&c你没有权限修复全部物品！"
 
-# 帮助命令
+  mobdrop-save-failed: "&c保存配置失败：{error}"
+  mobdrop-toggled: "&a末影人掉落已切换为 {status}&a。"
+  shulkerbox-nested: "&c不能将潜影盒放入另一个潜影盒。"
+  shulkerbox-unstack-first: "&c请先将潜影盒拆分为单个后再快捷打开。"
+  jei-sync-fabric: "&6JEI-FIX&8(&bFabric&8): &e正在同步配方..."
+  jei-sync-neoforge: "&6JEI-FIX&8(&bNeoForge&8): &e正在同步配方..."
+
 help:
   title: "&6========== &eEssentialsC 帮助 &6=========="
-  version: "&7插件版本: &f{version}"
-  section-blocks: "&6功能方块命令:"
-  section-other: "&6其他功能命令:"
-  footer: "&7需要权限才能使用各个命令"
-  
+  version: "&7插件版本：&f{version}"
+  section-blocks: "&6功能方块命令："
+  section-other: "&6其他命令："
+  footer: "&7每个命令都需要对应权限。"
+
   commands:
     workbench: "  &f/workbench &7- 打开工作台"
     anvil: "  &f/anvil &7- 打开铁砧"
@@ -60,12 +70,102 @@ help:
     smithingtable: "  &f/smithingtable &7- 打开锻造台"
     stonecutter: "  &f/stonecutter &7- 打开切石机"
     enderchest: "  &f/enderchest &7- 打开末影箱"
-    hat: "  &f/hat &7- 将手中物品戴在头上"
+    blocks: "  &f/blocks &7- 打开便捷菜单"
+    hat: "  &f/hat &7- 将手持物品戴在头上"
     suicide: "  &f/suicide &7- 自杀"
     fly: "  &f/fly &7- 切换飞行模式"
-    heal: "  &f/heal &7- 恢复生命值和饱食度"
+    nightvision: "  &f/nightvision &7- 切换夜视"
+    glow: "  &f/glow &7- 切换发光"
+    heal: "  &f/heal &7- 恢复生命值和饥饿值"
     vanish: "  &f/vanish &7- 切换隐身模式"
     seen: "  &f/seen &7- 查看玩家信息"
-    feed: "  &f/feed &7- 补满饱食度"
-    repair: "  &f/repair &7- 修复手中或所有物品"
-    blocks: "  &f/blocks &7- 打开功能方块菜单"
+    feed: "  &f/feed &7- 恢复饥饿值"
+    repair: "  &f/repair &7- 修复手中或全部物品"
+    admin: "  &f/essc admin &7- 切换管理模式"
+    tpsbar: "  &f/tpsbar [玩家] &7- 切换 TPS 状态栏"
+
+blocks-menu:
+  title: "&6&lEssentialsC &8- &e&l便捷菜单"
+  items:
+    workbench:
+      name: "&e工作台"
+      lore:
+        - "&7/workbench"
+        - "&7打开工作台"
+    enderchest:
+      name: "&e末影箱"
+      lore:
+        - "&7/enderchest"
+        - "&7打开末影箱"
+    anvil:
+      name: "&e铁砧"
+      lore:
+        - "&7/anvil"
+        - "&7打开铁砧"
+    grindstone:
+      name: "&e砂轮"
+      lore:
+        - "&7/grindstone"
+        - "&7打开砂轮"
+    smithingtable:
+      name: "&e锻造台"
+      lore:
+        - "&7/smithingtable"
+        - "&7打开锻造台"
+    stonecutter:
+      name: "&e切石机"
+      lore:
+        - "&7/stonecutter"
+        - "&7打开切石机"
+    loom:
+      name: "&e织布机"
+      lore:
+        - "&7/loom"
+        - "&7打开织布机"
+    cartographytable:
+      name: "&e制图台"
+      lore:
+        - "&7/cartographytable"
+        - "&7打开制图台"
+    nightvision:
+      name: "&b夜视开关"
+      lore:
+        - "&7/nightvision"
+        - "&7切换夜视效果"
+    glow:
+      name: "&e发光开关"
+      lore:
+        - "&7/glow"
+        - "&7切换自身发光效果"
+
+admin-mode:
+  actionbar: "&c&l管理模式"
+  messages:
+    enabled: "&a管理模式已开启，普通背包已保存。"
+    disabled: "&c管理模式已关闭，普通背包已恢复。"
+    crash-restored: "&e上一次管理模式会话已安全恢复。"
+
+tpsbar:
+  title-format: "&eTPS&7: {tps_1m} &8| &eMSPT&7: {mspt} &8| &ePing&7: {ping}"
+  messages:
+    enabled-self: "&a已开启 TPSBar。"
+    disabled-self: "&c已关闭 TPSBar。"
+    enabled-other: "&a已为 {player} 开启 TPSBar。"
+    disabled-other: "&c已为 {player} 关闭 TPSBar。"
+    usage: "&c用法：/tpsbar [玩家]"
+    player-not-found: "&c未找到玩家：{player}"
+    no-targets: "&c没有匹配到可切换的玩家。"
+    native-detected: "&7检测到服务端已内置 /tpsbar，已跳过插件实现。"
+    plugin-enabled: "&7未检测到服务端内置 /tpsbar，已启用插件实现。"
+    plugin-forced-but-native-exists: "&e配置要求启用插件版 TPSBar，但服务端已存在原生 /tpsbar，已跳过插件实现以避免冲突。"
+    mode-changed-reload: "&eTPSBar 模式已更新，但命令注册状态需要重启服务器后才会完全生效。"
+
+mobdrops-menu:
+  title: "&6&l生物掉落控制"
+  status:
+    enabled: "&a开启"
+    disabled: "&c关闭"
+  enderman:
+    name: "&d末影人掉落"
+    status: "&7当前状态：{status}"
+    toggle: "&e点击切换"

@@ -9,19 +9,19 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
-/**
- * 生物掉落物控制命令
- * /mobdrops - 打开控制菜单
- */
 public class MobDropCommand extends BaseCommand {
+
+    private static final int MENU_SIZE = 27;
+    private static final int ENDERMAN_SLOT = 13;
 
     public static final class MobDropMenuHolder implements InventoryHolder {
         private final Inventory inventory;
 
         public MobDropMenuHolder(String title) {
-            this.inventory = Bukkit.createInventory(this, 27, title);
+            this.inventory = Bukkit.createInventory(this, MENU_SIZE, title);
         }
 
         @Override
@@ -29,53 +29,60 @@ public class MobDropCommand extends BaseCommand {
             return inventory;
         }
     }
-    
+
     public MobDropCommand() {
         super("essentialsc.mobdrops.enderman");
     }
-    
+
     @Override
     protected boolean execute(Player player, String[] args) {
         openMobDropMenu(player);
         return true;
     }
-    
-    /**
-     * 打开生物掉落控制菜单
-     */
-    private void openMobDropMenu(Player player) {
-        // 读取当前配置
+
+    public static void openMobDropMenu(EssentialsC plugin, Player player) {
+        var lang = EssentialsC.getLangManager();
         boolean endermanEnabled = plugin.getConfig().getBoolean("mob-drops.enderman.enabled", true);
-        
-        // 创建菜单
-        Inventory menu = new MobDropMenuHolder("§6§l生物掉落控制").getInventory();
-        
-        // 末影人控制项
+        String status = lang.getString(endermanEnabled
+            ? "mobdrops-menu.status.enabled"
+            : "mobdrops-menu.status.disabled");
+
+        Inventory menu = new MobDropMenuHolder(lang.getString("mobdrops-menu.title")).getInventory();
+
         ItemStack endermanItem = new ItemStack(Material.ENDER_PEARL);
         ItemMeta endermanMeta = endermanItem.getItemMeta();
-        endermanMeta.setDisplayName("§d末影人掉落");
-        endermanMeta.setLore(Arrays.asList(
-            "§7当前状态: " + (endermanEnabled ? "§a✅ 开启" : "§c❌ 关闭"),
-            "",
-            "§e点击切换状态"
-        ));
-        endermanItem.setItemMeta(endermanMeta);
-        
-        // 放置在中间
-        menu.setItem(13, endermanItem);
-        
-        // 装饰物品
+        if (endermanMeta != null) {
+            endermanMeta.setDisplayName(lang.getString("mobdrops-menu.enderman.name"));
+            endermanMeta.setLore(List.of(
+                lang.getString("mobdrops-menu.enderman.status", Map.of("status", status)),
+                "",
+                lang.getString("mobdrops-menu.enderman.toggle")
+            ));
+            endermanItem.setItemMeta(endermanMeta);
+        }
+        menu.setItem(ENDERMAN_SLOT, endermanItem);
+
         ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemMeta glassMeta = glass.getItemMeta();
-        glassMeta.setDisplayName(" ");
-        glass.setItemMeta(glassMeta);
-        
-        for (int i = 0; i < 27; i++) {
-            if (menu.getItem(i) == null) {
-                menu.setItem(i, glass);
+        if (glassMeta != null) {
+            glassMeta.setDisplayName(" ");
+            glass.setItemMeta(glassMeta);
+        }
+
+        for (int slot = 0; slot < MENU_SIZE; slot++) {
+            if (menu.getItem(slot) == null) {
+                menu.setItem(slot, glass);
             }
         }
-        
+
         player.openInventory(menu);
+    }
+
+    public static int getEndermanSlot() {
+        return ENDERMAN_SLOT;
+    }
+
+    private void openMobDropMenu(Player player) {
+        openMobDropMenu(plugin, player);
     }
 }

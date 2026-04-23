@@ -2,8 +2,8 @@ package cn.infstar.essentialsC.listeners;
 
 import cn.infstar.essentialsC.EssentialsC;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.ShulkerBox;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -15,6 +15,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -24,6 +25,10 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.BlockStateMeta;
+import org.bukkit.inventory.meta.ItemMeta;
+
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -60,7 +65,7 @@ public class ShulkerBoxListener implements Listener {
     private static final class ShulkerBoxHolder implements InventoryHolder {
         private final Inventory inventory;
 
-        private ShulkerBoxHolder(String title) {
+        private ShulkerBoxHolder(Component title) {
             this.inventory = Bukkit.createInventory(this, SHULKER_SIZE, title);
         }
 
@@ -106,6 +111,10 @@ public class ShulkerBoxListener implements Listener {
         if (!isShulkerBox(sourceItem)) {
             return;
         }
+        if (sourceItem.getAmount() != 1) {
+            player.sendMessage(EssentialsC.getLangManager().getPrefixedString("messages.shulkerbox-unstack-first"));
+            return;
+        }
 
         if (!(sourceItem.getItemMeta() instanceof BlockStateMeta blockStateMeta)) {
             return;
@@ -122,6 +131,12 @@ public class ShulkerBoxListener implements Listener {
             if (!player.isOnline() || openShulkerBoxes.containsKey(player.getUniqueId())) {
                 return;
             }
+
+            ItemStack currentItem = getItemFromHand(player, hand);
+            if (!isSameShulkerItem(currentItem, sourceSnapshot)) {
+                return;
+            }
+
             openShulkerBox(player, hand, sourceSnapshot, shulkerBox);
         });
     }
@@ -150,6 +165,15 @@ public class ShulkerBoxListener implements Listener {
         if (clickTopInventory && event.getClick() == ClickType.NUMBER_KEY) {
             ItemStack hotbarItem = player.getInventory().getItem(event.getHotbarButton());
             if (isShulkerBox(hotbarItem)) {
+                event.setCancelled(true);
+                sendNestedMessage(player);
+                return;
+            }
+        }
+
+        if (clickTopInventory && event.getClick() == ClickType.SWAP_OFFHAND) {
+            ItemStack offHandItem = player.getInventory().getItemInOffHand();
+            if (isShulkerBox(offHandItem)) {
                 event.setCancelled(true);
                 sendNestedMessage(player);
                 return;
@@ -192,11 +216,19 @@ public class ShulkerBoxListener implements Listener {
             return;
         }
 
-        commitOpenShulker(player, event.getInventory());
+        if (commitOpenShulker(player, event.getInventory())) {
+            player.playSound(player.getLocation(), Sound.BLOCK_SHULKER_BOX_CLOSE, 0.8F, 1.0F);
+        }
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        commitOpenShulker(player, player.getOpenInventory().getTopInventory());
+    }
+
+    @EventHandler
+    public void onPlayerKick(PlayerKickEvent event) {
         Player player = event.getPlayer();
         commitOpenShulker(player, player.getOpenInventory().getTopInventory());
     }
@@ -212,19 +244,20 @@ public class ShulkerBoxListener implements Listener {
         }
     }
 
-    private void commitOpenShulker(Player player, Inventory inventory) {
+    private boolean commitOpenShulker(Player player, Inventory inventory) {
         if (!(inventory.getHolder(false) instanceof ShulkerBoxHolder)) {
-            return;
+            return false;
         }
 
         OpenShulkerSession session = openShulkerBoxes.remove(player.getUniqueId());
         if (session == null) {
-            return;
+            return false;
         }
 
         ItemStack updatedShulker = session.sourceItem.clone();
         writeInventoryBack(updatedShulker, inventory.getContents());
         restoreItemToPlayer(player, session, updatedShulker);
+        return true;
     }
 
     private void openShulkerBox(Player player, EquipmentSlot hand, ItemStack sourceItem, ShulkerBox shulkerBox) {
@@ -236,6 +269,7 @@ public class ShulkerBoxListener implements Listener {
         int preferredSlot = hand == EquipmentSlot.HAND ? player.getInventory().getHeldItemSlot() : -1;
         openShulkerBoxes.put(player.getUniqueId(), new OpenShulkerSession(sourceItem, hand, preferredSlot));
         player.openInventory(holder.getInventory());
+        player.playSound(player.getLocation(), Sound.BLOCK_SHULKER_BOX_OPEN, 0.8F, 1.0F);
     }
 
     private void writeInventoryBack(ItemStack shulkerItem, ItemStack[] contents) {
@@ -295,21 +329,21 @@ public class ShulkerBoxListener implements Listener {
         }
     }
 
-    private String resolveTitle(ItemStack shulkerBox) {
-        if (shulkerBox.hasItemMeta() && shulkerBox.getItemMeta().hasDisplayName()) {
-            return shulkerBox.getItemMeta().getDisplayName();
+    private Component resolveTitle(ItemStack shulkerBox) {
+        ItemMeta itemMeta = shulkerBox.getItemMeta();
+        if (itemMeta != null && itemMeta.hasDisplayName()) {
+            Component displayName = itemMeta.displayName();
+            if (displayName != null) {
+                return displayName;
+            }
+            return LegacyComponentSerializer.legacySection().deserialize(itemMeta.getDisplayName());
         }
 
-        String defaultTitle = plugin.getConfig().getString("shulkerbox.default-title", "");
-        if (defaultTitle != null && !defaultTitle.isEmpty()) {
-            return ChatColor.translateAlternateColorCodes('&', defaultTitle);
-        }
-        return "Shulker Box";
+        return Component.translatable(shulkerBox.getType().getItemTranslationKey());
     }
 
     private void sendNestedMessage(Player player) {
-        player.sendMessage(EssentialsC.getLangManager().getString("prefix")
-            + EssentialsC.getLangManager().getString("messages.shulkerbox-nested"));
+        player.sendMessage(EssentialsC.getLangManager().getPrefixedString("messages.shulkerbox-nested"));
     }
 
     private boolean isShulkerBox(ItemStack item) {
@@ -318,5 +352,12 @@ public class ShulkerBoxListener implements Listener {
 
     private boolean isEmpty(ItemStack item) {
         return item == null || item.getType().isAir();
+    }
+
+    private boolean isSameShulkerItem(ItemStack currentItem, ItemStack sourceSnapshot) {
+        if (!isShulkerBox(currentItem) || sourceSnapshot == null) {
+            return false;
+        }
+        return currentItem.getAmount() == sourceSnapshot.getAmount() && currentItem.isSimilar(sourceSnapshot);
     }
 }
