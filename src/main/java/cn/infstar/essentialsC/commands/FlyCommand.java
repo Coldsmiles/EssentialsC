@@ -15,11 +15,11 @@ public class FlyCommand extends BaseCommand {
         if (currentFlyState) {
             player.setAllowFlight(false);
             player.setFlying(false);
-            player.sendMessage(getLang().getString("messages.fly-disabled"));
+            player.sendMessage(getLang().getPrefixedString("messages.fly-disabled"));
         } else {
             player.setAllowFlight(true);
             player.setFlying(true);
-            player.sendMessage(getLang().getString("messages.fly-enabled"));
+            player.sendMessage(getLang().getPrefixedString("messages.fly-enabled"));
         }
         
         return true;

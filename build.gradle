@@ -1,3 +1,8 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.language.jvm.tasks.ProcessResources
+
+import java.util.Collections
+
 plugins {
     id 'java'
     id 'io.papermc.paperweight.userdev' version '2.0.0-beta.21'
@@ -5,7 +10,7 @@ plugins {
 }
 
 group = 'cn.infstar'
-version = '1.3.0'
+version = '1.3.1'
 
 repositories {
     mavenCentral()
@@ -23,207 +28,185 @@ java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
 
-def excludedModules = project.hasProperty('excludeModules') ? 
-    project.property('excludeModules').split(',')*.trim() : []
+def moduleExcludes = [
+    'blocks': [
+        '**/commands/WorkbenchCommand.java',
+        '**/commands/AnvilCommand.java',
+        '**/commands/CartographyTableCommand.java',
+        '**/commands/GrindstoneCommand.java',
+        '**/commands/LoomCommand.java',
+        '**/commands/SmithingTableCommand.java',
+        '**/commands/StonecutterCommand.java',
+        '**/commands/EnderChestCommand.java',
+        '**/commands/BlocksMenuCommand.java',
+        '**/listeners/ShulkerBoxListener.java'
+    ],
+    'player': [
+        '**/commands/FlyCommand.java',
+        '**/commands/NightVisionCommand.java',
+        '**/commands/GlowCommand.java',
+        '**/commands/HealCommand.java',
+        '**/commands/FeedCommand.java',
+        '**/commands/VanishCommand.java',
+        '**/commands/SeenCommand.java',
+        '**/commands/HatCommand.java',
+        '**/commands/SuicideCommand.java',
+        '**/commands/RepairCommand.java',
+        '**/commands/AdminCommand.java',
+        '**/commands/TpsBarCommand.java',
+        '**/tpsbar/TpsBarManager.java'
+    ],
+    'jei-fix': [
+        '**/listeners/JeiRecipeSyncListener.java'
+    ],
+    'mob-drops': [
+        '**/listeners/MobDropListener.java',
+        '**/listeners/MobDropMenuListener.java',
+        '**/commands/MobDropCommand.java'
+    ]
+]
 
-def includeBlocks = !excludedModules.contains('blocks')
-def includePlayer = !excludedModules.contains('player')
-def includeJeiFix = !excludedModules.contains('jei-fix')
-def includeMobDrops = !excludedModules.contains('mob-drops')
+def variantDefinitions = [
+    standard: [
+        archiveFileName: "EssentialsC-${project.version}.jar",
+        excludedModules: ['mob-drops']
+    ],
+    all: [
+        archiveFileName: "EssentialsC-all-${project.version}.jar",
+        excludedModules: []
+    ],
+    lite: [
+        archiveFileName: "EssentialsC-lite-${project.version}.jar",
+        excludedModules: ['blocks']
+    ]
+]
 
-println "\n📦 EssentialsC 模块配置:"
-println "  ✅ Core (核心)"
-println "  ${includeBlocks ? '✅' : '❌'} Blocks (便捷方块)"
-println "  ${includePlayer ? '✅' : '❌'} Player (玩家管理)"
-println "  ${includeJeiFix ? '✅' : '❌'} JEI Fix (JEI 修复)"
-println "  ${includeMobDrops ? '✅' : '❌'} Mob Drops (生物掉落物)"
-println ""
+if (project.hasProperty('excludeModules')) {
+    def customExcludedModules = project.property('excludeModules')
+        .split(',')
+        .collect { it.trim() }
+        .findAll { !it.isEmpty() }
 
-sourceSets {
-    main {
-        java {
-            if (!includeBlocks) {
-                exclude '**/commands/WorkbenchCommand.java'
-                exclude '**/commands/AnvilCommand.java'
-                exclude '**/commands/CartographyTableCommand.java'
-                exclude '**/commands/GrindstoneCommand.java'
-                exclude '**/commands/LoomCommand.java'
-                exclude '**/commands/SmithingTableCommand.java'
-                exclude '**/commands/StonecutterCommand.java'
-                exclude '**/commands/EnderChestCommand.java'
-                exclude '**/commands/BlocksMenuCommand.java'
-                exclude '**/listeners/ShulkerBoxListener.java'
-            }
-            
-            if (!includePlayer) {
-                exclude '**/commands/FlyCommand.java'
-                exclude '**/commands/HealCommand.java'
-                exclude '**/commands/FeedCommand.java'
-                exclude '**/commands/VanishCommand.java'
-                exclude '**/commands/SeenCommand.java'
-                exclude '**/commands/HatCommand.java'
-                exclude '**/commands/SuicideCommand.java'
-                exclude '**/commands/RepairCommand.java'
-            }
-            
-            if (!includeJeiFix) {
-                exclude '**/listeners/JeiRecipeSyncListener.java'
-            }
-            
-            if (!includeMobDrops) {
-                exclude '**/listeners/MobDropListener.java'
-                exclude '**/listeners/MobDropMenuListener.java'
-                exclude '**/commands/MobDropCommand.java'
-            }
-        }
+    variantDefinitions.custom = [
+        archiveFileName: "EssentialsC-custom-${project.version}.jar",
+        excludedModules: customExcludedModules
+    ]
+}
+
+def resolveExcludePatterns = { Collection<String> modules ->
+    modules.collectMany { module -> moduleExcludes.get(module, Collections.emptyList()) }.unique()
+}
+
+variantDefinitions.each { variantName, variantConfig ->
+    def unknownModules = variantConfig.excludedModules.findAll { !moduleExcludes.containsKey(it) }
+    if (!unknownModules.isEmpty()) {
+        throw new GradleException("Unknown modules for variant '${variantName}': ${unknownModules.join(', ')}")
     }
+}
+
+def variantSourceSets = [:]
+
+variantDefinitions.each { variantName, variantConfig ->
+    def sourceSet = sourceSets.create(variantName)
+    sourceSet.java.srcDirs = sourceSets.main.java.srcDirs
+    sourceSet.resources.srcDirs = sourceSets.main.resources.srcDirs
+    resolveExcludePatterns(variantConfig.excludedModules).each { pattern ->
+        sourceSet.java.exclude(pattern)
+    }
+    sourceSet.compileClasspath += sourceSets.main.compileClasspath
+    sourceSet.runtimeClasspath += sourceSet.output + sourceSet.compileClasspath
+    variantSourceSets[variantName] = sourceSet
 }
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
 
-processResources {
+tasks.withType(ProcessResources).configureEach {
     filteringCharset = 'UTF-8'
-    inputs.property('version', project.version)
-    filesMatching('paper-plugin.yml') {
-        expand('version': project.version)
+}
+
+variantDefinitions.keySet().each { variantName ->
+    def sourceSet = variantSourceSets[variantName]
+    def processTaskName = sourceSet.processResourcesTaskName
+    tasks.named(processTaskName, ProcessResources).configure {
+        inputs.property('version', project.version)
+        filesMatching('paper-plugin.yml') {
+            expand('version': project.version)
+        }
     }
 }
 
-shadowJar {
+tasks.named('jar').configure {
     enabled = false
 }
 
-// ========== 多版本构建任务 ==========
-
-task shadowJarStandard(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
-    from sourceSets.main.output
-    configurations = [project.configurations.runtimeClasspath]
-    
-    exclude '**/listeners/MobDropListener.class'
-    exclude '**/listeners/MobDropMenuListener.class'
-    exclude '**/commands/MobDropCommand.class'
-    
-    archiveFileName.set("EssentialsC-${project.version}.jar")
+tasks.named('shadowJar').configure {
+    enabled = false
 }
 
-task shadowJarAll(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
-    from sourceSets.main.output
-    configurations = [project.configurations.runtimeClasspath]
-    
-    archiveFileName.set("EssentialsC-all-${project.version}.jar")
-}
+def variantJarTasks = variantDefinitions.collect { variantName, variantConfig ->
+    def taskName = "shadowJar${variantName.capitalize()}"
+    def sourceSet = variantSourceSets[variantName]
 
-task shadowJarLite(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
-    from sourceSets.main.output
-    configurations = [project.configurations.runtimeClasspath]
-    
-    exclude '**/commands/WorkbenchCommand.class'
-    exclude '**/commands/AnvilCommand.class'
-    exclude '**/commands/CartographyTableCommand.class'
-    exclude '**/commands/GrindstoneCommand.class'
-    exclude '**/commands/LoomCommand.class'
-    exclude '**/commands/SmithingTableCommand.class'
-    exclude '**/commands/StonecutterCommand.class'
-    exclude '**/commands/EnderChestCommand.class'
-    exclude '**/commands/BlocksMenuCommand.class'
-    exclude '**/listeners/ShulkerBoxListener.class'
-    
-    archiveFileName.set("EssentialsC-lite-${project.version}.jar")
-}
-
-build {
-    dependsOn shadowJarAll
-}
-
-// ========== 部署任务 ==========
-
-task deployToPaper12111(type: Copy) {
-    group = 'deployment'
-    description = '部署到 Paper 1.21.11 测试服务器（仅完整版）'
-    dependsOn shadowJarAll
-    from shadowJarAll
-    into "${projectDir}/test-server/paper-1.21.11/plugins"
-    doLast {
-        println "✅ 插件已部署到 Paper 1.21.11: ${projectDir}/test-server/paper-1.21.11/plugins"
+    tasks.register(taskName, ShadowJar) {
+        group = 'build'
+        description = "Builds the ${variantName} plugin jar."
+        archiveFileName.set(variantConfig.archiveFileName as String)
+        from(sourceSet.output)
+        configurations = [project.configurations.runtimeClasspath]
+        dependsOn(tasks.named(sourceSet.classesTaskName))
     }
 }
 
-task deployToPaper26 {
+tasks.named('assemble').configure {
+    dependsOn(variantJarTasks)
+}
+
+tasks.register('buildAllVersions') {
+    group = 'build'
+    description = 'Builds standard, all, and lite plugin jars.'
+    dependsOn(variantJarTasks)
+}
+
+tasks.register('deployToPaper12111', Copy) {
     group = 'deployment'
-    description = '部署到 Paper 26.1.2 测试服务器（仅完整版）'
-    dependsOn shadowJarAll
-    
+    description = 'Deploys the all variant to the local Paper 1.21.11 test server.'
+    def artifact = tasks.named('shadowJarAll').flatMap { it.archiveFile }
+    dependsOn(tasks.named('shadowJarAll'))
+    from(artifact)
+    into(layout.projectDirectory.dir('test-server/paper-1.21.11/plugins'))
+}
+
+tasks.register('deployToPaper26') {
+    group = 'deployment'
+    description = 'Deploys the all variant to the local Paper 26.1.2 test server.'
+    dependsOn(tasks.named('shadowJarAll'))
+
     doFirst {
         def pluginsDir = file("${projectDir}/test-server/paper-26.1.2/plugins")
-        if (pluginsDir.exists()) {
-            // 删除所有 EssentialsC 相关的 JAR 文件
-            fileTree(pluginsDir).include('EssentialsC*.jar').each { file ->
-                println "🗑️  删除旧插件: ${file.name}"
-                file.delete()
-            }
-            // 删除配置文件夹
-            def configDir = file("${pluginsDir}/EssentialsC")
-            if (configDir.exists()) {
-                println "🗑️  删除旧配置文件夹"
-                configDir.deleteDir()
-            }
-            println "✅ 清理完成"
-        } else {
-            println "⚠️  plugins 目录不存在，跳过清理"
+        if (!pluginsDir.exists()) {
+            return
+        }
+
+        fileTree(pluginsDir).matching {
+            include 'EssentialsC*.jar'
+        }.each { pluginJar ->
+            pluginJar.delete()
         }
     }
-    
+
     doLast {
+        def artifact = tasks.named('shadowJarAll').flatMap { it.archiveFile }
         copy {
-            from shadowJarAll.archiveFile
-            into "${projectDir}/test-server/paper-26.1.2/plugins"
+            from(artifact)
+            into("${projectDir}/test-server/paper-26.1.2/plugins")
         }
-        println "✅ 插件已部署到 Paper 26.1.2: ${projectDir}/test-server/paper-26.1.2/plugins"
     }
 }
 
-// Paper 26.1.2 一键构建和部署任务
-task buildAndDeployToPaper26 {
+tasks.register('buildAndDeployToPaper26') {
     group = 'deployment'
-    description = '一键构建并部署到 Paper 26.1.2'
-    dependsOn clean, deployToPaper26
-}
-
-// 默认部署到 Paper 1.21.11
-task deployToTestServer {
-    dependsOn deployToPaper12111
-}
-
-build.finalizedBy deployToTestServer
-
-task buildAllVersions {
-    group = 'build'
-    description = '构建所有版本的插件'
-    dependsOn shadowJarStandard, shadowJarAll, shadowJarLite
-    
-    doLast {
-        println "\n🎉 所有版本构建完成！"
-        println "📦 标准版: EssentialsC-${project.version}.jar"
-        println "📦 完整版: EssentialsC-all-${project.version}.jar"
-        println "📦 轻量版: EssentialsC-lite-${project.version}.jar"
-        println "📁 输出目录: ${buildDir}/libs/"
-        
-        def standardFile = file("${buildDir}/libs/EssentialsC-${project.version}.jar")
-        def allFile = file("${buildDir}/libs/EssentialsC-all-${project.version}.jar")
-        def liteFile = file("${buildDir}/libs/EssentialsC-lite-${project.version}.jar")
-        
-        if (!standardFile.exists()) {
-            throw new GradleException("❌ 标准版文件不存在！")
-        }
-        if (!allFile.exists()) {
-            throw new GradleException("❌ 完整版文件不存在！")
-        }
-        if (!liteFile.exists()) {
-            throw new GradleException("❌ 轻量版文件不存在！")
-        }
-        
-        println "✅ 所有文件验证通过！"
-    }
+    description = 'Builds and deploys the all variant to the local Paper 26.1.2 test server.'
+    dependsOn(tasks.named('clean'), tasks.named('deployToPaper26'))
 }

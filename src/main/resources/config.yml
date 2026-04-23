@@ -1,104 +1,96 @@
-# EssentialsC 配置文件
-# 你可以编辑此文件来自定义插件行为
+# EssentialsC 主配置文件
 
-# 语言设置
-# 可用语言: en_US, zh_CN (你可以添加更多)
+# 配置文件版本号
+config-version: 2
+
+# 语言文件名称，对应插件数据目录下 lang/<语言名>.yml
 language: "zh_CN"
 
-# 通用设置
-settings:
-  # 启用或禁用命令反馈消息
-  enable-feedback: true
+admin-mode:
+  # 原版默认飞行速度为 0.1，这里 0.2 表示两倍飞行速度
+  fly-speed: 0.2
+  actionbar:
+    # 管理模式状态提示的刷新间隔，单位为 tick
+    interval-ticks: 40
 
-# 功能方块菜单配置
-blocks-menu:
-  title: "&6&lEssentialsC &8- &e&l功能方块菜单"
-  items:
-    workbench:
-      slot: 10
-      material: CRAFTING_TABLE
-      name: "&e工作台"
-      lore:
-        - "&7/workbench"
-        - "&7打开工作台"
-      permission: essentialsc.command.workbench
-    anvil:
-      slot: 11
-      material: ANVIL
-      name: "&e铁砧"
-      lore:
-        - "&7/anvil"
-        - "&7打开铁砧"
-      permission: essentialsc.command.anvil
-    cartographytable:
-      slot: 19
-      material: CARTOGRAPHY_TABLE
-      name: "&e制图台"
-      lore:
-        - "&7/cartographytable"
-        - "&7打开制图台"
-      permission: essentialsc.command.cartographytable
-    grindstone:
-      slot: 20
-      material: GRINDSTONE
-      name: "&e砂轮"
-      lore:
-        - "&7/grindstone"
-        - "&7打开砂轮"
-      permission: essentialsc.command.grindstone
-    loom:
-      slot: 21
-      material: LOOM
-      name: "&e织布机"
-      lore:
-        - "&7/loom"
-        - "&7打开织布机"
-      permission: essentialsc.command.loom
-    smithingtable:
-      slot: 22
-      material: SMITHING_TABLE
-      name: "&e锻造台"
-      lore:
-        - "&7/smithingtable"
-        - "&7打开锻造台"
-      permission: essentialsc.command.smithingtable
-    stonecutter:
-      slot: 23
-      material: STONECUTTER
-      name: "&e切石机"
-      lore:
-        - "&7/stonecutter"
-        - "&7打开切石机"
-      permission: essentialsc.command.stonecutter
-    enderchest:
-      slot: 31
-      material: ENDER_CHEST
-      name: "&e末影箱"
-      lore:
-        - "&7/enderchest"
-        - "&7打开末影箱"
-      permission: essentialsc.command.enderchest
-
-# 潜影盒设置
-shulkerbox:
-  # 潜影盒默认标题（当潜影盒没有自定义名称时使用）
-  # 支持颜色代码（使用 & 符号）
-  # 留空则使用 "Shulker Box"（客户端语言）
-  default-title: "&e潜影盒"
-
-# JEI/REI 配方同步设置（MC 1.21.2+）
-# 解决 Fabric/NeoForge 客户端配方不同步问题
 jei-sync:
-  # 是否启用 JEI 配方同步功能
+  # 是否启用 JEI 配方同步修复
   enabled: true
-  # 是否在控制台显示同步日志
-  debug: true
-  # 是否向玩家发送同步提示消息
+  # 是否输出调试日志
+  debug: false
+  # 是否在玩家加入时发送同步提示
   send-player-message: true
 
-# 生物掉落物控制
 mob-drops:
-  # 末影人掉落物控制
   enderman:
-    # 是否允许末影人死亡后掉落物品和经验
+    # 是否允许末影人掉落方块
     enabled: true
+
+tpsbar:
+  # 可选值：off / auto / on
+  # auto: 若服务端没有原生 /tpsbar，则启用插件实现
+  # on: 始终启用插件实现；若服务端已有原生命令，则自动跳过以避免冲突
+  mode: auto
+
+blocks-menu:
+  # 菜单布局版本，用于后续自动迁移槽位布局
+  layout-version: 2
+  sections:
+    blocks:
+      items:
+        workbench:
+          # 物品所在槽位
+          slot: 10
+          # 菜单图标材质
+          material: CRAFTING_TABLE
+          # 所需权限
+          permission: essentialsc.command.workbench
+          # 点击后执行的命令键
+          command: workbench
+        enderchest:
+          slot: 11
+          material: ENDER_CHEST
+          permission: essentialsc.command.enderchest
+          command: enderchest
+        anvil:
+          slot: 12
+          material: ANVIL
+          permission: essentialsc.command.anvil
+          command: anvil
+        grindstone:
+          slot: 19
+          material: GRINDSTONE
+          permission: essentialsc.command.grindstone
+          command: grindstone
+        smithingtable:
+          slot: 20
+          material: SMITHING_TABLE
+          permission: essentialsc.command.smithingtable
+          command: smithingtable
+        stonecutter:
+          slot: 21
+          material: STONECUTTER
+          permission: essentialsc.command.stonecutter
+          command: stonecutter
+        loom:
+          slot: 28
+          material: LOOM
+          permission: essentialsc.command.loom
+          command: loom
+        cartographytable:
+          slot: 29
+          material: CARTOGRAPHY_TABLE
+          permission: essentialsc.command.cartographytable
+          command: cartographytable
+    shortcuts:
+      items:
+        nightvision:
+          slot: 14
+          material: TINTED_GLASS
+          permission: essentialsc.command.nightvision
+          command: nightvision
+        glow:
+          slot: 15
+          material: GLOWSTONE
+          permission: essentialsc.command.glow
+          command: glow

@@ -2,15 +2,15 @@ package cn.infstar.essentialsC.commands;
 
 import org.bukkit.entity.Player;
 
-public class SuicideCommand extends BaseCommand {
+public class AdminCommand extends BaseCommand {
 
-    public SuicideCommand() {
-        super("essentialsc.command.suicide");
+    public AdminCommand() {
+        super("essentialsc.command.admin");
     }
 
     @Override
     protected boolean execute(Player player, String[] args) {
-        player.setHealth(0);
+        plugin.getAdminModeManager().toggle(player);
         return true;
     }
 }
