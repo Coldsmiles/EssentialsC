@@ -10,6 +10,7 @@ messages:
   paper-version: "&7当前运行于 Paper {version}"
   unknown-subcommand: "&c未知子命令：{command}"
   help-usage: "&7使用 &f/essc help &7查看可用命令。"
+  module-disabled: "&c该功能模块当前已关闭，请联系管理员。"
   blocks-menu-empty: "&c你当前没有可用的便捷菜单项目。"
 
   hat-success: "&a你已将 {item} 戴在头上！"

@@ -22,7 +22,7 @@ public class TpsBarCommand extends BaseCommand implements TabCompleter {
     protected boolean execute(Player player, String[] args) {
         TpsBarService tpsBarService = plugin.getTpsBarManager();
         if (tpsBarService == null) {
-            player.sendMessage(getLang().getPrefixedString("messages.player-only"));
+            player.sendMessage(getLang().getPrefixedString("messages.module-disabled"));
             return true;
         }
 

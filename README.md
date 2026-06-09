@@ -12,8 +12,8 @@
 - 最低支持版本为 `Paper 1.21.11`
 - 已适配 `Paper 26.1.2`
 - 构建环境固定为 `Java 21`
-- 配置与文本分离：行为配置放在 `config.yml`，提示文本放在 `lang/`
-- 支持模块裁剪，便于按需构建不同版本
+- 配置、模块开关与文本分离：行为配置放在 `config.yml`，模块开关放在 `modules.yml`，提示文本放在 `lang/`
+- 支持运行期模块开关，避免为不同功能组合构建多个插件版本
 
 ## 主要功能
 
@@ -52,17 +52,20 @@
 - Enderman 掉落方块控制
 - JEI 配方同步修复
 
-## 构建变体
+## 模块配置
 
-项目目前提供三个常用构建版本：
+项目现在默认构建一个完整插件，功能是否启用由 `plugins/EssentialsC/modules.yml` 控制。
 
-| 版本 | 产物名 | 说明 |
+| 模块 | 默认状态 | 说明 |
 | --- | --- | --- |
-| 标准版 | `EssentialsC-<version>.jar` | 默认版本，不包含 `mob-drops` 模块 |
-| 完整版 | `EssentialsC-all-<version>.jar` | 包含全部模块 |
-| 精简版 | `EssentialsC-lite-<version>.jar` | 仅排除 `blocks` 模块，保留 `mob-drops` |
+| `blocks` | 开启 | 便捷方块命令、`/essc blocks` 菜单、潜影盒快捷打开 |
+| `player` | 开启 | 飞行、夜视、发光、治疗、喂食、修复、帽子、自杀、隐身、查询玩家 |
+| `admin-mode` | 开启 | `/essc admin` 管理模式与独立状态保存 |
+| `tpsbar` | 开启 | 插件版 TPSBar，仍受 `config.yml` 中 `tpsbar.mode` 控制 |
+| `jei-sync` | 开启 | Fabric / NeoForge JEI 配方同步修复 |
+| `mob-drops` | 关闭 | 末影人掉落控制，默认关闭以保留过去标准版行为 |
 
-如果需要进一步裁剪模块，也可以使用自定义构建参数生成 `custom` 版本。
+修改模块开关后建议重启服务器，使命令注册表和监听器状态完全刷新。`/essc reload` 可以刷新配置和已注册命令的执行检查，但无法从 Bukkit 命令表中真正热移除或新增直连命令。
 
 ## 安装说明
 
@@ -83,6 +86,8 @@
   - 掉落控制
   - TPSBar 模式
   - 便捷菜单布局
+- `modules.yml`
+  - 功能模块开关
 - `lang/zh_CN.yml`、`lang/en_US.yml`
   - 命令反馈
   - 帮助信息
@@ -122,29 +127,28 @@ essentialsc.*
 ```bash
 git clone https://github.com/Coldsmiles/EssentialsC.git
 cd EssentialsC
-./gradlew buildAllVersions
+./gradlew build
 ```
 
 Windows 可使用：
 
 ```powershell
-.\gradlew.bat buildAllVersions
+.\gradlew.bat build
 ```
 
-构建产物输出到 `build/libs/`。
+构建产物输出到 `build/libs/EssentialsC-<version>.jar`。
 
 常用任务：
 
 ```bash
-./gradlew shadowJarStandard
-./gradlew shadowJarAll
-./gradlew shadowJarLite
+./gradlew shadowJar
+./gradlew build
 ```
 
 ## 开发说明
 
 - 使用 `paperweight-userdev` 进行 Paper 开发
-- 运行时通过反射加载可选模块，避免裁剪版本因类缺失而启动失败
+- 运行时通过 `modules.yml` 控制模块加载，命令与监听器按模块状态注册
 - 发布流程基于 GitHub Actions 和 Gradle Wrapper
 
 ## 许可证

@@ -26,8 +26,8 @@ jobs:
       - name: 授予执行权限
         run: chmod +x gradlew
 
-      - name: 构建全部版本
-        run: ./gradlew buildAllVersions
+      - name: 构建插件
+        run: ./gradlew build
 
       - name: 创建发行版
         uses: softprops/action-gh-release@v1

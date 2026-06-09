@@ -328,7 +328,7 @@ public final class AdminModeManager implements Listener {
         try {
             data.save(dataFile);
         } catch (IOException e) {
-            plugin.getLogger().warning("Failed to save admin-mode.yml: " + e.getMessage());
+            plugin.getLogger().warning("保存 admin-mode.yml 失败: " + e.getMessage());
         }
     }
 

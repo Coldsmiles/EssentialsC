@@ -10,6 +10,10 @@ public class AdminCommand extends BaseCommand {
 
     @Override
     protected boolean execute(Player player, String[] args) {
+        if (plugin.getAdminModeManager() == null) {
+            player.sendMessage(getLang().getPrefixedString("messages.module-disabled"));
+            return true;
+        }
         plugin.getAdminModeManager().toggle(player);
         return true;
     }

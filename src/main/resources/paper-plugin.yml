@@ -89,6 +89,9 @@ permissions:
   essentialsc.command.tpsbar:
     description: 允许使用 /tpsbar
     default: op
+  essentialsc.command.tpsbar.others:
+    description: 允许为其他玩家切换 /tpsbar
+    default: op
   essentialsc.shulkerbox.open:
     description: 允许通过 Shift+右键快捷打开潜影盒
     default: op
@@ -125,5 +128,6 @@ permissions:
       essentialsc.command.help: true
       essentialsc.command.reload: true
       essentialsc.command.tpsbar: true
+      essentialsc.command.tpsbar.others: true
       essentialsc.shulkerbox.open: true
       essentialsc.mobdrops.enderman: true

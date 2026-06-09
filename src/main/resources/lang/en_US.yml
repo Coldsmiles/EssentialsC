@@ -10,6 +10,7 @@ messages:
   paper-version: "&7Running on Paper {version}"
   unknown-subcommand: "&cUnknown subcommand: {command}"
   help-usage: "&7Use &f/essc help &7to view available commands."
+  module-disabled: "&cThis feature module is currently disabled. Please contact an administrator."
   blocks-menu-empty: "&cYou do not currently have any available shortcut menu entries."
 
   hat-success: "&aYou are now wearing {item} on your head!"

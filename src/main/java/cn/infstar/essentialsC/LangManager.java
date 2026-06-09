@@ -38,7 +38,7 @@ public class LangManager {
     public String getString(String path) {
         String value = langFile.getString(path);
         if (value == null) {
-            return translateColorCodes("&cMissing translation: " + path);
+            return translateColorCodes("&c缺少语言文本: " + path);
         }
         return translateColorCodes(value);
     }
@@ -58,7 +58,7 @@ public class LangManager {
     public List<String> getStringList(String path) {
         List<String> values = langFile.getStringList(path);
         if (values.isEmpty()) {
-            values = List.of("&cMissing translation: " + path);
+            values = List.of("&c缺少语言文本: " + path);
         }
 
         List<String> translated = new ArrayList<>();
@@ -92,7 +92,7 @@ public class LangManager {
         try {
             config.save(configFile);
         } catch (Exception e) {
-            plugin.getLogger().severe("Failed to save config.yml: " + e.getMessage());
+            plugin.getLogger().severe("保存 config.yml 失败: " + e.getMessage());
         }
     }
 
@@ -115,10 +115,10 @@ public class LangManager {
             newConfig.set("language", language);
             newConfig.save(configFile);
 
-            plugin.getLogger().info("Migrated config.yml from version " + existingVersion
-                + " to " + CURRENT_CONFIG_VERSION + ". Backup saved to " + backupFile.getName());
+            plugin.getLogger().info("已将 config.yml 从版本 " + existingVersion
+                + " 迁移到 " + CURRENT_CONFIG_VERSION + "，备份文件: " + backupFile.getName());
         } catch (IOException e) {
-            plugin.getLogger().severe("Failed to migrate config.yml: " + e.getMessage());
+            plugin.getLogger().severe("迁移 config.yml 失败: " + e.getMessage());
         }
     }
 
@@ -127,7 +127,7 @@ public class LangManager {
 
         File langFolder = new File(plugin.getDataFolder(), "lang");
         if (!langFolder.exists() && !langFolder.mkdirs()) {
-            plugin.getLogger().warning("Failed to create language folder: " + langFolder.getAbsolutePath());
+            plugin.getLogger().warning("创建语言文件夹失败: " + langFolder.getAbsolutePath());
         }
 
         File langFileObj = new File(langFolder, currentLanguage + ".yml");
@@ -135,7 +135,7 @@ public class LangManager {
             if (plugin.getResource("lang/" + currentLanguage + ".yml") != null) {
                 plugin.saveResource("lang/" + currentLanguage + ".yml", false);
             } else {
-                plugin.getLogger().warning("Language file not found: " + currentLanguage + ".yml, falling back to en_US");
+                plugin.getLogger().warning("未找到语言文件: " + currentLanguage + ".yml，已回退到 en_US");
                 currentLanguage = "en_US";
                 plugin.saveResource("lang/en_US.yml", false);
                 langFileObj = new File(langFolder, "en_US.yml");

@@ -30,26 +30,26 @@ public class SeenCommand extends BaseCommand {
 
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         StringBuilder info = new StringBuilder();
-        info.append(getLang().getPrefix()).append(ChatColor.GOLD).append("Player info: ")
+        info.append(getLang().getPrefix()).append(ChatColor.GOLD).append("玩家信息: ")
             .append(ChatColor.WHITE).append(target.getName()).append("\n");
 
         if (target.isOnline()) {
-            info.append(ChatColor.GRAY).append("Status: ").append(ChatColor.GREEN).append("Online").append("\n");
+            info.append(ChatColor.GRAY).append("状态: ").append(ChatColor.GREEN).append("在线").append("\n");
             Player onlinePlayer = target.getPlayer();
             if (onlinePlayer != null) {
-                info.append(ChatColor.GRAY).append("World: ").append(ChatColor.WHITE)
+                info.append(ChatColor.GRAY).append("所在世界: ").append(ChatColor.WHITE)
                     .append(onlinePlayer.getWorld().getName()).append("\n");
             }
         } else {
-            info.append(ChatColor.GRAY).append("Status: ").append(ChatColor.RED).append("Offline").append("\n");
+            info.append(ChatColor.GRAY).append("状态: ").append(ChatColor.RED).append("离线").append("\n");
             long lastSeen = target.getLastSeen();
             if (lastSeen > 0) {
-                info.append(ChatColor.GRAY).append("Last seen: ").append(ChatColor.WHITE)
+                info.append(ChatColor.GRAY).append("最后在线: ").append(ChatColor.WHITE)
                     .append(format.format(new Date(lastSeen))).append("\n");
             }
         }
 
-        info.append(ChatColor.GRAY).append("First joined: ").append(ChatColor.WHITE)
+        info.append(ChatColor.GRAY).append("首次加入: ").append(ChatColor.WHITE)
             .append(format.format(new Date(target.getFirstPlayed())));
 
         player.sendMessage(info.toString());

@@ -274,12 +274,12 @@ public class ShulkerBoxListener implements Listener {
 
     private void writeInventoryBack(ItemStack shulkerItem, ItemStack[] contents) {
         if (!(shulkerItem.getItemMeta() instanceof BlockStateMeta blockStateMeta)) {
-            plugin.getLogger().warning("Failed to save shulker box contents: missing BlockStateMeta.");
+            plugin.getLogger().warning("保存潜影盒内容失败: 缺少 BlockStateMeta。");
             return;
         }
 
         if (!(blockStateMeta.getBlockState() instanceof ShulkerBox shulkerBox)) {
-            plugin.getLogger().warning("Failed to save shulker box contents: block state is not a ShulkerBox.");
+            plugin.getLogger().warning("保存潜影盒内容失败: 方块状态不是 ShulkerBox。");
             return;
         }
 

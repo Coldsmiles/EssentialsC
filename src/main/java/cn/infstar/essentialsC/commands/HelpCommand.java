@@ -2,6 +2,7 @@ package cn.infstar.essentialsC.commands;
 
 import cn.infstar.essentialsC.EssentialsC;
 import cn.infstar.essentialsC.LangManager;
+import cn.infstar.essentialsC.ModuleManager;
 import cn.infstar.essentialsC.tpsbar.TpsBarService;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -34,9 +35,15 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
             }
             plugin.reloadConfig();
             EssentialsC.getLangManager().reload();
+            plugin.getModuleManager().reload();
+            CommandRegistry.clearCache();
             TpsBarService tpsBarService = plugin.getTpsBarManager();
             if (tpsBarService != null) {
-                tpsBarService.reloadSettings();
+                if (plugin.getModuleManager().isEnabled(ModuleManager.TPSBAR)) {
+                    tpsBarService.reloadSettings();
+                } else {
+                    tpsBarService.shutdown();
+                }
             }
             sender.sendMessage(getLang().getPrefixedString("messages.config-reloaded"));
             return true;
@@ -56,9 +63,15 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
                 }
                 plugin.reloadConfig();
                 EssentialsC.getLangManager().reload();
+                plugin.getModuleManager().reload();
+                CommandRegistry.clearCache();
                 TpsBarService tpsBarService = plugin.getTpsBarManager();
                 if (tpsBarService != null) {
-                    tpsBarService.reloadSettings();
+                    if (plugin.getModuleManager().isEnabled(ModuleManager.TPSBAR)) {
+                        tpsBarService.reloadSettings();
+                    } else {
+                        tpsBarService.shutdown();
+                    }
                 }
                 sender.sendMessage(getLang().getPrefixedString("messages.config-reloaded"));
                 return true;

@@ -16,15 +16,23 @@ import java.lang.reflect.Field;
 public final class EssentialsC extends JavaPlugin {
 
     private static LangManager langManager;
+    private ModuleManager moduleManager;
     private AdminModeManager adminModeManager;
     private TpsBarService tpsBarManager;
 
     @Override
     public void onEnable() {
         langManager = new LangManager(this);
-        adminModeManager = new AdminModeManager(this);
-        getServer().getPluginManager().registerEvents(adminModeManager, this);
-        tpsBarManager = createOptionalService("cn.infstar.essentialsC.tpsbar.TpsBarManager", TpsBarService.class);
+        moduleManager = new ModuleManager(this);
+
+        if (moduleManager.isEnabled(ModuleManager.ADMIN_MODE)) {
+            adminModeManager = new AdminModeManager(this);
+            getServer().getPluginManager().registerEvents(adminModeManager, this);
+        }
+
+        if (moduleManager.isEnabled(ModuleManager.TPSBAR)) {
+            tpsBarManager = createOptionalService("cn.infstar.essentialsC.tpsbar.TpsBarManager", TpsBarService.class);
+        }
         if (tpsBarManager instanceof Listener listener) {
             getServer().getPluginManager().registerEvents(listener, this);
         }
@@ -32,7 +40,7 @@ public final class EssentialsC extends JavaPlugin {
         registerListeners();
         registerCommands();
 
-        getLogger().info("EssentialsC enabled. Version: " + getDescription().getVersion());
+        getLogger().info("EssentialsC 已启用，版本: " + getDescription().getVersion());
     }
 
     @Override
@@ -43,7 +51,7 @@ public final class EssentialsC extends JavaPlugin {
         if (adminModeManager != null) {
             adminModeManager.shutdown();
         }
-        getLogger().info("EssentialsC disabled.");
+        getLogger().info("EssentialsC 已禁用。");
     }
 
     public static LangManager getLangManager() {
@@ -54,28 +62,38 @@ public final class EssentialsC extends JavaPlugin {
         return adminModeManager;
     }
 
+    public ModuleManager getModuleManager() {
+        return moduleManager;
+    }
+
     public TpsBarService getTpsBarManager() {
         return tpsBarManager;
     }
 
     private void registerPluginChannels() {
+        if (!moduleManager.isEnabled(ModuleManager.JEI_SYNC)) {
+            return;
+        }
         org.bukkit.plugin.messaging.Messenger messenger = getServer().getMessenger();
         messenger.registerOutgoingPluginChannel(this, "fabric:recipe_sync");
         messenger.registerOutgoingPluginChannel(this, "neoforge:recipe_content");
     }
 
     private void registerListeners() {
-        if (registerListener("cn.infstar.essentialsC.listeners.ShulkerBoxListener")) {
-            getLogger().info("- Shulker box module");
+        if (moduleManager.isEnabled(ModuleManager.BLOCKS)
+            && registerListener("cn.infstar.essentialsC.listeners.ShulkerBoxListener")) {
+            getLogger().info("- 潜影盒模块");
         }
 
-        if (registerListener("cn.infstar.essentialsC.listeners.JeiRecipeSyncListener")) {
-            getLogger().info("- JEI recipe sync");
+        if (moduleManager.isEnabled(ModuleManager.JEI_SYNC)
+            && registerListener("cn.infstar.essentialsC.listeners.JeiRecipeSyncListener")) {
+            getLogger().info("- JEI 配方同步");
         }
 
-        if (registerListener("cn.infstar.essentialsC.listeners.MobDropListener")) {
+        if (moduleManager.isEnabled(ModuleManager.MOB_DROPS)
+            && registerListener("cn.infstar.essentialsC.listeners.MobDropListener")) {
             createOptionalInstance("cn.infstar.essentialsC.listeners.MobDropMenuListener");
-            getLogger().info("- Mob drop control");
+            getLogger().info("- 生物掉落控制");
         }
     }
 
@@ -127,7 +145,7 @@ public final class EssentialsC extends JavaPlugin {
 
             registerCommandWithAliases(commandMap, "essentialsc", new HelpCommand(), "essc");
         } catch (Exception e) {
-            getLogger().severe("Failed to register commands: " + e.getMessage());
+            getLogger().severe("注册命令失败: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -136,6 +154,10 @@ public final class EssentialsC extends JavaPlugin {
         Command command = new Command(name) {
             @Override
             public boolean execute(CommandSender sender, String commandLabel, String[] args) {
+                if (CommandRegistry.resolveCommandName(name) != null && !CommandRegistry.isAvailable(name)) {
+                    sender.sendMessage(EssentialsC.getLangManager().getPrefixedString("messages.module-disabled"));
+                    return true;
+                }
                 return executor.onCommand(sender, this, commandLabel, args);
             }
 
@@ -155,6 +177,10 @@ public final class EssentialsC extends JavaPlugin {
             Command aliasCmd = new Command(alias) {
                 @Override
                 public boolean execute(CommandSender sender, String commandLabel, String[] args) {
+                    if (CommandRegistry.resolveCommandName(name) != null && !CommandRegistry.isAvailable(name)) {
+                        sender.sendMessage(EssentialsC.getLangManager().getPrefixedString("messages.module-disabled"));
+                        return true;
+                    }
                     return executor.onCommand(sender, this, commandLabel, args);
                 }
 

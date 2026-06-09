@@ -1,0 +1,28 @@
+# EssentialsC 模块配置
+#
+# modules.yml 用于控制功能模块是否在运行时加载。
+# config.yml 仍然用于控制已启用模块内部的具体行为。
+#
+# 将模块设置为 false 后，建议重启服务器，以完全注销对应命令和监听器。
+
+config-version: 1
+
+modules:
+  blocks:
+    # 工作台、铁砧等便捷方块命令、/essc blocks 菜单和潜影盒快捷打开。
+    enabled: true
+  player:
+    # 玩家常用命令：飞行、夜视、发光、治疗、喂食、修复、帽子、自杀、隐身和查询玩家。
+    enabled: true
+  admin-mode:
+    # /essc admin 管理模式，以及独立背包和状态管理。
+    enabled: true
+  tpsbar:
+    # 插件版 TPSBar。config.yml 中的 tpsbar.mode 仍会决定遇到原生 /tpsbar 时的行为。
+    enabled: true
+  jei-sync:
+    # Fabric / NeoForge JEI 配方同步兼容修复。
+    enabled: true
+  mob-drops:
+    # 末影人掉落控制菜单和监听器。默认关闭，用于保留过去标准版的行为。
+    enabled: false
