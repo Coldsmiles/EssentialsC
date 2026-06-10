@@ -4,6 +4,8 @@ import cn.infstar.essentialsC.admin.AdminModeManager;
 import cn.infstar.essentialsC.commands.BaseCommand;
 import cn.infstar.essentialsC.commands.CommandRegistry;
 import cn.infstar.essentialsC.commands.HelpCommand;
+import cn.infstar.essentialsC.maintenance.MaintenanceListener;
+import cn.infstar.essentialsC.maintenance.MaintenanceManager;
 import cn.infstar.essentialsC.tpsbar.TpsBarService;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -18,6 +20,7 @@ public final class EssentialsC extends JavaPlugin {
     private static LangManager langManager;
     private ModuleManager moduleManager;
     private AdminModeManager adminModeManager;
+    private MaintenanceManager maintenanceManager;
     private TpsBarService tpsBarManager;
 
     @Override
@@ -28,6 +31,11 @@ public final class EssentialsC extends JavaPlugin {
         if (moduleManager.isEnabled(ModuleManager.ADMIN_MODE)) {
             adminModeManager = new AdminModeManager(this);
             getServer().getPluginManager().registerEvents(adminModeManager, this);
+        }
+
+        if (moduleManager.isEnabled(ModuleManager.MAINTENANCE)) {
+            maintenanceManager = new MaintenanceManager(this);
+            getServer().getPluginManager().registerEvents(new MaintenanceListener(this), this);
         }
 
         if (moduleManager.isEnabled(ModuleManager.TPSBAR)) {
@@ -51,6 +59,9 @@ public final class EssentialsC extends JavaPlugin {
         if (adminModeManager != null) {
             adminModeManager.shutdown();
         }
+        if (maintenanceManager != null) {
+            maintenanceManager.shutdown();
+        }
         getLogger().info("EssentialsC 已禁用。");
     }
 
@@ -64,6 +75,10 @@ public final class EssentialsC extends JavaPlugin {
 
     public ModuleManager getModuleManager() {
         return moduleManager;
+    }
+
+    public MaintenanceManager getMaintenanceManager() {
+        return maintenanceManager;
     }
 
     public TpsBarService getTpsBarManager() {
@@ -151,6 +166,7 @@ public final class EssentialsC extends JavaPlugin {
     }
 
     private void registerCommandWithAliases(org.bukkit.command.CommandMap commandMap, String name, BaseCommand executor, String... aliases) {
+        String fallbackPrefix = getName().toLowerCase(java.util.Locale.ROOT);
         Command command = new Command(name) {
             @Override
             public boolean execute(CommandSender sender, String commandLabel, String[] args) {
@@ -171,7 +187,7 @@ public final class EssentialsC extends JavaPlugin {
         };
 
         command.setPermission(executor.getPermission());
-        commandMap.register("", command);
+        commandMap.register(fallbackPrefix, command);
 
         for (String alias : aliases) {
             Command aliasCmd = new Command(alias) {
@@ -193,7 +209,7 @@ public final class EssentialsC extends JavaPlugin {
                 }
             };
             aliasCmd.setPermission(executor.getPermission());
-            commandMap.register("", aliasCmd);
+            commandMap.register(fallbackPrefix, aliasCmd);
         }
     }
 }

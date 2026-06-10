@@ -1,0 +1,31 @@
+# EssentialsC 维护模式配置
+
+config-version: 1
+
+# 是否开启维护模式。
+enabled: false
+
+# 拥有该权限的玩家可以在维护模式下进入服务器。
+bypass-permission: "essentialsc.maintenance.bypass"
+
+motd:
+  # 维护模式开启时是否替换服务器列表 MOTD。
+  enabled: true
+  lines:
+    - "&c服务器维护中"
+    - "&7请稍后再试"
+
+kick-message:
+  - "&c服务器正在维护"
+  - "&7请稍后再进入"
+
+bossbar:
+  # 维护模式开启时是否向无绕过权限的在线玩家显示 BossBar。
+  enabled: true
+  title: "&c服务器正在维护"
+  # 可选值：PINK / BLUE / RED / GREEN / YELLOW / PURPLE / WHITE
+  color: RED
+  # 可选值：SOLID / SEGMENTED_6 / SEGMENTED_10 / SEGMENTED_12 / SEGMENTED_20
+  style: SOLID
+  # 进度范围：0.0 - 1.0
+  progress: 1.0

@@ -92,6 +92,12 @@ permissions:
   essentialsc.command.tpsbar.others:
     description: 允许为其他玩家切换 /tpsbar
     default: op
+  essentialsc.command.maintenance:
+    description: 允许管理维护模式
+    default: op
+  essentialsc.maintenance.bypass:
+    description: 允许在维护模式下进入服务器
+    default: op
   essentialsc.shulkerbox.open:
     description: 允许通过 Shift+右键快捷打开潜影盒
     default: op
@@ -129,5 +135,7 @@ permissions:
       essentialsc.command.reload: true
       essentialsc.command.tpsbar: true
       essentialsc.command.tpsbar.others: true
+      essentialsc.command.maintenance: true
+      essentialsc.maintenance.bypass: true
       essentialsc.shulkerbox.open: true
       essentialsc.mobdrops.enderman: true

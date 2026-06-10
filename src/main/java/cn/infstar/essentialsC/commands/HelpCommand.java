@@ -37,6 +37,9 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
             EssentialsC.getLangManager().reload();
             plugin.getModuleManager().reload();
             CommandRegistry.clearCache();
+            if (plugin.getMaintenanceManager() != null && plugin.getModuleManager().isEnabled(ModuleManager.MAINTENANCE)) {
+                plugin.getMaintenanceManager().reload();
+            }
             TpsBarService tpsBarService = plugin.getTpsBarManager();
             if (tpsBarService != null) {
                 if (plugin.getModuleManager().isEnabled(ModuleManager.TPSBAR)) {
@@ -65,6 +68,9 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
                 EssentialsC.getLangManager().reload();
                 plugin.getModuleManager().reload();
                 CommandRegistry.clearCache();
+                if (plugin.getMaintenanceManager() != null && plugin.getModuleManager().isEnabled(ModuleManager.MAINTENANCE)) {
+                    plugin.getMaintenanceManager().reload();
+                }
                 TpsBarService tpsBarService = plugin.getTpsBarManager();
                 if (tpsBarService != null) {
                     if (plugin.getModuleManager().isEnabled(ModuleManager.TPSBAR)) {
@@ -201,6 +207,10 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
             otherCommands.append(lang.getString("help.commands.tpsbar")).append("\n");
             hasOtherCommands = true;
         }
+        if (CommandRegistry.isAvailable("maintenance") && player.hasPermission("essentialsc.command.maintenance")) {
+            otherCommands.append(lang.getString("help.commands.maintenance")).append("\n");
+            hasOtherCommands = true;
+        }
 
         if (hasOtherCommands) {
             sendPrefixed(player, lang.getString("help.section-other"));
@@ -272,6 +282,8 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
                 {"repair", "essentialsc.command.repair"},
                 {"rep", "essentialsc.command.repair"},
                 {"tpsbar", "essentialsc.command.tpsbar"},
+                {"maintenance", "essentialsc.command.maintenance"},
+                {"maint", "essentialsc.command.maintenance"},
                 {"mobdrops", "essentialsc.mobdrops.enderman"},
                 {"admin", "essentialsc.command.admin"},
                 {"version", null},
@@ -324,6 +336,11 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
                 }
                 return players;
             }
+
+            if ((subCmd.equals("maintenance") || subCmd.equals("maint"))
+                && sender.hasPermission("essentialsc.command.maintenance")) {
+                return completeMaintenanceArgs(args[1]);
+            }
         }
 
         return new ArrayList<>();
@@ -333,6 +350,17 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
         List<String> completions = new ArrayList<>();
         String partial = partialInput.toLowerCase();
         for (String option : List.of("on", "off", "toggle")) {
+            if (option.startsWith(partial)) {
+                completions.add(option);
+            }
+        }
+        return completions;
+    }
+
+    private List<String> completeMaintenanceArgs(String partialInput) {
+        List<String> completions = new ArrayList<>();
+        String partial = partialInput.toLowerCase();
+        for (String option : List.of("on", "off", "status", "reload")) {
             if (option.startsWith(partial)) {
                 completions.add(option);
             }

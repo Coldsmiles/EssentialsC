@@ -84,6 +84,7 @@ help:
     repair: "  &f/repair &7- Repair held or all items"
     admin: "  &f/essc admin &7- Toggle admin mode"
     tpsbar: "  &f/tpsbar [player] &7- Toggle TPS boss bar"
+    maintenance: "  &f/maintenance <on|off|status|reload> &7- Manage maintenance mode"
 
 blocks-menu:
   title: "&6&lEssentialsC &8- &e&lShortcut Menu"
@@ -170,3 +171,14 @@ mobdrops-menu:
     name: "&dEnderman Drops"
     status: "&7Current status: {status}"
     toggle: "&eClick to toggle"
+
+maintenance:
+  status:
+    enabled: "&cEnabled"
+    disabled: "&aDisabled"
+  messages:
+    enabled: "&aMaintenance mode enabled."
+    disabled: "&cMaintenance mode disabled."
+    reloaded: "&aMaintenance configuration reloaded."
+    status: "&7Maintenance mode status: {status}"
+    usage: "&cUsage: /maintenance <on|off|status|reload>"

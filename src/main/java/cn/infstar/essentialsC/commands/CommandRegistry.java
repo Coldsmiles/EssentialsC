@@ -42,6 +42,7 @@ public final class CommandRegistry {
         register("repair", "essentialsc.command.repair", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.RepairCommand", "rep");
         register("tpsbar", "essentialsc.command.tpsbar", ModuleManager.TPSBAR, "cn.infstar.essentialsC.commands.TpsBarCommand");
         register("mobdrops", "essentialsc.mobdrops.enderman", ModuleManager.MOB_DROPS, "cn.infstar.essentialsC.commands.MobDropCommand");
+        register("maintenance", "essentialsc.command.maintenance", ModuleManager.MAINTENANCE, "cn.infstar.essentialsC.commands.MaintenanceCommand", "maint");
         registerSubCommand("admin", "essentialsc.command.admin", ModuleManager.ADMIN_MODE, "cn.infstar.essentialsC.commands.AdminCommand");
     }
 

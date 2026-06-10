@@ -8,7 +8,7 @@ plugins {
 }
 
 group = 'cn.infstar'
-version = '1.3.1'
+version = '1.4.0'
 
 repositories {
     mavenCentral()
@@ -55,3 +55,25 @@ tasks.named('shadowJar', ShadowJar).configure {
 tasks.named('assemble').configure {
     dependsOn(tasks.named('shadowJar'))
 }
+
+def registerTestServerDeployTask = { String taskName, String serverPath, String serverName ->
+    tasks.register(taskName, Copy) {
+        group = 'deployment'
+        description = "构建并部署插件到本地 ${serverName} 测试服务器。"
+        def artifact = tasks.named('shadowJar').flatMap { it.archiveFile }
+        def pluginsDir = layout.projectDirectory.dir("${serverPath}/plugins")
+        dependsOn(tasks.named('shadowJar'))
+        from(artifact)
+        into(pluginsDir)
+
+        doFirst {
+            delete(fileTree(pluginsDir) {
+                include 'EssentialsC*.jar'
+            })
+            delete(pluginsDir.file('EssentialsC').asFile)
+        }
+    }
+}
+
+registerTestServerDeployTask('deployToPaper12111', 'test-server/paper-1.21.11', 'Paper 1.21.11')
+registerTestServerDeployTask('deployToPaper2612', 'test-server/paper-26.1.2', 'Paper 26.1.2')

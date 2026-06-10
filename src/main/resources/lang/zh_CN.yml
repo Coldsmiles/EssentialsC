@@ -84,6 +84,7 @@ help:
     repair: "  &f/repair &7- 修复手中或全部物品"
     admin: "  &f/essc admin &7- 切换管理模式"
     tpsbar: "  &f/tpsbar [玩家] &7- 切换 TPS 状态栏"
+    maintenance: "  &f/maintenance <on|off|status|reload> &7- 管理维护模式"
 
 blocks-menu:
   title: "&6&lEssentialsC &8- &e&l便捷菜单"
@@ -170,3 +171,14 @@ mobdrops-menu:
     name: "&d末影人掉落"
     status: "&7当前状态：{status}"
     toggle: "&e点击切换"
+
+maintenance:
+  status:
+    enabled: "&c开启"
+    disabled: "&a关闭"
+  messages:
+    enabled: "&a维护模式已开启。"
+    disabled: "&c维护模式已关闭。"
+    reloaded: "&a维护模式配置已重载。"
+    status: "&7维护模式当前状态：{status}"
+    usage: "&c用法：/maintenance <on|off|status|reload>"

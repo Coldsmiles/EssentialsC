@@ -19,6 +19,7 @@ public final class ModuleManager {
     public static final String TPSBAR = "tpsbar";
     public static final String JEI_SYNC = "jei-sync";
     public static final String MOB_DROPS = "mob-drops";
+    public static final String MAINTENANCE = "maintenance";
 
     private static final Map<String, Boolean> DEFAULT_MODULES = new LinkedHashMap<>();
 
@@ -29,6 +30,7 @@ public final class ModuleManager {
         DEFAULT_MODULES.put(TPSBAR, true);
         DEFAULT_MODULES.put(JEI_SYNC, true);
         DEFAULT_MODULES.put(MOB_DROPS, false);
+        DEFAULT_MODULES.put(MAINTENANCE, true);
     }
 
     private final JavaPlugin plugin;

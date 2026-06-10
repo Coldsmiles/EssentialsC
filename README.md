@@ -43,12 +43,14 @@
 - `/seen` `(/info)`
 - `/tpsbar`
 - `/essc admin` 管理模式切换
+- `/maintenance` `(/maint)` 维护模式管理
 
 ### 其它功能
 
 - Shift + 右键快捷打开潜影盒
 - 潜影盒交互保护，尽量避免刷物品、吞物品和嵌套放入问题
 - 管理模式独立背包、装备栏与状态切换
+- 维护模式：替换 MOTD，并阻止无绕过权限的玩家进入
 - Enderman 掉落方块控制
 - JEI 配方同步修复
 
@@ -64,6 +66,7 @@
 | `tpsbar` | 开启 | 插件版 TPSBar，仍受 `config.yml` 中 `tpsbar.mode` 控制 |
 | `jei-sync` | 开启 | Fabric / NeoForge JEI 配方同步修复 |
 | `mob-drops` | 关闭 | 末影人掉落控制，默认关闭以保留过去标准版行为 |
+| `maintenance` | 开启 | 维护模式命令、MOTD 替换和登录拦截 |
 
 修改模块开关后建议重启服务器，使命令注册表和监听器状态完全刷新。`/essc reload` 可以刷新配置和已注册命令的执行检查，但无法从 Bukkit 命令表中真正热移除或新增直连命令。
 
@@ -88,6 +91,12 @@
   - 便捷菜单布局
 - `modules.yml`
   - 功能模块开关
+- `maintenance.yml`
+  - 维护模式状态
+  - 维护 MOTD
+  - 维护踢出提示
+  - 维护 BossBar
+  - 绕过权限
 - `lang/zh_CN.yml`、`lang/en_US.yml`
   - 命令反馈
   - 帮助信息
@@ -143,7 +152,20 @@ Windows 可使用：
 ```bash
 ./gradlew shadowJar
 ./gradlew build
+./gradlew deployToPaper12111
+./gradlew deployToPaper2612
 ```
+
+## 本地测试服
+
+项目包含两个本地测试服目录：
+
+| 测试服 | 端口 | 部署任务 | 启动脚本 |
+| --- | --- | --- | --- |
+| Paper 1.21.11 | `25566` | `deployToPaper12111` | `test-server/paper-1.21.11/start.bat` |
+| Paper 26.1.2 | `25565` | `deployToPaper2612` | `test-server/paper-26.1.2/start.bat` |
+
+IDEA 运行配置会在启动测试服前自动执行对应部署任务。部署任务会替换 `EssentialsC*.jar`，并删除 `plugins/EssentialsC` 数据目录，以便测试新增默认配置和语言文本。
 
 ## 开发说明
 

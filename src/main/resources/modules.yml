@@ -26,3 +26,6 @@ modules:
   mob-drops:
     # 末影人掉落控制菜单和监听器。默认关闭，用于保留过去标准版的行为。
     enabled: false
+  maintenance:
+    # 维护模式。开启维护后可替换 MOTD，并阻止无绕过权限的玩家进入。
+    enabled: true
