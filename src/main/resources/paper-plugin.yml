@@ -98,6 +98,9 @@ permissions:
   essentialsc.maintenance.bypass:
     description: 允许在维护模式下进入服务器
     default: op
+  essentialsc.maintenance.notify:
+    description: 允许接收维护模式拦截通知
+    default: op
   essentialsc.shulkerbox.open:
     description: 允许通过 Shift+右键快捷打开潜影盒
     default: op
@@ -137,5 +140,6 @@ permissions:
       essentialsc.command.tpsbar.others: true
       essentialsc.command.maintenance: true
       essentialsc.maintenance.bypass: true
+      essentialsc.maintenance.notify: true
       essentialsc.shulkerbox.open: true
       essentialsc.mobdrops.enderman: true

@@ -6,6 +6,9 @@ config-version: 2
 # 语言文件名称，对应插件数据目录下 lang/<语言名>.yml
 language: "zh_CN"
 
+# 是否输出更详细的调试日志。
+debug: false
+
 admin-mode:
   # 原版默认飞行速度为 0.1，这里 0.2 表示两倍飞行速度
   fly-speed: 0.2
@@ -18,6 +21,8 @@ jei-sync:
   enabled: true
   # 是否输出调试日志
   debug: false
+  # 玩家加入后延迟多少 tick 再检测客户端品牌，避免品牌信息尚未同步完成。
+  brand-check-delay-ticks: 20
   # 是否在玩家加入时发送同步提示
   send-player-message: true
 

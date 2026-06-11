@@ -2,8 +2,6 @@ package cn.infstar.essentialsC.commands;
 
 import cn.infstar.essentialsC.EssentialsC;
 import cn.infstar.essentialsC.LangManager;
-import cn.infstar.essentialsC.ModuleManager;
-import cn.infstar.essentialsC.tpsbar.TpsBarService;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -37,17 +35,7 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
             EssentialsC.getLangManager().reload();
             plugin.getModuleManager().reload();
             CommandRegistry.clearCache();
-            if (plugin.getMaintenanceManager() != null && plugin.getModuleManager().isEnabled(ModuleManager.MAINTENANCE)) {
-                plugin.getMaintenanceManager().reload();
-            }
-            TpsBarService tpsBarService = plugin.getTpsBarManager();
-            if (tpsBarService != null) {
-                if (plugin.getModuleManager().isEnabled(ModuleManager.TPSBAR)) {
-                    tpsBarService.reloadSettings();
-                } else {
-                    tpsBarService.shutdown();
-                }
-            }
+            plugin.reloadRuntimeModules();
             sender.sendMessage(getLang().getPrefixedString("messages.config-reloaded"));
             return true;
         }
@@ -68,17 +56,7 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
                 EssentialsC.getLangManager().reload();
                 plugin.getModuleManager().reload();
                 CommandRegistry.clearCache();
-                if (plugin.getMaintenanceManager() != null && plugin.getModuleManager().isEnabled(ModuleManager.MAINTENANCE)) {
-                    plugin.getMaintenanceManager().reload();
-                }
-                TpsBarService tpsBarService = plugin.getTpsBarManager();
-                if (tpsBarService != null) {
-                    if (plugin.getModuleManager().isEnabled(ModuleManager.TPSBAR)) {
-                        tpsBarService.reloadSettings();
-                    } else {
-                        tpsBarService.shutdown();
-                    }
-                }
+                plugin.reloadRuntimeModules();
                 sender.sendMessage(getLang().getPrefixedString("messages.config-reloaded"));
                 return true;
             }
@@ -360,7 +338,7 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
     private List<String> completeMaintenanceArgs(String partialInput) {
         List<String> completions = new ArrayList<>();
         String partial = partialInput.toLowerCase();
-        for (String option : List.of("on", "off", "status", "reload")) {
+        for (String option : List.of("on", "off", "status", "reload", "add", "remove", "list")) {
             if (option.startsWith(partial)) {
                 completions.add(option);
             }

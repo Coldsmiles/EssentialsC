@@ -22,6 +22,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * 为 Fabric / NeoForge 客户端补发配方同步数据，修复 1.21.2+ 的 JEI 配方显示问题。
@@ -32,14 +33,20 @@ public class JeiRecipeSyncListener implements Listener {
     private final boolean enabled;
     private final boolean debug;
     private final boolean sendPlayerMessage;
+    private final int brandCheckDelayTicks;
 
     public JeiRecipeSyncListener(EssentialsC plugin) {
         this.plugin = plugin;
 
         FileConfiguration config = plugin.getConfig();
+        config.addDefault("jei-sync.brand-check-delay-ticks", 20);
+        config.options().copyDefaults(true);
+        plugin.saveConfig();
+
         this.enabled = config.getBoolean("jei-sync.enabled", true);
-        this.debug = config.getBoolean("jei-sync.debug", false);
+        this.debug = config.getBoolean("jei-sync.debug", config.getBoolean("debug", false));
         this.sendPlayerMessage = config.getBoolean("jei-sync.send-player-message", true);
+        this.brandCheckDelayTicks = Math.max(0, config.getInt("jei-sync.brand-check-delay-ticks", 20));
     }
 
     @EventHandler
@@ -49,14 +56,20 @@ public class JeiRecipeSyncListener implements Listener {
         }
 
         Player player = event.getPlayer();
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> detectAndSync(player), brandCheckDelayTicks);
+    }
+
+    private void detectAndSync(Player player) {
+        if (!player.isOnline()) {
+            return;
+        }
+
         String clientBrand = player.getClientBrandName();
 
         if (debug) {
-            plugin.getLogger().info("========================================");
-            plugin.getLogger().info("玩家 " + player.getName() + " 加入");
-            plugin.getLogger().info("客户端品牌: '" + (clientBrand != null ? clientBrand : "null") + "'");
-            plugin.getLogger().info("JEI 同步功能: " + (enabled ? "启用" : "禁用"));
-            plugin.getLogger().info("========================================");
+            plugin.getLogger().info("JEI 客户端检测: player=" + player.getName()
+                + ", brand=" + (clientBrand == null || clientBrand.isBlank() ? "unknown" : clientBrand)
+                + ", delayTicks=" + brandCheckDelayTicks);
         }
 
         if (clientBrand == null || clientBrand.isEmpty()) {
@@ -66,7 +79,7 @@ public class JeiRecipeSyncListener implements Listener {
             return;
         }
 
-        String brandLower = clientBrand.toLowerCase();
+        String brandLower = clientBrand.toLowerCase(Locale.ROOT);
         if (brandLower.contains("fabric")) {
             if (debug) {
                 plugin.getLogger().info("检测到 Fabric 客户端，开始发送配方同步...");

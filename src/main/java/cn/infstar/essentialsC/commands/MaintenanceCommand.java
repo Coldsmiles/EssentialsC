@@ -8,6 +8,8 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class MaintenanceCommand extends BaseCommand implements TabCompleter {
 
@@ -37,7 +39,7 @@ public class MaintenanceCommand extends BaseCommand implements TabCompleter {
             return true;
         }
 
-        switch (args[0].toLowerCase()) {
+        switch (args[0].toLowerCase(Locale.ROOT)) {
             case "on", "enable", "enabled" -> {
                 maintenanceManager.setEnabled(true);
                 sender.sendMessage(getLang().getPrefixedString("maintenance.messages.enabled"));
@@ -53,6 +55,42 @@ public class MaintenanceCommand extends BaseCommand implements TabCompleter {
                 sender.sendMessage(getLang().getPrefixedString("maintenance.messages.reloaded"));
                 return true;
             }
+            case "add" -> {
+                if (args.length < 2) {
+                    sender.sendMessage(getLang().getPrefixedString("maintenance.messages.add-usage"));
+                    return true;
+                }
+
+                String target = args[1];
+                if (maintenanceManager.addWhitelistEntry(target)) {
+                    sender.sendMessage(getLang().getPrefixedString("maintenance.messages.whitelist-added",
+                        Map.of("player", target)));
+                } else {
+                    sender.sendMessage(getLang().getPrefixedString("maintenance.messages.whitelist-exists",
+                        Map.of("player", target)));
+                }
+                return true;
+            }
+            case "remove" -> {
+                if (args.length < 2) {
+                    sender.sendMessage(getLang().getPrefixedString("maintenance.messages.remove-usage"));
+                    return true;
+                }
+
+                String target = args[1];
+                if (maintenanceManager.removeWhitelistEntry(target)) {
+                    sender.sendMessage(getLang().getPrefixedString("maintenance.messages.whitelist-removed",
+                        Map.of("player", target)));
+                } else {
+                    sender.sendMessage(getLang().getPrefixedString("maintenance.messages.whitelist-missing",
+                        Map.of("player", target)));
+                }
+                return true;
+            }
+            case "list" -> {
+                sendWhitelist(sender, maintenanceManager);
+                return true;
+            }
             default -> {
                 sender.sendMessage(getLang().getPrefixedString("maintenance.messages.usage"));
                 return true;
@@ -65,19 +103,58 @@ public class MaintenanceCommand extends BaseCommand implements TabCompleter {
             ? "maintenance.status.enabled"
             : "maintenance.status.disabled");
         sender.sendMessage(getLang().getPrefixedString("maintenance.messages.status",
-            java.util.Map.of("status", status)));
+            Map.of(
+                "status", status,
+                "whitelist_count", String.valueOf(maintenanceManager.getWhitelistCount())
+            )));
+    }
+
+    private void sendWhitelist(CommandSender sender, MaintenanceManager maintenanceManager) {
+        List<String> entries = maintenanceManager.getWhitelistEntries();
+        if (entries.isEmpty()) {
+            sender.sendMessage(getLang().getPrefixedString("maintenance.messages.whitelist-empty"));
+            return;
+        }
+
+        sender.sendMessage(getLang().getPrefixedString("maintenance.messages.whitelist-list",
+            Map.of(
+                "count", String.valueOf(entries.size()),
+                "entries", String.join(", ", entries)
+            )));
     }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
-        if (args.length != 1 || !sender.hasPermission(getPermission())) {
+        if (!sender.hasPermission(getPermission())) {
             return List.of();
         }
 
-        String partial = args[0].toLowerCase();
+        if (args.length == 1) {
+            return complete(args[0], List.of("on", "off", "status", "reload", "add", "remove", "list"));
+        }
+
+        if (args.length == 2 && args[0].equalsIgnoreCase("add")) {
+            return complete(args[1], plugin.getServer().getOnlinePlayers().stream()
+                .map(Player::getName)
+                .toList());
+        }
+
+        if (args.length == 2 && args[0].equalsIgnoreCase("remove")) {
+            MaintenanceManager maintenanceManager = plugin.getMaintenanceManager();
+            if (maintenanceManager == null) {
+                return List.of();
+            }
+            return complete(args[1], maintenanceManager.getWhitelistEntries());
+        }
+
+        return List.of();
+    }
+
+    private List<String> complete(String input, List<String> options) {
+        String partial = input.toLowerCase(Locale.ROOT);
         List<String> completions = new ArrayList<>();
-        for (String option : List.of("on", "off", "status", "reload")) {
-            if (option.startsWith(partial)) {
+        for (String option : options) {
+            if (option.toLowerCase(Locale.ROOT).startsWith(partial)) {
                 completions.add(option);
             }
         }

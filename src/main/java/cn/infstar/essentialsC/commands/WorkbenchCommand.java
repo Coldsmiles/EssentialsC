@@ -13,7 +13,7 @@ public class WorkbenchCommand extends BaseCommand {
     @Override
     protected boolean execute(Player player, String[] args) {
         player.openWorkbench(null, true);
-        playBlockShortcutSound(player, Material.CRAFTING_TABLE, Sound.BLOCK_CRAFTER_CRAFT);
+        playBlockShortcutSound(player, Material.CRAFTING_TABLE, Sound.UI_BUTTON_CLICK);
         return true;
     }
 }

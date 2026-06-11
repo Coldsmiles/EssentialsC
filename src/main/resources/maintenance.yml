@@ -8,6 +8,18 @@ enabled: false
 # 拥有该权限的玩家可以在维护模式下进入服务器。
 bypass-permission: "essentialsc.maintenance.bypass"
 
+notify:
+  # 玩家因维护模式被拒绝进入时，是否通知在线管理员。
+  enabled: true
+  # 拥有该权限的在线玩家会收到拦截通知。
+  permission: "essentialsc.maintenance.notify"
+
+whitelist:
+  # 这些 UUID 可以在维护模式下进入服务器。
+  uuids: []
+  # 这些玩家名可以在维护模式下进入服务器。大小写不敏感。
+  names: []
+
 motd:
   # 维护模式开启时是否替换服务器列表 MOTD。
   enabled: true
