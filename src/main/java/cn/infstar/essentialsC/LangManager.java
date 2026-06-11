@@ -87,6 +87,7 @@ public class LangManager {
         config = YamlConfiguration.loadConfiguration(configFile);
         config.addDefault("config-version", CURRENT_CONFIG_VERSION);
         config.addDefault("language", "zh_CN");
+        config.addDefault("debug", false);
         config.options().copyDefaults(true);
 
         try {
@@ -103,17 +104,21 @@ public class LangManager {
             return;
         }
 
-        String language = existingConfig.getString("language", "zh_CN");
         File backupFile = new File(plugin.getDataFolder(),
             "config.v" + existingVersion + ".bak-" + System.currentTimeMillis() + ".yml");
 
         try {
             Files.copy(configFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            plugin.saveResource("config.yml", true);
-
-            FileConfiguration newConfig = YamlConfiguration.loadConfiguration(configFile);
-            newConfig.set("language", language);
-            newConfig.save(configFile);
+            InputStream defaultConfigStream = plugin.getResource("config.yml");
+            if (defaultConfigStream != null) {
+                YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(
+                    new InputStreamReader(defaultConfigStream, StandardCharsets.UTF_8)
+                );
+                existingConfig.setDefaults(defaultConfig);
+                existingConfig.options().copyDefaults(true);
+            }
+            existingConfig.set("config-version", CURRENT_CONFIG_VERSION);
+            existingConfig.save(configFile);
 
             plugin.getLogger().info("已将 config.yml 从版本 " + existingVersion
                 + " 迁移到 " + CURRENT_CONFIG_VERSION + "，备份文件: " + backupFile.getName());

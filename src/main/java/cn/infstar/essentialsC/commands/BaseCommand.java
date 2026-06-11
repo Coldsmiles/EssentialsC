@@ -33,19 +33,17 @@ public abstract class BaseCommand implements CommandExecutor {
     }
 
     protected void playBlockShortcutSound(Player player, Material material, Sound fallbackSound) {
-        Sound sound = resolvePlaceSound(material);
+        Sound sound = fallbackSound;
         if (sound == null) {
-            sound = fallbackSound;
+            sound = resolvePlaceSound(material);
         }
 
-        if (sound != null) {
-            player.playSound(player.getLocation(), sound, 1.0F, 1.0F);
-        }
+        playShortcutSound(player, sound);
     }
 
     protected void playShortcutSound(Player player, Sound sound) {
         if (sound != null) {
-            player.playSound(player.getLocation(), sound, 1.0F, 1.0F);
+            player.playSound(player.getLocation(), sound, 0.65F, 1.0F);
         }
     }
 

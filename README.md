@@ -50,7 +50,7 @@
 - Shift + 右键快捷打开潜影盒
 - 潜影盒交互保护，尽量避免刷物品、吞物品和嵌套放入问题
 - 管理模式独立背包、装备栏与状态切换
-- 维护模式：替换 MOTD，并阻止无绕过权限的玩家进入
+- 维护模式：替换 MOTD、登录拦截、白名单放行和管理员拦截通知
 - Enderman 掉落方块控制
 - JEI 配方同步修复
 
@@ -66,9 +66,9 @@
 | `tpsbar` | 开启 | 插件版 TPSBar，仍受 `config.yml` 中 `tpsbar.mode` 控制 |
 | `jei-sync` | 开启 | Fabric / NeoForge JEI 配方同步修复 |
 | `mob-drops` | 关闭 | 末影人掉落控制，默认关闭以保留过去标准版行为 |
-| `maintenance` | 开启 | 维护模式命令、MOTD 替换和登录拦截 |
+| `maintenance` | 开启 | 维护模式命令、MOTD 替换、登录拦截、白名单和拦截通知 |
 
-修改模块开关后建议重启服务器，使命令注册表和监听器状态完全刷新。`/essc reload` 可以刷新配置和已注册命令的执行检查，但无法从 Bukkit 命令表中真正热移除或新增直连命令。
+修改模块开关后可先使用 `/essc reload` 刷新运行期服务与监听器状态。由于 Bukkit 命令表不适合在运行期完整热增删，若模块是在启动时关闭的，对应直连命令可能仍需重启后才会注册；通过 `/essc <子命令>` 入口通常可立即按新的模块状态执行。
 
 ## 安装说明
 
@@ -97,6 +97,8 @@
   - 维护踢出提示
   - 维护 BossBar
   - 绕过权限
+  - 维护白名单
+  - 拦截通知权限
 - `lang/zh_CN.yml`、`lang/en_US.yml`
   - 命令反馈
   - 帮助信息
@@ -124,6 +126,9 @@ essentialsc.command.vanish
 essentialsc.command.seen
 essentialsc.command.admin
 essentialsc.command.tpsbar
+essentialsc.command.maintenance
+essentialsc.maintenance.bypass
+essentialsc.maintenance.notify
 essentialsc.shulkerbox.open
 essentialsc.mobdrops.enderman
 essentialsc.*
@@ -170,6 +175,7 @@ IDEA 运行配置会在启动测试服前自动执行对应部署任务。部署
 ## 开发说明
 
 - 使用 `paperweight-userdev` 进行 Paper 开发
+- 使用 Paper Lifecycle Command API 注册命令，避免直接反射 Bukkit CommandMap
 - 运行时通过 `modules.yml` 控制模块加载，命令与监听器按模块状态注册
 - 发布流程基于 GitHub Actions 和 Gradle Wrapper
 

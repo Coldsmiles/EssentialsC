@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -70,6 +71,7 @@ public class BlocksMenuCommand extends BaseCommand implements Listener {
                 return;
             }
             player.openInventory(menu);
+            playShortcutSound(player, Sound.UI_BUTTON_CLICK);
             return;
         }
 
@@ -85,6 +87,7 @@ public class BlocksMenuCommand extends BaseCommand implements Listener {
         }
 
         player.openInventory(menu);
+        playShortcutSound(player, Sound.UI_BUTTON_CLICK);
     }
 
     private int renderSections(Inventory menu, Player player, org.bukkit.configuration.ConfigurationSection sectionsConfig) {
