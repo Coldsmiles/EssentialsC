@@ -37,6 +37,44 @@ tpsbar:
   # on: 始终启用插件实现；若服务端已有原生命令，则自动跳过以避免冲突
   mode: auto
 
+tpa:
+  # TPA 请求有效时间，单位为秒
+  timeout-seconds: 60
+  # 是否让 /tpa 接受后传送到接受时目标所在的位置快照，而不是传送完成时目标当前位置。
+  strict-tpa-requests: false
+  # 是否让 /tpahere 接受后传送到请求发起时的位置，而不是请求者当前所在位置。
+  # 该行为与 HuskHomes 的 strict_tpa_here_requests 默认值一致。
+  strict-tpahere-requests: true
+  # 接受请求后的传送预热时间，单位为秒。设置为 0 可关闭预热。
+  warmup-seconds: 5
+  # 预热期间移动是否取消传送。
+  cancel-warmup-on-move: true
+  # 预热期间受到伤害是否取消传送。
+  cancel-warmup-on-damage: true
+  cooldowns:
+    # 是否启用 TPA 冷却系统。
+    enabled: true
+    cooldown-times:
+      # 发送传送请求后的冷却时间，单位为秒。0 表示关闭。
+      SEND_TELEPORT_REQUEST: 0
+      # 接受传送请求后的冷却时间，单位为秒。0 表示关闭。
+      ACCEPT_TELEPORT_REQUEST: 0
+  # 判断移动取消的曼哈顿距离阈值。0.1 与 HuskHomes 行为接近，可避免只转头就取消。
+  warmup-move-threshold: 0.1
+  # 预热倒计时显示位置：actionbar / chat / none。
+  warmup-display: actionbar
+  sounds:
+    # 是否播放 TPA 相关音效。
+    enabled: true
+    # 收到请求时播放的音效。
+    request-received: "entity.experience_orb.pickup"
+    # 预热倒计时时播放的音效。
+    warmup: "block.note_block.banjo"
+    # 预热被取消时播放的音效。
+    cancelled: "entity.item.break"
+    # 传送完成时播放的音效。
+    complete: "entity.enderman.teleport"
+
 blocks-menu:
   # 菜单布局版本，用于后续自动迁移槽位布局
   layout-version: 2

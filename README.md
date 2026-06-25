@@ -10,7 +10,7 @@
 ## 项目定位
 
 - 最低支持版本为 `Paper 1.21.11`
-- 已适配 `Paper 26.1.2`
+- 已适配 `Paper 26.2`
 - 构建环境固定为 `Java 21`
 - 配置、模块开关与文本分离：行为配置放在 `config.yml`，模块开关放在 `modules.yml`，提示文本放在 `lang/`
 - 支持运行期模块开关，避免为不同功能组合构建多个插件版本
@@ -176,6 +176,7 @@ IDEA 运行配置会在启动测试服前自动执行对应部署任务。部署
 
 - 使用 `paperweight-userdev` 进行 Paper 开发
 - 使用 Paper Lifecycle Command API 注册命令，避免直接反射 Bukkit CommandMap
+- 涉及 NMS 的功能通过 `compat-api` + `versions/v<版本>` 适配模块隔离，主插件只依赖稳定接口；当前包含 `1.21.11`、`26.1.2`、`26.2`
 - 运行时通过 `modules.yml` 控制模块加载，命令与监听器按模块状态注册
 - 发布流程基于 GitHub Actions 和 Gradle Wrapper
 
