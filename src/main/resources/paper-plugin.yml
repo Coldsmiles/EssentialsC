@@ -77,6 +77,30 @@ permissions:
   essentialsc.command.repair.all:
     description: 允许使用 /repair all
     default: op
+  essentialsc.command.tpa:
+    description: 允许发送 /tpa 请求
+    default: true
+  essentialsc.command.tpahere:
+    description: 允许发送 /tpahere 请求
+    default: true
+  essentialsc.command.tpaall:
+    description: 允许向所有玩家发送 /tpahere 请求
+    default: op
+  essentialsc.command.tpaccept:
+    description: 允许接受 TPA 请求
+    default: true
+  essentialsc.command.tpdeny:
+    description: 允许拒绝 TPA 请求
+    default: true
+  essentialsc.command.tpignore:
+    description: 允许切换是否忽略 TPA 请求
+    default: true
+  essentialsc.tpa.bypass-warmup:
+    description: 允许绕过 TPA 传送预热
+    default: op
+  essentialsc.tpa.bypass-cooldown:
+    description: 允许绕过 TPA 冷却
+    default: op
   essentialsc.command.admin:
     description: 允许使用 /essc admin
     default: op
@@ -133,6 +157,14 @@ permissions:
       essentialsc.command.feed.others: true
       essentialsc.command.repair: true
       essentialsc.command.repair.all: true
+      essentialsc.command.tpa: true
+      essentialsc.command.tpahere: true
+      essentialsc.command.tpaall: true
+      essentialsc.command.tpaccept: true
+      essentialsc.command.tpdeny: true
+      essentialsc.command.tpignore: true
+      essentialsc.tpa.bypass-warmup: true
+      essentialsc.tpa.bypass-cooldown: true
       essentialsc.command.admin: true
       essentialsc.command.help: true
       essentialsc.command.reload: true

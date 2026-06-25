@@ -13,7 +13,7 @@ modules:
     # 工作台、铁砧等便捷方块命令、/essc blocks 菜单和潜影盒快捷打开。
     enabled: true
   player:
-    # 玩家常用命令：飞行、夜视、发光、治疗、喂食、修复、帽子、自杀、隐身和查询玩家。
+    # 玩家常用命令：飞行、夜视、发光、治疗、喂食、修复、帽子、自杀、隐身、查询玩家和 TPA。
     enabled: true
   admin-mode:
     # /essc admin 管理模式，以及独立背包和状态管理。

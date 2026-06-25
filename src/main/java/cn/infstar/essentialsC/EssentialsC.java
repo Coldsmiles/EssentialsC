@@ -13,6 +13,7 @@ import cn.infstar.essentialsC.listeners.ShulkerBoxListener;
 import cn.infstar.essentialsC.listeners.VanishListener;
 import cn.infstar.essentialsC.maintenance.MaintenanceListener;
 import cn.infstar.essentialsC.maintenance.MaintenanceManager;
+import cn.infstar.essentialsC.teleport.TeleportRequestManager;
 import cn.infstar.essentialsC.tpsbar.TpsBarManager;
 import cn.infstar.essentialsC.tpsbar.TpsBarService;
 import org.bukkit.command.CommandSender;
@@ -36,6 +37,7 @@ public final class EssentialsC extends JavaPlugin {
     private ModuleManager moduleManager;
     private AdminModeManager adminModeManager;
     private MaintenanceManager maintenanceManager;
+    private TeleportRequestManager teleportRequestManager;
     private MaintenanceListener maintenanceListener;
     private TpsBarService tpsBarManager;
     private ShulkerBoxListener shulkerBoxListener;
@@ -68,6 +70,9 @@ public final class EssentialsC extends JavaPlugin {
         if (maintenanceManager != null) {
             maintenanceManager.shutdown();
         }
+        if (teleportRequestManager != null) {
+            teleportRequestManager.shutdown();
+        }
         VanishCommand.clearAll(this);
         unregisterRuntimeListeners();
         unregisterPluginChannels();
@@ -90,6 +95,10 @@ public final class EssentialsC extends JavaPlugin {
         return maintenanceManager;
     }
 
+    public TeleportRequestManager getTeleportRequestManager() {
+        return teleportRequestManager;
+    }
+
     public TpsBarService getTpsBarManager() {
         return tpsBarManager;
     }
@@ -107,6 +116,11 @@ public final class EssentialsC extends JavaPlugin {
 
     private void refreshPlayer() {
         if (!moduleManager.isEnabled(ModuleManager.PLAYER)) {
+            if (teleportRequestManager != null) {
+                teleportRequestManager.shutdown();
+                HandlerList.unregisterAll(teleportRequestManager);
+                teleportRequestManager = null;
+            }
             VanishCommand.clearAll(this);
             if (vanishListener != null) {
                 HandlerList.unregisterAll(vanishListener);
@@ -119,6 +133,12 @@ public final class EssentialsC extends JavaPlugin {
         if (vanishListener == null) {
             vanishListener = new VanishListener(this);
             getServer().getPluginManager().registerEvents(vanishListener, this);
+        }
+        if (teleportRequestManager == null) {
+            teleportRequestManager = new TeleportRequestManager(this);
+            getServer().getPluginManager().registerEvents(teleportRequestManager, this);
+        } else {
+            teleportRequestManager.reload();
         }
         setModuleStatus("玩家功能", true, "命令可用");
     }
@@ -278,6 +298,7 @@ public final class EssentialsC extends JavaPlugin {
         unregisterListener(mobDropListener);
         unregisterListener(mobDropMenuListener);
         unregisterListener(vanishListener);
+        unregisterListener(teleportRequestManager);
         if (tpsBarManager instanceof Listener listener) {
             unregisterListener(listener);
         }

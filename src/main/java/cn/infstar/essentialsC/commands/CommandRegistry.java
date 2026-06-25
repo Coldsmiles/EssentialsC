@@ -40,6 +40,12 @@ public final class CommandRegistry {
         register("seen", "essentialsc.command.seen", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.SeenCommand", "info");
         register("feed", "essentialsc.command.feed", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.FeedCommand");
         register("repair", "essentialsc.command.repair", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.RepairCommand", "rep");
+        register("tpa", "essentialsc.command.tpa", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.TpaCommand");
+        register("tpahere", "essentialsc.command.tpahere", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.TpaHereCommand");
+        register("tpaall", "essentialsc.command.tpaall", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.TpaAllCommand");
+        register("tpaccept", "essentialsc.command.tpaccept", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.TpAcceptCommand", "tpyes");
+        register("tpdeny", "essentialsc.command.tpdeny", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.TpDenyCommand", "tpdecline", "tpno");
+        register("tpignore", "essentialsc.command.tpignore", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.TpIgnoreCommand");
         register("tpsbar", "essentialsc.command.tpsbar", ModuleManager.TPSBAR, "cn.infstar.essentialsC.commands.TpsBarCommand");
         register("mobdrops", "essentialsc.mobdrops.enderman", ModuleManager.MOB_DROPS, "cn.infstar.essentialsC.commands.MobDropCommand");
         register("maintenance", "essentialsc.command.maintenance", ModuleManager.MAINTENANCE, "cn.infstar.essentialsC.commands.MaintenanceCommand", "maint");

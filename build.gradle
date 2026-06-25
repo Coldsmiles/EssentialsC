@@ -8,7 +8,7 @@ plugins {
 }
 
 group = 'cn.infstar'
-version = '1.5.0'
+version = '1.6.0'
 
 repositories {
     mavenCentral()
@@ -20,11 +20,14 @@ repositories {
 
 dependencies {
     paperweight.paperDevBundle('1.21.11-R0.1-SNAPSHOT')
+    implementation project(':compat-api')
 }
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
+
+paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.getMOJANG_PRODUCTION()
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
@@ -50,6 +53,16 @@ tasks.named('shadowJar', ShadowJar).configure {
     description = '构建包含全部运行期可开关模块的 EssentialsC 插件。'
     archiveFileName.set("EssentialsC-${project.version}.jar")
     configurations = [project.configurations.runtimeClasspath]
+
+    [
+        project(':versions:v1_21_11'),
+        project(':versions:v26_1_2'),
+        project(':versions:v26_2')
+    ].each { adapterProject ->
+        def adapterJar = adapterProject.tasks.named('jar')
+        dependsOn(adapterJar)
+        from(adapterJar.flatMap { it.archiveFile }.map { archiveFile -> zipTree(archiveFile) })
+    }
 }
 
 tasks.named('assemble').configure {
@@ -77,3 +90,4 @@ def registerTestServerDeployTask = { String taskName, String serverPath, String 
 
 registerTestServerDeployTask('deployToPaper12111', 'test-server/paper-1.21.11', 'Paper 1.21.11')
 registerTestServerDeployTask('deployToPaper2612', 'test-server/paper-26.1.2', 'Paper 26.1.2')
+registerTestServerDeployTask('deployToPaper262', 'test-server/paper-26.2', 'Paper 26.2')

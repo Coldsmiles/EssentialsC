@@ -2,6 +2,7 @@ package cn.infstar.essentialsC.commands;
 
 import cn.infstar.essentialsC.EssentialsC;
 import cn.infstar.essentialsC.LangManager;
+import cn.infstar.essentialsC.teleport.TeleportRequestManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -177,6 +178,30 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
             otherCommands.append(lang.getString("help.commands.seen")).append("\n");
             hasOtherCommands = true;
         }
+        if (CommandRegistry.isAvailable("tpa") && player.hasPermission("essentialsc.command.tpa")) {
+            otherCommands.append(lang.getString("help.commands.tpa")).append("\n");
+            hasOtherCommands = true;
+        }
+        if (CommandRegistry.isAvailable("tpahere") && player.hasPermission("essentialsc.command.tpahere")) {
+            otherCommands.append(lang.getString("help.commands.tpahere")).append("\n");
+            hasOtherCommands = true;
+        }
+        if (CommandRegistry.isAvailable("tpaall") && player.hasPermission("essentialsc.command.tpaall")) {
+            otherCommands.append(lang.getString("help.commands.tpaall")).append("\n");
+            hasOtherCommands = true;
+        }
+        if (CommandRegistry.isAvailable("tpaccept") && player.hasPermission("essentialsc.command.tpaccept")) {
+            otherCommands.append(lang.getString("help.commands.tpaccept")).append("\n");
+            hasOtherCommands = true;
+        }
+        if (CommandRegistry.isAvailable("tpdeny") && player.hasPermission("essentialsc.command.tpdeny")) {
+            otherCommands.append(lang.getString("help.commands.tpdeny")).append("\n");
+            hasOtherCommands = true;
+        }
+        if (CommandRegistry.isAvailable("tpignore") && player.hasPermission("essentialsc.command.tpignore")) {
+            otherCommands.append(lang.getString("help.commands.tpignore")).append("\n");
+            hasOtherCommands = true;
+        }
         if (CommandRegistry.isAvailable("admin") && player.hasPermission("essentialsc.command.admin")) {
             otherCommands.append(lang.getString("help.commands.admin")).append("\n");
             hasOtherCommands = true;
@@ -259,6 +284,15 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
                 {"feed", "essentialsc.command.feed"},
                 {"repair", "essentialsc.command.repair"},
                 {"rep", "essentialsc.command.repair"},
+                {"tpa", "essentialsc.command.tpa"},
+                {"tpahere", "essentialsc.command.tpahere"},
+                {"tpaall", "essentialsc.command.tpaall"},
+                {"tpaccept", "essentialsc.command.tpaccept"},
+                {"tpyes", "essentialsc.command.tpaccept"},
+                {"tpdeny", "essentialsc.command.tpdeny"},
+                {"tpdecline", "essentialsc.command.tpdeny"},
+                {"tpno", "essentialsc.command.tpdeny"},
+                {"tpignore", "essentialsc.command.tpignore"},
                 {"tpsbar", "essentialsc.command.tpsbar"},
                 {"maintenance", "essentialsc.command.maintenance"},
                 {"maint", "essentialsc.command.maintenance"},
@@ -296,6 +330,21 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
                 return players;
             }
 
+            Player completionPlayer = sender instanceof Player senderPlayer ? senderPlayer : null;
+            if ((subCmd.equals("tpa") || subCmd.equals("tpahere"))
+                && completionPlayer != null
+                && sender.hasPermission("essentialsc.command." + subCmd)) {
+                return completeOnlinePlayers(completionPlayer, args[1], false);
+            }
+
+            if ((subCmd.equals("tpaccept") || subCmd.equals("tpyes") || subCmd.equals("tpdeny")
+                || subCmd.equals("tpdecline") || subCmd.equals("tpno"))
+                && completionPlayer != null
+                && (sender.hasPermission("essentialsc.command.tpaccept") || sender.hasPermission("essentialsc.command.tpdeny"))) {
+                TeleportRequestManager manager = plugin.getTeleportRequestManager();
+                return manager == null ? List.of() : manager.getIncomingRequesterNames(completionPlayer, args[1]);
+            }
+
             if ((subCmd.equals("nightvision") || subCmd.equals("nv")) && sender.hasPermission("essentialsc.command.nightvision")) {
                 return completeToggleArgs(args[1]);
             }
@@ -330,6 +379,18 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
         for (String option : List.of("on", "off", "toggle")) {
             if (option.startsWith(partial)) {
                 completions.add(option);
+            }
+        }
+        return completions;
+    }
+
+    private List<String> completeOnlinePlayers(Player sender, String partialInput, boolean includeSelf) {
+        List<String> completions = new ArrayList<>();
+        String partial = partialInput.toLowerCase();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if ((includeSelf || !player.getUniqueId().equals(sender.getUniqueId()))
+                && player.getName().toLowerCase().startsWith(partial)) {
+                completions.add(player.getName());
             }
         }
         return completions;
