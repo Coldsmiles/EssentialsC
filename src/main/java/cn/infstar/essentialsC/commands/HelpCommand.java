@@ -202,6 +202,10 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
             otherCommands.append(lang.getString("help.commands.tpignore")).append("\n");
             hasOtherCommands = true;
         }
+        if (CommandRegistry.isAvailable("skin") && player.hasPermission("essentialsc.command.skin")) {
+            otherCommands.append(lang.getString("help.commands.skin")).append("\n");
+            hasOtherCommands = true;
+        }
         if (CommandRegistry.isAvailable("admin") && player.hasPermission("essentialsc.command.admin")) {
             otherCommands.append(lang.getString("help.commands.admin")).append("\n");
             hasOtherCommands = true;
@@ -293,6 +297,7 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
                 {"tpdecline", "essentialsc.command.tpdeny"},
                 {"tpno", "essentialsc.command.tpdeny"},
                 {"tpignore", "essentialsc.command.tpignore"},
+                {"skin", "essentialsc.command.skin"},
                 {"tpsbar", "essentialsc.command.tpsbar"},
                 {"maintenance", "essentialsc.command.maintenance"},
                 {"maint", "essentialsc.command.maintenance"},
@@ -345,6 +350,13 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
                 return manager == null ? List.of() : manager.getIncomingRequesterNames(completionPlayer, args[1]);
             }
 
+            if (subCmd.equals("skin") && sender.hasPermission("essentialsc.command.skin")) {
+                String partial = args[1].toLowerCase();
+                return List.of("status", "refresh").stream()
+                    .filter(option -> option.startsWith(partial))
+                    .toList();
+            }
+
             if ((subCmd.equals("nightvision") || subCmd.equals("nv")) && sender.hasPermission("essentialsc.command.nightvision")) {
                 return completeToggleArgs(args[1]);
             }
@@ -368,6 +380,19 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
                 && sender.hasPermission("essentialsc.command.maintenance")) {
                 return completeMaintenanceArgs(args[1]);
             }
+        }
+
+        if (args.length == 3 && args[0].equalsIgnoreCase("skin")
+            && (args[1].equalsIgnoreCase("status") || args[1].equalsIgnoreCase("refresh"))
+            && sender.hasPermission("essentialsc.command.skin")) {
+            List<String> players = new ArrayList<>();
+            String partial = args[2].toLowerCase();
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                if (player.getName().toLowerCase().startsWith(partial)) {
+                    players.add(player.getName());
+                }
+            }
+            return players;
         }
 
         return new ArrayList<>();

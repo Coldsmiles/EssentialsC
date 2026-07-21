@@ -88,6 +88,7 @@ help:
     tpaccept: "  &f/tpaccept [player] &7- Accept a teleport request"
     tpdeny: "  &f/tpdeny [player] &7- Deny a teleport request"
     tpignore: "  &f/tpignore &7- Toggle ignoring teleport requests"
+    skin: "  &f/essc skin <status|refresh> [player] &7- View or refresh SkinBridge status"
     admin: "  &f/essc admin &7- Toggle admin mode"
     tpsbar: "  &f/tpsbar [player] &7- Toggle TPS boss bar"
     maintenance: "  &f/maintenance <on|off|status|reload|add|remove|list> &7- Manage maintenance mode"
@@ -131,6 +132,25 @@ tpa:
     ignore-notification: "&7You are currently ignoring teleport requests."
     tpaall-sent: "&aSent teleport requests to all players."
     tpaall-no-targets: "&cThere are no online players who can receive the request."
+
+skin-bridge:
+  notifications:
+    detecting: "&6SKIN-FIX&8: &eDetecting your skin source..."
+    synced: "&6SKIN-FIX&8(&b{provider}&8): &aSkin synchronization completed."
+    not-external: "&6SKIN-FIX&8: &7No external skin provider matched; your current skin was kept."
+    failed: "&6SKIN-FIX&8: &cSkin detection or synchronization failed. Please try again later."
+  messages:
+    usage: "&cUsage: /essc skin <status|refresh> [player]"
+    feature-disabled: "&cSkinBridge is disabled in config.yml."
+    dependency-missing: "&cNo valid MineSkin API key is configured in config.yml."
+    no-providers: "&cNo valid SkinBridge provider is enabled."
+    status-external: "&a{player} is identified as an external skin provider player. Provider: &f{provider}"
+    status-not-external: "&7{player} does not match any configured external skin provider."
+    status-pending: "&eSkinBridge is still detecting {player}'s login source."
+    status-unknown: "&7{player} has not been checked by SkinBridge yet."
+    refresh-queued: "&aSkinBridge is detecting and refreshing {player}'s skin."
+    refresh-cached: "&7{player} is using a valid skin cache entry."
+    refresh-running: "&eSkinBridge is already processing {player}."
 
 blocks-menu:
   title: "&6&lEssentialsC &8- &e&lShortcut Menu"
