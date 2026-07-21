@@ -119,6 +119,9 @@ permissions:
   essentialsc.command.maintenance:
     description: 允许管理维护模式
     default: op
+  essentialsc.command.skin:
+    description: 允许管理 SkinBridge 状态与刷新
+    default: op
   essentialsc.maintenance.bypass:
     description: 允许在维护模式下进入服务器
     default: op
@@ -171,6 +174,7 @@ permissions:
       essentialsc.command.tpsbar: true
       essentialsc.command.tpsbar.others: true
       essentialsc.command.maintenance: true
+      essentialsc.command.skin: true
       essentialsc.maintenance.bypass: true
       essentialsc.maintenance.notify: true
       essentialsc.shulkerbox.open: true
