@@ -75,6 +75,43 @@ tpa:
     # 传送完成时播放的音效。
     complete: "entity.enderman.teleport"
 
+skin-bridge:
+  # 是否启用外置皮肤站桥接。还需要在 modules.yml 启用 skin-bridge 模块。
+  enabled: false
+  # 是否输出 Provider 查询和皮肤应用的调试日志。
+  debug: false
+  # 是否像 JEI 修复一样向玩家发送检测与同步提示。
+  send-player-message: true
+  # 查询 Yggdrasil profile 的超时时间，单位为秒。
+  profile-request-timeout-seconds: 5
+  mineskin:
+    # MineSkin v2 API 地址，一般不需要修改。
+    endpoint: "https://api.mineskin.org"
+    # MineSkin API Key。请仅在服务器运行目录中填写，不要提交到公开仓库。
+    api-key: ""
+    # 生成结果的可见性：public、unlisted 或 private。默认使用 unlisted。
+    visibility: "unlisted"
+    # MineSkin 生成队列的总等待时间，单位为秒。
+    request-timeout-seconds: 30
+  # 玩家登录来源与生成皮肤的内存缓存时间，单位为分钟。
+  cache-minutes: 120
+  # 玩家加入后延迟多少 tick 再查询，避免登录资料尚未完全稳定。
+  join-delay-ticks: 20
+  providers:
+    # 每个子节点都是一个 Provider，键名可自由命名，并会显示在日志和 /essc skin status 中。
+    # 建议使用小写英文、数字和连字符；不要使用点号，因为点号会被 Bukkit 视为配置路径分隔符。
+    littleskin:
+      # LittleSkin 示例 Provider。键名 littleskin 可按需改名。
+      enabled: false
+      priority: 10
+      # {uuid} 为无连字符 UUID；{uuid-dashed} 为标准 UUID。
+      profile-url: "https://littleskin.cn/api/yggdrasil/sessionserver/session/minecraft/profile/{uuid}?unsigned=false"
+    my-blessing-skin:
+      # 自建 Blessing Skin 示例 Provider。my-blessing-skin 可替换为皮肤站名称。
+      enabled: false
+      priority: 20
+      profile-url: "https://skin.example.com/api/yggdrasil/sessionserver/session/minecraft/profile/{uuid}?unsigned=false"
+
 blocks-menu:
   # 菜单布局版本，用于后续自动迁移槽位布局
   layout-version: 2

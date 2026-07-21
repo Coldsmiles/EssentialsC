@@ -67,6 +67,7 @@
 | `jei-sync` | 开启 | Fabric / NeoForge JEI 配方同步修复 |
 | `mob-drops` | 关闭 | 末影人掉落控制，默认关闭以保留过去标准版行为 |
 | `maintenance` | 开启 | 维护模式命令、MOTD 替换、登录拦截、白名单和拦截通知 |
+| `skin-bridge` | 关闭 | 查询外置 Yggdrasil profile，并通过 MineSkin 与 Paper Profile API 同步皮肤 |
 
 修改模块开关后可先使用 `/essc reload` 刷新运行期服务与监听器状态。由于 Bukkit 命令表不适合在运行期完整热增删，若模块是在启动时关闭的，对应直连命令可能仍需重启后才会注册；通过 `/essc <子命令>` 入口通常可立即按新的模块状态执行。
 
@@ -82,12 +83,15 @@
 
 当前配置结构以“行为配置”和“文本配置”分离为原则：
 
+SkinBridge 默认关闭。使用前需同时将 `modules.yml` 中的 `modules.skin-bridge.enabled` 与 `config.yml` 中的 `skin-bridge.enabled` 设为 `true`，在 `skin-bridge.mineskin.api-key` 中配置 MineSkin API Key，并至少启用一个 Provider。真实密钥只应填写在服务器运行目录的 `config.yml` 中，不要写入源码或提交到公开仓库。该模块不再要求安装 SkinsRestorer。`skin-bridge.send-player-message` 控制是否向玩家发送检测、匹配和同步结果提示。`skin-bridge.providers` 下的键名可自由命名，会显示在日志和 `/essc skin status <玩家>` 中；建议使用小写英文、数字和连字符，避免使用点号。控制台可使用 `/essc skin status <玩家>` 与 `/essc skin refresh <玩家>` 进行验证。
+
 - `config.yml`
   - 语言选择
   - 管理模式行为
   - JEI 同步开关
   - 掉落控制
   - TPSBar 模式
+  - SkinBridge Provider、缓存和超时配置
   - 便捷菜单布局
 - `modules.yml`
   - 功能模块开关
@@ -127,6 +131,7 @@ essentialsc.command.seen
 essentialsc.command.admin
 essentialsc.command.tpsbar
 essentialsc.command.maintenance
+essentialsc.command.skin
 essentialsc.maintenance.bypass
 essentialsc.maintenance.notify
 essentialsc.shulkerbox.open

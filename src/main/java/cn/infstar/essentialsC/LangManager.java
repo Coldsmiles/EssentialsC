@@ -152,15 +152,24 @@ public class LangManager {
     }
 
     private void loadDefaultLanguageFallback() {
-        InputStream defaultLangStream = plugin.getResource("lang/en_US.yml");
-        if (defaultLangStream == null) {
+        InputStream selectedLangStream = plugin.getResource("lang/" + currentLanguage + ".yml");
+        if (selectedLangStream == null) {
             return;
         }
 
-        YamlConfiguration defaultLang = YamlConfiguration.loadConfiguration(
-            new InputStreamReader(defaultLangStream, StandardCharsets.UTF_8)
+        YamlConfiguration selectedDefaults = YamlConfiguration.loadConfiguration(
+            new InputStreamReader(selectedLangStream, StandardCharsets.UTF_8)
         );
-        langFile.setDefaults(defaultLang);
+        if (!"en_US".equalsIgnoreCase(currentLanguage)) {
+            InputStream englishLangStream = plugin.getResource("lang/en_US.yml");
+            if (englishLangStream != null) {
+                YamlConfiguration englishDefaults = YamlConfiguration.loadConfiguration(
+                    new InputStreamReader(englishLangStream, StandardCharsets.UTF_8)
+                );
+                selectedDefaults.setDefaults(englishDefaults);
+            }
+        }
+        langFile.setDefaults(selectedDefaults);
     }
 
     private String applyPlaceholders(String value, Map<String, String> placeholders) {
