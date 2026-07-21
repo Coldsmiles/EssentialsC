@@ -20,6 +20,7 @@ public final class ModuleManager {
     public static final String JEI_SYNC = "jei-sync";
     public static final String MOB_DROPS = "mob-drops";
     public static final String MAINTENANCE = "maintenance";
+    public static final String SKIN_BRIDGE = "skin-bridge";
 
     private static final Map<String, Boolean> DEFAULT_MODULES = new LinkedHashMap<>();
 
@@ -31,6 +32,7 @@ public final class ModuleManager {
         DEFAULT_MODULES.put(JEI_SYNC, true);
         DEFAULT_MODULES.put(MOB_DROPS, false);
         DEFAULT_MODULES.put(MAINTENANCE, true);
+        DEFAULT_MODULES.put(SKIN_BRIDGE, false);
     }
 
     private final JavaPlugin plugin;

@@ -13,6 +13,7 @@ import cn.infstar.essentialsC.listeners.ShulkerBoxListener;
 import cn.infstar.essentialsC.listeners.VanishListener;
 import cn.infstar.essentialsC.maintenance.MaintenanceListener;
 import cn.infstar.essentialsC.maintenance.MaintenanceManager;
+import cn.infstar.essentialsC.skinbridge.SkinBridgeManager;
 import cn.infstar.essentialsC.teleport.TeleportRequestManager;
 import cn.infstar.essentialsC.tpsbar.TpsBarManager;
 import cn.infstar.essentialsC.tpsbar.TpsBarService;
@@ -45,6 +46,7 @@ public final class EssentialsC extends JavaPlugin {
     private MobDropListener mobDropListener;
     private MobDropMenuListener mobDropMenuListener;
     private VanishListener vanishListener;
+    private SkinBridgeManager skinBridgeManager;
     private boolean commandsRegistered;
     private final Map<String, String> moduleStatus = new LinkedHashMap<>();
 
@@ -72,6 +74,9 @@ public final class EssentialsC extends JavaPlugin {
         }
         if (teleportRequestManager != null) {
             teleportRequestManager.shutdown();
+        }
+        if (skinBridgeManager != null) {
+            skinBridgeManager.shutdown();
         }
         VanishCommand.clearAll(this);
         unregisterRuntimeListeners();
@@ -103,6 +108,10 @@ public final class EssentialsC extends JavaPlugin {
         return tpsBarManager;
     }
 
+    public SkinBridgeManager getSkinBridgeManager() {
+        return skinBridgeManager;
+    }
+
     public void reloadRuntimeModules() {
         moduleStatus.clear();
         refreshPlayer();
@@ -112,6 +121,7 @@ public final class EssentialsC extends JavaPlugin {
         refreshBlocks();
         refreshJeiSync();
         refreshMobDrops();
+        refreshSkinBridge();
     }
 
     private void refreshPlayer() {
@@ -278,6 +288,26 @@ public final class EssentialsC extends JavaPlugin {
         setModuleStatus("生物掉落", true, "末影人掉落控制已启用");
     }
 
+    private void refreshSkinBridge() {
+        if (!moduleManager.isEnabled(ModuleManager.SKIN_BRIDGE)) {
+            if (skinBridgeManager != null) {
+                skinBridgeManager.shutdown();
+                HandlerList.unregisterAll(skinBridgeManager);
+                skinBridgeManager = null;
+            }
+            setModuleStatus("皮肤桥接", false, "已禁用");
+            return;
+        }
+
+        if (skinBridgeManager == null) {
+            skinBridgeManager = new SkinBridgeManager(this);
+            getServer().getPluginManager().registerEvents(skinBridgeManager, this);
+        } else {
+            skinBridgeManager.reload();
+        }
+        setModuleStatus("皮肤桥接", true, skinBridgeManager.getModuleDetail());
+    }
+
     private void registerPluginChannels() {
         Messenger messenger = getServer().getMessenger();
         messenger.registerOutgoingPluginChannel(this, "fabric:recipe_sync");
@@ -299,6 +329,7 @@ public final class EssentialsC extends JavaPlugin {
         unregisterListener(mobDropMenuListener);
         unregisterListener(vanishListener);
         unregisterListener(teleportRequestManager);
+        unregisterListener(skinBridgeManager);
         if (tpsBarManager instanceof Listener listener) {
             unregisterListener(listener);
         }

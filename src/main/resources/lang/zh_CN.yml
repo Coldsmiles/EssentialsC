@@ -88,6 +88,7 @@ help:
     tpaccept: "  &f/tpaccept [玩家] &7- 接受传送请求"
     tpdeny: "  &f/tpdeny [玩家] &7- 拒绝传送请求"
     tpignore: "  &f/tpignore &7- 切换是否忽略传送请求"
+    skin: "  &f/essc skin <status|refresh> [玩家] &7- 查看或刷新皮肤桥接状态"
     admin: "  &f/essc admin &7- 切换管理模式"
     tpsbar: "  &f/tpsbar [玩家] &7- 切换 TPS 状态栏"
     maintenance: "  &f/maintenance <on|off|status|reload|add|remove|list> &7- 管理维护模式"
@@ -131,6 +132,25 @@ tpa:
     ignore-notification: "&7你当前正在忽略传送请求。"
     tpaall-sent: "&a已向所有玩家发送传送请求。"
     tpaall-no-targets: "&c没有可接收请求的在线玩家。"
+
+skin-bridge:
+  notifications:
+    detecting: "&6SKIN-FIX&8: &e正在检测皮肤来源..."
+    synced: "&6SKIN-FIX&8(&b{provider}&8): &a皮肤同步完成。"
+    not-external: "&6SKIN-FIX&8: &7未匹配外置皮肤站，已保留当前皮肤。"
+    failed: "&6SKIN-FIX&8: &c皮肤检测或同步失败，请稍后重试。"
+  messages:
+    usage: "&c用法：/essc skin <status|refresh> [玩家]"
+    feature-disabled: "&cSkinBridge 在 config.yml 中未启用。"
+    dependency-missing: "&c未在 config.yml 中配置有效的 MineSkin API Key。"
+    no-providers: "&c没有启用有效的 SkinBridge Provider。"
+    status-external: "&a{player} 已识别为外置皮肤站玩家，Provider：&f{provider}"
+    status-not-external: "&7{player} 未匹配任何已配置的外置皮肤站。"
+    status-pending: "&e{player} 的皮肤站来源正在检测中。"
+    status-unknown: "&7{player} 尚未进行 SkinBridge 检测。"
+    refresh-queued: "&a已开始重新检测并刷新 {player} 的皮肤。"
+    refresh-cached: "&7{player} 正在使用有效的皮肤缓存。"
+    refresh-running: "&e{player} 的皮肤检测任务仍在运行。"
 
 blocks-menu:
   title: "&6&lEssentialsC &8- &e&l便捷菜单"

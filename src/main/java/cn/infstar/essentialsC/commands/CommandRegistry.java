@@ -50,6 +50,7 @@ public final class CommandRegistry {
         register("mobdrops", "essentialsc.mobdrops.enderman", ModuleManager.MOB_DROPS, "cn.infstar.essentialsC.commands.MobDropCommand");
         register("maintenance", "essentialsc.command.maintenance", ModuleManager.MAINTENANCE, "cn.infstar.essentialsC.commands.MaintenanceCommand", "maint");
         registerSubCommand("admin", "essentialsc.command.admin", ModuleManager.ADMIN_MODE, "cn.infstar.essentialsC.commands.AdminCommand");
+        registerSubCommand("skin", "essentialsc.command.skin", ModuleManager.SKIN_BRIDGE, "cn.infstar.essentialsC.commands.SkinBridgeCommand");
     }
 
     private CommandRegistry() {
