@@ -10,7 +10,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 public class MobDropListener implements Listener {
 
     private final EssentialsC plugin;
-    private boolean endermanDropEnabled;
+    private boolean endermanDropsAllowed;
 
     public MobDropListener(EssentialsC plugin) {
         this.plugin = plugin;
@@ -19,16 +19,10 @@ public class MobDropListener implements Listener {
 
     private void loadConfig() {
         FileConfiguration config = plugin.getConfig();
-        config.addDefault("mob-drops.enderman.enabled", true);
+        config.addDefault("mob-drops.enderman.allow-drops", true);
         config.options().copyDefaults(true);
 
-        try {
-            config.save(plugin.getDataFolder().toPath().resolve("config.yml").toFile());
-        } catch (Exception e) {
-            plugin.getLogger().warning("无法保存配置文件: " + e.getMessage());
-        }
-
-        this.endermanDropEnabled = config.getBoolean("mob-drops.enderman.enabled", true);
+        this.endermanDropsAllowed = config.getBoolean("mob-drops.enderman.allow-drops", true);
     }
 
     @EventHandler
@@ -37,13 +31,13 @@ public class MobDropListener implements Listener {
             return;
         }
 
-        if (!plugin.getConfig().getBoolean("mob-drops.enderman.enabled", true)) {
+        if (!plugin.getConfig().getBoolean("mob-drops.enderman.allow-drops", true)) {
             event.getDrops().clear();
         }
     }
 
     public void reload() {
         loadConfig();
-        plugin.getLogger().info("生物掉落配置已重载（末影人: " + (endermanDropEnabled ? "开启" : "关闭") + "）");
+        plugin.getLogger().info("生物掉落配置已重载（末影人掉落: " + (endermanDropsAllowed ? "允许" : "禁止") + "）");
     }
 }

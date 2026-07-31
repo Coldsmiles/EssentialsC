@@ -4,7 +4,6 @@ import cn.infstar.essentialsC.EssentialsC;
 import cn.infstar.essentialsC.ModuleManager;
 import cn.infstar.essentialsC.tpsbar.TpsBarService;
 
-import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public final class CommandRegistry {
 
@@ -21,52 +21,57 @@ public final class CommandRegistry {
     private static final Set<String> UNAVAILABLE_COMMANDS = new java.util.HashSet<>();
 
     static {
-        register("workbench", "essentialsc.command.workbench", ModuleManager.BLOCKS, "cn.infstar.essentialsC.commands.WorkbenchCommand", "wb");
-        register("anvil", "essentialsc.command.anvil", ModuleManager.BLOCKS, "cn.infstar.essentialsC.commands.AnvilCommand");
-        register("cartographytable", "essentialsc.command.cartographytable", ModuleManager.BLOCKS, "cn.infstar.essentialsC.commands.CartographyTableCommand", "ct", "cartography");
-        register("grindstone", "essentialsc.command.grindstone", ModuleManager.BLOCKS, "cn.infstar.essentialsC.commands.GrindstoneCommand", "gs");
-        register("loom", "essentialsc.command.loom", ModuleManager.BLOCKS, "cn.infstar.essentialsC.commands.LoomCommand");
-        register("smithingtable", "essentialsc.command.smithingtable", ModuleManager.BLOCKS, "cn.infstar.essentialsC.commands.SmithingTableCommand", "st", "smithing");
-        register("stonecutter", "essentialsc.command.stonecutter", ModuleManager.BLOCKS, "cn.infstar.essentialsC.commands.StonecutterCommand", "sc");
-        register("enderchest", "essentialsc.command.enderchest", ModuleManager.BLOCKS, "cn.infstar.essentialsC.commands.EnderChestCommand", "ec");
-        register("blocks", "essentialsc.command.blocks", ModuleManager.BLOCKS, "cn.infstar.essentialsC.commands.BlocksMenuCommand");
-        register("hat", "essentialsc.command.hat", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.HatCommand");
-        register("suicide", "essentialsc.command.suicide", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.SuicideCommand", "die");
-        register("fly", "essentialsc.command.fly", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.FlyCommand");
-        register("nightvision", "essentialsc.command.nightvision", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.NightVisionCommand", "nv");
-        register("glow", "essentialsc.command.glow", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.GlowCommand");
-        register("heal", "essentialsc.command.heal", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.HealCommand");
-        register("vanish", "essentialsc.command.vanish", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.VanishCommand", "v");
-        register("seen", "essentialsc.command.seen", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.SeenCommand", "info");
-        register("feed", "essentialsc.command.feed", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.FeedCommand");
-        register("repair", "essentialsc.command.repair", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.RepairCommand", "rep");
-        register("tpa", "essentialsc.command.tpa", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.TpaCommand");
-        register("tpahere", "essentialsc.command.tpahere", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.TpaHereCommand");
-        register("tpaall", "essentialsc.command.tpaall", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.TpaAllCommand");
-        register("tpaccept", "essentialsc.command.tpaccept", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.TpAcceptCommand", "tpyes");
-        register("tpdeny", "essentialsc.command.tpdeny", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.TpDenyCommand", "tpdecline", "tpno");
-        register("tpignore", "essentialsc.command.tpignore", ModuleManager.PLAYER, "cn.infstar.essentialsC.commands.TpIgnoreCommand");
-        register("tpsbar", "essentialsc.command.tpsbar", ModuleManager.TPSBAR, "cn.infstar.essentialsC.commands.TpsBarCommand");
-        register("mobdrops", "essentialsc.mobdrops.enderman", ModuleManager.MOB_DROPS, "cn.infstar.essentialsC.commands.MobDropCommand");
-        register("maintenance", "essentialsc.command.maintenance", ModuleManager.MAINTENANCE, "cn.infstar.essentialsC.commands.MaintenanceCommand", "maint");
-        registerSubCommand("admin", "essentialsc.command.admin", ModuleManager.ADMIN_MODE, "cn.infstar.essentialsC.commands.AdminCommand");
-        registerSubCommand("skin", "essentialsc.command.skin", ModuleManager.SKIN_BRIDGE, "cn.infstar.essentialsC.commands.SkinBridgeCommand");
+        register("workbench", "essentialsc.command.workbench", ModuleManager.BLOCKS, WorkbenchCommand::new, "wb");
+        register("anvil", "essentialsc.command.anvil", ModuleManager.BLOCKS, AnvilCommand::new);
+        register("cartographytable", "essentialsc.command.cartographytable", ModuleManager.BLOCKS, CartographyTableCommand::new, "ct", "cartography");
+        register("grindstone", "essentialsc.command.grindstone", ModuleManager.BLOCKS, GrindstoneCommand::new, "gs");
+        register("loom", "essentialsc.command.loom", ModuleManager.BLOCKS, LoomCommand::new);
+        register("smithingtable", "essentialsc.command.smithingtable", ModuleManager.BLOCKS, SmithingTableCommand::new, "st", "smithing");
+        register("stonecutter", "essentialsc.command.stonecutter", ModuleManager.BLOCKS, StonecutterCommand::new, "sc");
+        register("enderchest", "essentialsc.command.enderchest", ModuleManager.BLOCKS, EnderChestCommand::new, "ec");
+        register("blocks", "essentialsc.command.blocks", ModuleManager.BLOCKS, BlocksMenuCommand::new);
+        registerCore("hat", "essentialsc.command.hat", HatCommand::new);
+        registerCore("suicide", "essentialsc.command.suicide", SuicideCommand::new, "die");
+        registerCore("fly", "essentialsc.command.fly", FlyCommand::new);
+        registerCore("nightvision", "essentialsc.command.nightvision", NightVisionCommand::new, "nv");
+        registerCore("glow", "essentialsc.command.glow", GlowCommand::new);
+        registerCore("heal", "essentialsc.command.heal", HealCommand::new);
+        registerCore("vanish", "essentialsc.command.vanish", VanishCommand::new, "v");
+        registerCore("seen", "essentialsc.command.seen", SeenCommand::new, "info");
+        registerCore("feed", "essentialsc.command.feed", FeedCommand::new);
+        registerCore("repair", "essentialsc.command.repair", RepairCommand::new, "rep");
+        registerCore("tpa", "essentialsc.command.tpa", TpaCommand::new);
+        registerCore("tpahere", "essentialsc.command.tpahere", TpaHereCommand::new);
+        registerCore("tpaall", "essentialsc.command.tpaall", TpaAllCommand::new);
+        registerCore("tpaccept", "essentialsc.command.tpaccept", TpAcceptCommand::new, "tpyes");
+        registerCore("tpdeny", "essentialsc.command.tpdeny", TpDenyCommand::new, "tpdecline", "tpno");
+        registerCore("tpignore", "essentialsc.command.tpignore", TpIgnoreCommand::new);
+        register("tpsbar", "essentialsc.command.tpsbar", ModuleManager.TPSBAR, TpsBarCommand::new);
+        register("mobdrops", "essentialsc.mobdrops.enderman", ModuleManager.MOB_DROPS, MobDropCommand::new);
+        register("maintenance", "essentialsc.command.maintenance", ModuleManager.MAINTENANCE, MaintenanceCommand::new, "maint");
+        registerSubCommand("admin", "essentialsc.command.admin", ModuleManager.ADMIN_MODE, AdminCommand::new);
+        registerSubCommand("skin", "essentialsc.command.skin", ModuleManager.SKIN_BRIDGE, SkinBridgeCommand::new);
     }
 
     private CommandRegistry() {
     }
 
-    private static void register(String name, String permission, String moduleKey, String className, String... aliases) {
-        register(name, permission, moduleKey, className, true, aliases);
+    private static void registerCore(String name, String permission, Supplier<BaseCommand> factory, String... aliases) {
+        register(name, permission, null, factory, aliases);
     }
 
-    private static void registerSubCommand(String name, String permission, String moduleKey, String className, String... aliases) {
-        register(name, permission, moduleKey, className, false, aliases);
+    private static void register(String name, String permission, String moduleKey, Supplier<BaseCommand> factory, String... aliases) {
+        register(name, permission, moduleKey, factory, true, aliases);
     }
 
-    private static void register(String name, String permission, String moduleKey, String className, boolean standalone, String... aliases) {
+    private static void registerSubCommand(String name, String permission, String moduleKey, Supplier<BaseCommand> factory, String... aliases) {
+        register(name, permission, moduleKey, factory, false, aliases);
+    }
+
+    private static void register(String name, String permission, String moduleKey, Supplier<BaseCommand> factory,
+                                 boolean standalone, String... aliases) {
         List<String> aliasList = List.of(aliases);
-        CommandSpec spec = new CommandSpec(name, permission, moduleKey, className, aliasList, standalone);
+        CommandSpec spec = new CommandSpec(name, permission, moduleKey, factory, aliasList, standalone);
         COMMANDS.put(name, spec);
         ALIAS_TO_COMMAND.put(name, name);
         for (String alias : aliasList) {
@@ -86,7 +91,8 @@ public final class CommandRegistry {
     }
 
     public static boolean isAvailable(String name) {
-        return getCommand(name) != null;
+        String resolvedName = resolveCommandName(name);
+        return resolvedName != null && !isRuntimeDisabled(resolvedName) && getRegisteredCommand(resolvedName) != null;
     }
 
     public static String getPermission(String name) {
@@ -104,6 +110,15 @@ public final class CommandRegistry {
             return null;
         }
 
+        return getRegisteredCommand(resolvedName);
+    }
+
+    public static BaseCommand getRegisteredCommand(String name) {
+        String resolvedName = resolveCommandName(name);
+        if (resolvedName == null) {
+            return null;
+        }
+
         BaseCommand cached = COMMAND_CACHE.get(resolvedName);
         if (cached != null) {
             return cached;
@@ -118,18 +133,16 @@ public final class CommandRegistry {
         }
 
         try {
-            Class<?> rawClass = Class.forName(spec.className());
-            if (!BaseCommand.class.isAssignableFrom(rawClass)) {
-                UNAVAILABLE_COMMANDS.add(resolvedName);
-                return null;
-            }
-
-            Constructor<? extends BaseCommand> constructor = rawClass.asSubclass(BaseCommand.class).getDeclaredConstructor();
-            BaseCommand command = constructor.newInstance();
+            BaseCommand command = spec.factory().get();
             COMMAND_CACHE.put(resolvedName, command);
             return command;
-        } catch (ReflectiveOperationException | LinkageError ignored) {
+        } catch (RuntimeException | LinkageError exception) {
             UNAVAILABLE_COMMANDS.add(resolvedName);
+            try {
+                EssentialsC.getPlugin(EssentialsC.class).getLogger()
+                    .warning("初始化命令 /" + resolvedName + " 失败: " + exception.getMessage());
+            } catch (IllegalStateException ignored) {
+            }
             return null;
         }
     }
@@ -168,6 +181,7 @@ public final class CommandRegistry {
         UNAVAILABLE_COMMANDS.clear();
     }
 
-    public record CommandSpec(String name, String permission, String moduleKey, String className, List<String> aliases, boolean standalone) {
+    public record CommandSpec(String name, String permission, String moduleKey, Supplier<BaseCommand> factory,
+                               List<String> aliases, boolean standalone) {
     }
 }

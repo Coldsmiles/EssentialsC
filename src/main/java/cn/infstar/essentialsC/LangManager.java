@@ -1,5 +1,6 @@
 package cn.infstar.essentialsC;
 
+import cn.infstar.essentialsC.util.AtomicYamlWriter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -23,7 +24,7 @@ import java.util.regex.Pattern;
 
 public class LangManager {
 
-    private static final int CURRENT_CONFIG_VERSION = 3;
+    private static final int CURRENT_CONFIG_VERSION = 2;
     private static final Pattern HEX_COLOR_PATTERN = Pattern.compile("(?i)&#([0-9a-f]{6})");
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
     private static final Map<String, String> THEME_COLORS = Map.of(
@@ -136,11 +137,6 @@ public class LangManager {
         config.addDefault("debug", false);
         config.options().copyDefaults(true);
 
-        try {
-            config.save(configFile);
-        } catch (Exception e) {
-            plugin.getLogger().severe("保存 config.yml 失败: " + e.getMessage());
-        }
     }
 
     private void migrateConfigIfNeeded(File configFile) {
@@ -173,10 +169,10 @@ public class LangManager {
                 migratedConfig.set("debug", debugEnabled);
                 migratedConfig.set("jei-sync.debug", null);
                 migratedConfig.set("config-version", CURRENT_CONFIG_VERSION);
-                migratedConfig.save(configFile);
+                AtomicYamlWriter.save(migratedConfig, configFile);
             } else {
                 existingConfig.set("config-version", CURRENT_CONFIG_VERSION);
-                existingConfig.save(configFile);
+                AtomicYamlWriter.save(existingConfig, configFile);
             }
 
             plugin.getLogger().info("已将 config.yml 从版本 " + existingVersion

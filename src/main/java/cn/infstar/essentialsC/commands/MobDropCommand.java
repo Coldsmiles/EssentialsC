@@ -42,8 +42,8 @@ public class MobDropCommand extends BaseCommand {
 
     public static void openMobDropMenu(EssentialsC plugin, Player player) {
         var lang = EssentialsC.getLangManager();
-        boolean endermanEnabled = plugin.getConfig().getBoolean("mob-drops.enderman.enabled", true);
-        String status = lang.getString(endermanEnabled
+        boolean endermanDropsAllowed = plugin.getConfig().getBoolean("mob-drops.enderman.allow-drops", true);
+        String status = lang.getString(endermanDropsAllowed
             ? "mobdrops-menu.status.enabled"
             : "mobdrops-menu.status.disabled");
 

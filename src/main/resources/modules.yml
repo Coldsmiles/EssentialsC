@@ -1,7 +1,7 @@
 # EssentialsC 模块配置
 #
 # modules.yml 用于控制功能模块是否在运行时加载。
-# 各功能的详细设置位于 config.yml 及对应的独立功能配置文件。
+# 各功能的详细设置位于 config.yml、maintenance.yml 与 blocks-menu.yml。
 #
 # 修改模块开关后可使用 /essc reload 刷新运行期服务和监听器。
 # 直连命令的完整热增删仍建议通过重启服务器完成。
@@ -12,20 +12,17 @@ modules:
   blocks:
     # 工作台、铁砧等便捷方块命令、/essc blocks 菜单和潜影盒快捷打开。
     enabled: true
-  player:
-    # 玩家常用命令：飞行、夜视、发光、治疗、喂食、修复、帽子、自杀、隐身、查询玩家和 TPA。
-    enabled: true
   admin-mode:
     # /essc admin 管理模式，以及独立背包和状态管理。
     enabled: true
   tpsbar:
-    # 插件版 TPSBar。config.yml 中的 tpsbar.mode 仍会决定遇到原生 /tpsbar 时的行为。
+    # 插件版 TPSBar。检测到服务端原生命令时会自动避免冲突。
     enabled: true
   jei-sync:
     # Fabric / NeoForge JEI 配方同步兼容修复。
     enabled: true
   mob-drops:
-    # 末影人掉落控制菜单和监听器。默认关闭，用于保留过去标准版的行为。
+    # 末影人掉落控制菜单和监听器；具体掉落状态可在游戏内切换。
     enabled: false
   maintenance:
     # 维护模式。开启维护后可替换 MOTD，并阻止无绕过权限的玩家进入。

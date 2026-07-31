@@ -1,10 +1,11 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.language.jvm.tasks.ProcessResources
+import org.gradle.api.tasks.testing.Test
 
 plugins {
     id 'java'
     id 'io.papermc.paperweight.userdev' version '2.0.0-beta.21'
-    id 'com.gradleup.shadow' version '8.3.6'
+    id 'com.gradleup.shadow' version '8.3.11'
 }
 
 group = 'cn.infstar'
@@ -22,6 +23,9 @@ dependencies {
     paperweight.paperDevBundle('1.21.11-R0.1-SNAPSHOT')
     implementation project(':compat-api')
     implementation 'com.google.code.gson:gson:2.11.0'
+    testImplementation platform('org.junit:junit-bom:5.13.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 java {
@@ -36,6 +40,10 @@ tasks.withType(JavaCompile).configureEach {
 
 tasks.withType(ProcessResources).configureEach {
     filteringCharset = 'UTF-8'
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
 }
 
 tasks.named('processResources', ProcessResources).configure {
@@ -54,6 +62,7 @@ tasks.named('shadowJar', ShadowJar).configure {
     description = '构建包含全部运行期可开关模块的 EssentialsC 插件。'
     archiveFileName.set("EssentialsC-${project.version}.jar")
     configurations = [project.configurations.runtimeClasspath]
+    relocate 'com.google.gson', 'cn.infstar.essentialsC.libs.gson'
 
     [
         project(':versions:v1_21_11'),

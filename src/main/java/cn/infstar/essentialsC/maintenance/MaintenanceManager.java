@@ -1,6 +1,8 @@
 package cn.infstar.essentialsC.maintenance;
 
 import cn.infstar.essentialsC.EssentialsC;
+import cn.infstar.essentialsC.util.AtomicYamlWriter;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
@@ -10,7 +12,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -44,6 +45,7 @@ public final class MaintenanceManager {
         config.addDefault("bypass-permission", "essentialsc.maintenance.bypass");
         config.addDefault("notify.enabled", true);
         config.addDefault("notify.permission", "essentialsc.maintenance.notify");
+        config.addDefault("notify.include-address", false);
         config.addDefault("whitelist.uuids", List.of());
         config.addDefault("whitelist.names", List.of());
         config.addDefault("motd.enabled", true);
@@ -55,8 +57,10 @@ public final class MaintenanceManager {
         config.addDefault("bossbar.style", "SOLID");
         config.addDefault("bossbar.progress", 1.0D);
         config.options().copyDefaults(true);
-        save();
         refreshBossBar();
+        if (isEnabled()) {
+            kickUnauthorizedPlayers();
+        }
     }
 
     public boolean isEnabled() {
@@ -67,6 +71,9 @@ public final class MaintenanceManager {
         config.set("enabled", enabled);
         save();
         refreshBossBar();
+        if (enabled) {
+            kickUnauthorizedPlayers();
+        }
     }
 
     public String getBypassPermission() {
@@ -79,6 +86,10 @@ public final class MaintenanceManager {
 
     public String getNotifyPermission() {
         return config.getString("notify.permission", "essentialsc.maintenance.notify");
+    }
+
+    public boolean shouldIncludeAddressInNotification() {
+        return config.getBoolean("notify.include-address", false);
     }
 
     public boolean canJoin(Player player) {
@@ -105,6 +116,11 @@ public final class MaintenanceManager {
             return addWhitelistUuid(uuid.toString());
         }
 
+        Player onlinePlayer = Bukkit.getPlayerExact(normalized);
+        if (onlinePlayer != null) {
+            return addWhitelistUuid(onlinePlayer.getUniqueId().toString());
+        }
+
         return addWhitelistName(input);
     }
 
@@ -117,6 +133,11 @@ public final class MaintenanceManager {
         UUID uuid = parseUuid(normalized);
         if (uuid != null) {
             return removeWhitelistUuid(uuid.toString());
+        }
+
+        Player onlinePlayer = Bukkit.getPlayerExact(normalized);
+        if (onlinePlayer != null && removeWhitelistUuid(onlinePlayer.getUniqueId().toString())) {
+            return true;
         }
 
         return removeWhitelistName(input);
@@ -168,16 +189,21 @@ public final class MaintenanceManager {
         if (bossBar == null || player == null || !player.isOnline()) {
             return;
         }
-        if (canJoin(player)) {
-            bossBar.removePlayer(player);
-            return;
-        }
         bossBar.addPlayer(player);
     }
 
     public void removeBossBarPlayer(Player player) {
         if (bossBar != null && player != null) {
             bossBar.removePlayer(player);
+        }
+    }
+
+    private void kickUnauthorizedPlayers() {
+        String message = getKickMessage();
+        for (Player player : List.copyOf(plugin.getServer().getOnlinePlayers())) {
+            if (!canJoin(player)) {
+                player.kickPlayer(message);
+            }
         }
     }
 
@@ -255,6 +281,9 @@ public final class MaintenanceManager {
             config.set(path, new ArrayList<>(entries));
             save();
             refreshBossBar();
+            if (isEnabled()) {
+                kickUnauthorizedPlayers();
+            }
         }
         return changed;
     }
@@ -313,8 +342,8 @@ public final class MaintenanceManager {
 
     private void save() {
         try {
-            config.save(configFile);
-        } catch (IOException e) {
+            AtomicYamlWriter.save(config, configFile);
+        } catch (Exception e) {
             plugin.getLogger().warning("保存 maintenance.yml 失败: " + e.getMessage());
         }
     }

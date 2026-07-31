@@ -354,7 +354,14 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
 
             if (subCmd.equals("skin") && sender.hasPermission("essentialsc.command.skin")) {
                 String partial = args[1].toLowerCase();
-                return List.of("status", "refresh").stream()
+                List<String> actions = new ArrayList<>();
+                if (sender.hasPermission("essentialsc.command.skin.status")) {
+                    actions.add("status");
+                }
+                if (sender.hasPermission("essentialsc.command.skin.refresh")) {
+                    actions.add("refresh");
+                }
+                return actions.stream()
                     .filter(option -> option.startsWith(partial))
                     .toList();
             }
@@ -386,7 +393,10 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
 
         if (args.length == 3 && args[0].equalsIgnoreCase("skin")
             && (args[1].equalsIgnoreCase("status") || args[1].equalsIgnoreCase("refresh"))
-            && sender.hasPermission("essentialsc.command.skin")) {
+            && sender.hasPermission("essentialsc.command.skin.others")
+            && sender.hasPermission(args[1].equalsIgnoreCase("status")
+                ? "essentialsc.command.skin.status"
+                : "essentialsc.command.skin.refresh")) {
             List<String> players = new ArrayList<>();
             String partial = args[2].toLowerCase();
             for (Player player : Bukkit.getOnlinePlayers()) {

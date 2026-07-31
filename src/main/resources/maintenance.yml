@@ -13,6 +13,8 @@ notify:
   enabled: true
   # 拥有该权限的在线玩家会收到拦截通知。
   permission: "essentialsc.maintenance.notify"
+  # 是否在通知中显示玩家 IP 地址；出于隐私考虑默认关闭。
+  include-address: false
 
 whitelist:
   # 这些 UUID 可以在维护模式下进入服务器。
@@ -32,7 +34,7 @@ kick-message:
   - "&7请稍后再进入"
 
 bossbar:
-  # 维护模式开启时是否向无绕过权限的在线玩家显示 BossBar。
+  # 维护模式开启时是否向所有在线玩家显示 BossBar。
   enabled: true
   title: "&c服务器正在维护"
   # 可选值：PINK / BLUE / RED / GREEN / YELLOW / PURPLE / WHITE

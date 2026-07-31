@@ -9,6 +9,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 import java.util.Locale;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 /**
@@ -16,8 +18,9 @@ import java.util.logging.Level;
  */
 public class JeiRecipeSyncListener implements Listener {
 
+    private static final Set<String> WARNED_UNSUPPORTED_VERSIONS = ConcurrentHashMap.newKeySet();
+
     private final EssentialsC plugin;
-    private final boolean enabled;
     private final boolean debug;
     private final boolean sendPlayerMessage;
     private final int brandCheckDelayTicks;
@@ -29,9 +32,7 @@ public class JeiRecipeSyncListener implements Listener {
         FileConfiguration config = plugin.getConfig();
         config.addDefault("jei-sync.brand-check-delay-ticks", 20);
         config.options().copyDefaults(true);
-        plugin.saveConfig();
 
-        this.enabled = config.getBoolean("jei-sync.enabled", true);
         this.debug = config.getBoolean("debug", false);
         this.sendPlayerMessage = config.getBoolean("jei-sync.send-player-message", true);
         this.brandCheckDelayTicks = Math.max(0, config.getInt("jei-sync.brand-check-delay-ticks", 20));
@@ -40,9 +41,6 @@ public class JeiRecipeSyncListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        if (!enabled) {
-            return;
-        }
         if (adapter == null) {
             if (debug) {
                 plugin.getLogger().warning("当前服务端版本没有可用的 JEI 配方同步适配器。");
@@ -152,6 +150,10 @@ public class JeiRecipeSyncListener implements Listener {
             }
             plugin.getLogger().warning("JEI 配方同步适配器类型无效: " + className);
         } catch (ReflectiveOperationException | LinkageError e) {
+            if (WARNED_UNSUPPORTED_VERSIONS.add(versionKey)) {
+                plugin.getLogger().warning("当前 Paper 版本 " + plugin.getServer().getBukkitVersion()
+                    + " 没有可用的 JEI 配方同步适配器；仅 JEI 同步功能已停用。");
+            }
             if (debug) {
                 plugin.getLogger().warning("加载 JEI 配方同步适配器失败: " + className + " (" + e.getMessage() + ")");
             }

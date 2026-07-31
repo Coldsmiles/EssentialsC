@@ -28,8 +28,15 @@ messages:
   glow-usage: '<#FF3300>错误:</#FF3300> <#FF7E5E>用法: /glow [on|off|toggle]</#FF7E5E>'
   vanish-enabled: '<#00FB9A>你已进入隐身模式.</#00FB9A>'
   vanish-disabled: '<#FF7E5E>你已退出隐身模式.</#FF7E5E>'
+  vanish-permission-removed: '<#FFC43B>你的隐身权限已被移除,隐身模式已自动关闭.</#FFC43B>'
   seen-usage: '<#FF3300>错误:</#FF3300> <#FF7E5E>用法: /seen [玩家]</#FF7E5E>'
   seen-usage-console: '<#FF3300>错误:</#FF3300> <#FF7E5E>用法: /seen [玩家]</#FF7E5E>'
+  seen-header: '<#00FB9A>玩家信息:</#00FB9A> <white>{player}</white>'
+  seen-status-online: '<gray>状态: <#00FB9A>在线</#00FB9A></gray>'
+  seen-status-offline: '<gray>状态: <#FF7E5E>离线</#FF7E5E></gray>'
+  seen-world: '<gray>所在世界: <white>{world}</white></gray>'
+  seen-last-online: '<gray>最后在线: <white>{time}</white></gray>'
+  seen-first-joined: '<gray>首次加入: <white>{time}</white></gray>'
   player-not-found: '<#FF3300>错误:</#FF3300> <#FF7E5E>没有找到玩家 {player}.</#FF7E5E>'
   no-permission-others: '<#FF3300>错误:</#FF3300> <#FF7E5E>你没有权限影响其他玩家.</#FF7E5E>'
 
@@ -139,20 +146,25 @@ skin-bridge:
   notifications:
     detecting: '<#00FB9A>正在检测你的皮肤来源…</#00FB9A>'
     synced: '<#00FB9A>已通过 <bold>{provider}</bold> 同步皮肤.</#00FB9A>'
+    excluded: '<gray>你位于 SkinBridge 排除名单中,已保留当前皮肤.</gray>'
+    queue-full: '<#FFC43B>当前皮肤检测任务较多,已跳过本次检测.</#FFC43B>'
     not-external: '<gray>未匹配外置皮肤站,已保留当前皮肤.</gray>'
     failed: '<#FF3300>错误:</#FF3300> <#FF7E5E>皮肤检测或同步失败,请稍后重试.</#FF7E5E>'
   messages:
     usage: '<#FF3300>错误:</#FF3300> <#FF7E5E>用法: /essc skin [status|refresh] [玩家]</#FF7E5E>'
-    feature-disabled: '<#FF3300>错误:</#FF3300> <#FF7E5E>SkinBridge 在 skin-bridge.yml 中未启用.</#FF7E5E>'
-    dependency-missing: '<#FF3300>错误:</#FF3300> <#FF7E5E>未在 skin-bridge.yml 中配置有效的 MineSkin API Key.</#FF7E5E>'
+    dependency-missing: '<#FF3300>错误:</#FF3300> <#FF7E5E>未在 config.yml 中配置有效的 MineSkin API Key.</#FF7E5E>'
     no-providers: '<#FF3300>错误:</#FF3300> <#FF7E5E>没有启用有效的 SkinBridge Provider.</#FF7E5E>'
     status-external: '<#00FB9A>{player} 已识别为外置皮肤站玩家.</#00FB9A> <gray>Provider: <white>{provider}</white></gray>'
+    status-excluded: '<gray>{player} 位于 SkinBridge 排除名单中.</gray>'
     status-not-external: '<gray>{player} 未匹配任何已配置的外置皮肤站.</gray>'
     status-pending: '<#FFC43B>{player} 的皮肤站来源正在检测中.</#FFC43B>'
     status-unknown: '<gray>{player} 尚未进行 SkinBridge 检测.</gray>'
     refresh-queued: '<#00FB9A>已开始重新检测并刷新 {player} 的皮肤.</#00FB9A>'
     refresh-cached: '<gray>{player} 正在使用有效的皮肤缓存.</gray>'
     refresh-running: '<#FFC43B>{player} 的皮肤检测任务仍在运行.</#FFC43B>'
+    refresh-excluded: '<gray>{player} 位于 SkinBridge 排除名单中,未修改皮肤.</gray>'
+    refresh-cooldown: '<#FFC43B>请等待 {seconds} 秒后再刷新 {player} 的皮肤.</#FFC43B>'
+    queue-full: '<#FFC43B>SkinBridge 查询队列已满,请稍后重试.</#FFC43B>'
 
 blocks-menu:
   title: '<#00FB9A><bold>便捷菜单</bold></#00FB9A>'
@@ -214,6 +226,7 @@ admin-mode:
     enabled: '<#00FB9A>管理模式已开启,普通背包已保存.</#00FB9A>'
     disabled: '<#FF7E5E>管理模式已关闭,普通背包已恢复.</#FF7E5E>'
     crash-restored: '<#FFC43B>上一次管理模式会话已安全恢复.</#FFC43B>'
+    save-failed: '<#FF3300>错误:</#FF3300> <#FF7E5E>无法安全保存当前背包,管理模式未开启.</#FF7E5E>'
 
 tpsbar:
   title-format: '<#00FB9A>TPS</#00FB9A><gray>: {tps_1m} | </gray><#00FB9A>MSPT</#00FB9A><gray>: {mspt} | </gray><#00FB9A>Ping</#00FB9A><gray>: {ping}</gray>'
@@ -227,8 +240,6 @@ tpsbar:
     no-targets: '<#FF3300>错误:</#FF3300> <#FF7E5E>没有匹配到可切换的玩家.</#FF7E5E>'
     native-detected: '<gray>检测到服务端已内置 /tpsbar,已跳过插件实现.</gray>'
     plugin-enabled: '<gray>未检测到服务端内置 /tpsbar,已启用插件实现.</gray>'
-    plugin-forced-but-native-exists: '<#FFC43B>配置要求启用插件版 TPSBar,但服务端已存在原生 /tpsbar,已跳过插件实现以避免冲突.</#FFC43B>'
-    mode-changed-reload: '<#FFC43B>TPSBar 模式已更新,但命令注册状态需要重启服务器后才会完全生效.</#FFC43B>'
 
 mobdrops-menu:
   title: '<#00FB9A><bold>生物掉落控制</bold></#00FB9A>'
@@ -244,6 +255,7 @@ maintenance:
   status:
     enabled: '<#FF7E5E>开启</#FF7E5E>'
     disabled: '<#00FB9A>关闭</#00FB9A>'
+    address-hidden: '已隐藏'
   messages:
     enabled: '<#00FB9A>维护模式已开启.</#00FB9A>'
     disabled: '<#FF7E5E>维护模式已关闭.</#FF7E5E>'

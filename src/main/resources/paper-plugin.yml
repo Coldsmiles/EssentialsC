@@ -3,7 +3,7 @@ description: 适用于 Paper 服务端的轻量基础功能插件。
 version: ${version}
 
 main: cn.infstar.essentialsC.EssentialsC
-api-version: '1.21'
+api-version: '1.21.11'
 load: POSTWORLD
 folia-supported: false
 
@@ -61,6 +61,9 @@ permissions:
     default: op
   essentialsc.command.vanish:
     description: 允许使用 /vanish
+    default: op
+  essentialsc.vanish.see:
+    description: 允许看见隐身玩家
     default: op
   essentialsc.command.seen:
     description: 允许使用 /seen
@@ -120,7 +123,20 @@ permissions:
     description: 允许管理维护模式
     default: op
   essentialsc.command.skin:
-    description: 允许管理 SkinBridge 状态与刷新
+    description: 允许使用 SkinBridge 管理命令
+    default: op
+    children:
+      essentialsc.command.skin.status: true
+      essentialsc.command.skin.refresh: true
+      essentialsc.command.skin.others: true
+  essentialsc.command.skin.status:
+    description: 允许查看 SkinBridge 状态
+    default: op
+  essentialsc.command.skin.refresh:
+    description: 允许强制刷新自己的皮肤
+    default: op
+  essentialsc.command.skin.others:
+    description: 允许查看或刷新其他玩家的皮肤
     default: op
   essentialsc.maintenance.bypass:
     description: 允许在维护模式下进入服务器
@@ -155,6 +171,7 @@ permissions:
       essentialsc.command.heal: true
       essentialsc.command.heal.others: true
       essentialsc.command.vanish: true
+      essentialsc.vanish.see: true
       essentialsc.command.seen: true
       essentialsc.command.feed: true
       essentialsc.command.feed.others: true
@@ -175,6 +192,9 @@ permissions:
       essentialsc.command.tpsbar.others: true
       essentialsc.command.maintenance: true
       essentialsc.command.skin: true
+      essentialsc.command.skin.status: true
+      essentialsc.command.skin.refresh: true
+      essentialsc.command.skin.others: true
       essentialsc.maintenance.bypass: true
       essentialsc.maintenance.notify: true
       essentialsc.shulkerbox.open: true

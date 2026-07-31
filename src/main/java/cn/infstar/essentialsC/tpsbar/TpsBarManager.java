@@ -7,7 +7,7 @@ import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.command.CommandMap;
-import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.command.PluginIdentifiableCommand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -41,9 +41,9 @@ public final class TpsBarManager implements Listener, TpsBarService {
     private final Map<UUID, BossBar> activeBars = new java.util.HashMap<>();
 
     private BukkitTask updateTask;
-    private Mode mode;
     private boolean pluginCommandEnabled;
     private boolean nativeCommandAvailable;
+    private boolean nativeDetectionInitialized;
     private String titleFormat;
     private String enabledSelfMessage;
     private String disabledSelfMessage;
@@ -54,12 +54,9 @@ public final class TpsBarManager implements Listener, TpsBarService {
     private String noTargetsMessage;
     private String nativeDetectedMessage;
     private String pluginEnabledMessage;
-    private String pluginForcedButNativeExistsMessage;
-    private String modeChangedReloadMessage;
 
     public TpsBarManager(EssentialsC plugin) {
         this.plugin = plugin;
-        addConfigDefaults();
         reloadSettings();
     }
 
@@ -75,11 +72,8 @@ public final class TpsBarManager implements Listener, TpsBarService {
 
     @Override
     public void reloadSettings() {
-        FileConfiguration config = plugin.getConfig();
         var lang = EssentialsC.getLangManager();
-        Mode previousMode = this.mode;
 
-        this.mode = Mode.fromString(config.getString("tpsbar.mode", "auto"));
         this.titleFormat = lang.getString("tpsbar.title-format");
         this.enabledSelfMessage = lang.getString("tpsbar.messages.enabled-self");
         this.disabledSelfMessage = lang.getString("tpsbar.messages.disabled-self");
@@ -90,26 +84,15 @@ public final class TpsBarManager implements Listener, TpsBarService {
         this.noTargetsMessage = lang.getString("tpsbar.messages.no-targets");
         this.nativeDetectedMessage = lang.getString("tpsbar.messages.native-detected");
         this.pluginEnabledMessage = lang.getString("tpsbar.messages.plugin-enabled");
-        this.pluginForcedButNativeExistsMessage = lang.getString("tpsbar.messages.plugin-forced-but-native-exists");
-        this.modeChangedReloadMessage = lang.getString("tpsbar.messages.mode-changed-reload");
 
-        this.nativeCommandAvailable = detectNativeTpsBar();
-        this.pluginCommandEnabled = switch (mode) {
-            case OFF -> false;
-            case AUTO -> !nativeCommandAvailable;
-            case ON -> !nativeCommandAvailable;
-        };
-
-        if (previousMode != null && previousMode != mode) {
-            plugin.getLogger().info(stripColor(modeChangedReloadMessage));
+        if (!nativeDetectionInitialized) {
+            this.nativeCommandAvailable = detectNativeTpsBar();
+            this.nativeDetectionInitialized = true;
         }
+        this.pluginCommandEnabled = !nativeCommandAvailable;
 
         if (nativeCommandAvailable) {
-            if (mode == Mode.AUTO) {
-                plugin.getLogger().info(stripColor(nativeDetectedMessage));
-            } else if (mode == Mode.ON) {
-                plugin.getLogger().warning(stripColor(pluginForcedButNativeExistsMessage));
-            }
+            plugin.getLogger().info(stripColor(nativeDetectedMessage));
         } else if (pluginCommandEnabled) {
             plugin.getLogger().info(stripColor(pluginEnabledMessage));
         }
@@ -320,17 +303,17 @@ public final class TpsBarManager implements Listener, TpsBarService {
         try {
             CommandMap commandMap = Bukkit.getCommandMap();
             org.bukkit.command.Command command = commandMap.getCommand("tpsbar");
-            return command != null;
+            if (command == null) {
+                return false;
+            }
+            if (command instanceof PluginIdentifiableCommand pluginCommand
+                && pluginCommand.getPlugin().equals(plugin)) {
+                return false;
+            }
+            return !command.getClass().getName().startsWith("cn.infstar.essentialsC.");
         } catch (Exception ignored) {
             return false;
         }
-    }
-
-    private void addConfigDefaults() {
-        FileConfiguration config = plugin.getConfig();
-        config.addDefault("tpsbar.mode", "auto");
-        config.options().copyDefaults(true);
-        plugin.saveConfig();
     }
 
     private String prefixed(String message) {
@@ -371,20 +354,4 @@ public final class TpsBarManager implements Listener, TpsBarService {
         return Math.max(min, Math.min(max, value));
     }
 
-    private enum Mode {
-        OFF,
-        AUTO,
-        ON;
-
-        private static Mode fromString(String value) {
-            if (value == null) {
-                return AUTO;
-            }
-            return switch (value.toLowerCase(Locale.ROOT)) {
-                case "off", "false", "disabled" -> OFF;
-                case "on", "enabled", "plugin" -> ON;
-                default -> AUTO;
-            };
-        }
-    }
 }
