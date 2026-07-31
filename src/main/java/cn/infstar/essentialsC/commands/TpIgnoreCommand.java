@@ -13,12 +13,12 @@ public final class TpIgnoreCommand extends BaseCommand {
     protected boolean execute(Player player, String[] args) {
         TeleportRequestManager manager = plugin.getTeleportRequestManager();
         if (manager == null) {
-            player.sendMessage(getLang().getPrefixedString("messages.module-disabled"));
+            player.sendMessage(getLang().getPrefixedComponent("messages.module-disabled"));
             return true;
         }
 
         boolean ignoring = manager.toggleIgnoringRequests(player);
-        player.sendMessage(getLang().getPrefixedString(ignoring
+        player.sendMessage(getLang().getPrefixedComponent(ignoring
             ? "tpa.messages.ignore-enabled"
             : "tpa.messages.ignore-disabled"));
         return true;

@@ -36,6 +36,7 @@ public final class EssentialsC extends JavaPlugin {
 
     private static LangManager langManager;
     private ModuleManager moduleManager;
+    private FeatureConfigManager featureConfigManager;
     private AdminModeManager adminModeManager;
     private MaintenanceManager maintenanceManager;
     private TeleportRequestManager teleportRequestManager;
@@ -54,6 +55,7 @@ public final class EssentialsC extends JavaPlugin {
     public void onEnable() {
         langManager = new LangManager(this);
         moduleManager = new ModuleManager(this);
+        featureConfigManager = new FeatureConfigManager(this);
 
         reloadRuntimeModules();
         registerCommands();
@@ -94,6 +96,10 @@ public final class EssentialsC extends JavaPlugin {
 
     public ModuleManager getModuleManager() {
         return moduleManager;
+    }
+
+    public FeatureConfigManager getFeatureConfigManager() {
+        return featureConfigManager;
     }
 
     public MaintenanceManager getMaintenanceManager() {

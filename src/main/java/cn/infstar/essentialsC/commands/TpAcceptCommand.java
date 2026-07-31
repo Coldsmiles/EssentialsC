@@ -1,7 +1,6 @@
 package cn.infstar.essentialsC.commands;
 
 import cn.infstar.essentialsC.teleport.TeleportRequestManager;
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
@@ -20,17 +19,17 @@ public final class TpAcceptCommand extends BaseCommand implements TabCompleter {
     @Override
     protected boolean execute(Player player, String[] args) {
         if (args.length > 1) {
-            player.sendMessage(getLang().getPrefixedString("tpa.messages.usage-tpaccept"));
+            player.sendMessage(getLang().getPrefixedComponent("tpa.messages.usage-tpaccept"));
             return true;
         }
 
         TeleportRequestManager manager = plugin.getTeleportRequestManager();
         if (manager == null) {
-            player.sendMessage(getLang().getPrefixedString("messages.module-disabled"));
+            player.sendMessage(getLang().getPrefixedComponent("messages.module-disabled"));
             return true;
         }
         if (manager.isIgnoringRequests(player)) {
-            player.sendMessage(getLang().getPrefixedString("tpa.messages.ignoring-requests"));
+            player.sendMessage(getLang().getPrefixedComponent("tpa.messages.ignoring-requests"));
             return true;
         }
 
@@ -39,7 +38,9 @@ public final class TpAcceptCommand extends BaseCommand implements TabCompleter {
             args.length == 0 ? null : args[0]
         );
         if (request.isEmpty()) {
-            player.sendMessage(getLang().getPrefixedString("tpa.messages.no-request"));
+            player.sendMessage(args.length == 0
+                ? getLang().getPrefixedComponent("tpa.messages.no-request")
+                : getLang().getPrefixedComponent("tpa.messages.invalid-request", Map.of("requester", args[0])));
             return true;
         }
 
@@ -47,28 +48,18 @@ public final class TpAcceptCommand extends BaseCommand implements TabCompleter {
         Map<String, String> placeholders = manager.placeholders(accepted);
         TeleportRequestManager.TeleportResult result = manager.accept(player, accepted);
         if (result.status() == TeleportRequestManager.TeleportResult.Status.EXPIRED) {
-            player.sendMessage(getLang().getPrefixedString("tpa.messages.expired", placeholders));
+            player.sendMessage(getLang().getPrefixedComponent("tpa.messages.expired", placeholders));
             return true;
         }
         if (result.status() == TeleportRequestManager.TeleportResult.Status.PLAYER_OFFLINE) {
-            player.sendMessage(getLang().getPrefixedString("tpa.messages.player-offline", placeholders));
-            return true;
-        }
-        if (result.status() == TeleportRequestManager.TeleportResult.Status.ALREADY_WARMING_UP) {
-            player.sendMessage(getLang().getPrefixedString("tpa.messages.already-warming-up", placeholders));
             return true;
         }
         if (result.status() == TeleportRequestManager.TeleportResult.Status.ON_COOLDOWN) {
-            player.sendMessage(getLang().getPrefixedString("tpa.messages.accept-cooldown",
+            player.sendMessage(getLang().getPrefixedComponent("tpa.messages.accept-cooldown",
                 Map.of("seconds", String.valueOf(result.cooldownSeconds()))));
             return true;
         }
 
-        player.sendMessage(getLang().getPrefixedString("tpa.messages.accepted-target", placeholders));
-        Player requester = Bukkit.getPlayer(accepted.requesterId());
-        if (requester != null && requester.isOnline()) {
-            requester.sendMessage(getLang().getPrefixedString("tpa.messages.accepted-sender", placeholders));
-        }
         return true;
     }
 

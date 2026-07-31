@@ -1,11 +1,8 @@
 package cn.infstar.essentialsC.teleport;
 
 import cn.infstar.essentialsC.EssentialsC;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import cn.infstar.essentialsC.commands.VanishCommand;
+import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -15,13 +12,15 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -30,6 +29,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -40,15 +40,19 @@ public final class TeleportRequestManager implements Listener {
 
     public static final String BYPASS_WARMUP_PERMISSION = "essentialsc.tpa.bypass-warmup";
     public static final String BYPASS_COOLDOWN_PERMISSION = "essentialsc.tpa.bypass-cooldown";
+    public static final String WARMUP_PERMISSION_PREFIX = "essentialsc.tpa.warmup.";
+    private static final double MOVEMENT_THRESHOLD = 0.1D;
 
     private final EssentialsC plugin;
     private final Map<UUID, Deque<TeleportRequest>> requests = new HashMap<>();
     private final Map<UUID, PendingTeleport> warmups = new HashMap<>();
     private final Map<UUID, Long> sendCooldowns = new HashMap<>();
     private final Map<UUID, Long> acceptCooldowns = new HashMap<>();
+    private final Map<UUID, BukkitTask> invulnerabilityTasks = new HashMap<>();
+    private final Set<UUID> warmupDamagedPlayers = new HashSet<>();
+    private final Set<UUID> invulnerablePlayers = new HashSet<>();
     private final Set<UUID> ignoringRequests = new HashSet<>();
     private final File ignoreFile;
-    private BukkitTask cleanupTask;
 
     private int timeoutSeconds;
     private boolean strictTpaRequests;
@@ -59,8 +63,9 @@ public final class TeleportRequestManager implements Listener {
     private boolean cooldownsEnabled;
     private int sendCooldownSeconds;
     private int acceptCooldownSeconds;
-    private double warmupMoveThreshold;
     private String warmupDisplay;
+    private int teleportInvulnerabilitySeconds;
+    private boolean teleportAsync;
     private boolean soundsEnabled;
     private String requestSound;
     private String warmupSound;
@@ -83,17 +88,19 @@ public final class TeleportRequestManager implements Listener {
         plugin.getConfig().addDefault("tpa.cooldowns.enabled", true);
         plugin.getConfig().addDefault("tpa.cooldowns.cooldown-times.SEND_TELEPORT_REQUEST", 0);
         plugin.getConfig().addDefault("tpa.cooldowns.cooldown-times.ACCEPT_TELEPORT_REQUEST", 0);
-        plugin.getConfig().addDefault("tpa.warmup-move-threshold", 0.1D);
         plugin.getConfig().addDefault("tpa.warmup-display", "actionbar");
+        plugin.getConfig().addDefault("tpa.teleport-invulnerability-seconds", 0);
+        plugin.getConfig().addDefault("tpa.teleport-async", true);
         plugin.getConfig().addDefault("tpa.sounds.enabled", true);
         plugin.getConfig().addDefault("tpa.sounds.request-received", "entity.experience_orb.pickup");
         plugin.getConfig().addDefault("tpa.sounds.warmup", "block.note_block.banjo");
         plugin.getConfig().addDefault("tpa.sounds.cancelled", "entity.item.break");
         plugin.getConfig().addDefault("tpa.sounds.complete", "entity.enderman.teleport");
+        plugin.getConfig().set("tpa.warmup-move-threshold", null);
         plugin.getConfig().options().copyDefaults(true);
         plugin.saveConfig();
 
-        timeoutSeconds = Math.max(5, plugin.getConfig().getInt("tpa.timeout-seconds", 60));
+        timeoutSeconds = Math.max(0, plugin.getConfig().getInt("tpa.timeout-seconds", 60));
         strictTpaRequests = plugin.getConfig().getBoolean("tpa.strict-tpa-requests", false);
         strictTpaHereRequests = plugin.getConfig().getBoolean("tpa.strict-tpahere-requests", true);
         warmupSeconds = Math.max(0, plugin.getConfig().getInt("tpa.warmup-seconds", 5));
@@ -102,15 +109,16 @@ public final class TeleportRequestManager implements Listener {
         cooldownsEnabled = plugin.getConfig().getBoolean("tpa.cooldowns.enabled", true);
         sendCooldownSeconds = Math.max(0, plugin.getConfig().getInt("tpa.cooldowns.cooldown-times.SEND_TELEPORT_REQUEST", 0));
         acceptCooldownSeconds = Math.max(0, plugin.getConfig().getInt("tpa.cooldowns.cooldown-times.ACCEPT_TELEPORT_REQUEST", 0));
-        warmupMoveThreshold = Math.max(0.0D, plugin.getConfig().getDouble("tpa.warmup-move-threshold", 0.1D));
-        warmupDisplay = plugin.getConfig().getString("tpa.warmup-display", "actionbar").toLowerCase();
+        warmupDisplay = plugin.getConfig().getString("tpa.warmup-display", "actionbar").toLowerCase(Locale.ROOT);
+        teleportInvulnerabilitySeconds = Math.max(0,
+            plugin.getConfig().getInt("tpa.teleport-invulnerability-seconds", 0));
+        teleportAsync = plugin.getConfig().getBoolean("tpa.teleport-async", true);
         soundsEnabled = plugin.getConfig().getBoolean("tpa.sounds.enabled", true);
         requestSound = plugin.getConfig().getString("tpa.sounds.request-received", "entity.experience_orb.pickup");
         warmupSound = plugin.getConfig().getString("tpa.sounds.warmup", "block.note_block.banjo");
         cancelSound = plugin.getConfig().getString("tpa.sounds.cancelled", "entity.item.break");
         completeSound = plugin.getConfig().getString("tpa.sounds.complete", "entity.enderman.teleport");
         loadIgnoringRequests();
-        startCleanupTask();
     }
 
     public void shutdown() {
@@ -118,7 +126,7 @@ public final class TeleportRequestManager implements Listener {
         sendCooldowns.clear();
         acceptCooldowns.clear();
         cancelAllWarmups();
-        cancelCleanupTask();
+        clearAllInvulnerability();
         saveIgnoringRequests();
     }
 
@@ -136,6 +144,9 @@ public final class TeleportRequestManager implements Listener {
         if (existingRequest.isPresent()
             && existingRequest.get().type() == type
             && !existingRequest.get().hasExpired()) {
+            if (applyCooldown) {
+                startCooldown(requester, sendCooldowns, sendCooldownSeconds);
+            }
             return new CreateRequestResult(CreateRequestStatus.DUPLICATE, existingRequest.get());
         }
 
@@ -151,7 +162,7 @@ public final class TeleportRequestManager implements Listener {
             TeleportRequest.Status.PENDING
         );
 
-        if (isIgnoringRequests(target)) {
+        if (isIgnoringRequests(target) || isVanished(target)) {
             request.setStatus(TeleportRequest.Status.IGNORED);
             if (applyCooldown) {
                 startCooldown(requester, sendCooldowns, sendCooldownSeconds);
@@ -225,35 +236,44 @@ public final class TeleportRequestManager implements Listener {
             return TeleportResult.onCooldown(acceptCooldown.seconds());
         }
 
+        removeIncomingByRequester(target, request.requesterName());
         if (request.hasExpired()) {
-            removeIncomingByRequester(target, request.requesterName());
             return TeleportResult.EXPIRED;
         }
 
+        request.setStatus(TeleportRequest.Status.ACCEPTED);
+        Map<String, String> placeholders = placeholders(request);
+        target.sendMessage(plugin.getLangManager().getPrefixedComponent("tpa.messages.accepted-target", placeholders));
+
         Player requester = Bukkit.getPlayer(request.requesterId());
-        Player currentTarget = Bukkit.getPlayer(request.targetId());
-        if (requester == null || currentTarget == null || !requester.isOnline() || !currentTarget.isOnline()) {
+        if (requester == null || !requester.isOnline()) {
+            target.sendMessage(plugin.getLangManager().getPrefixedComponent("tpa.messages.player-offline", placeholders));
             return TeleportResult.PLAYER_OFFLINE;
         }
+        requester.sendMessage(plugin.getLangManager().getPrefixedComponent("tpa.messages.accepted-sender", placeholders));
 
-        TeleportPlan plan = createTeleportPlan(request, requester, currentTarget);
+        TeleportPlan plan = createTeleportPlan(request, requester, target);
         Player teleporter = plan.teleporter();
+        int playerWarmupSeconds = getTeleportWarmupSeconds(teleporter);
+        if (playerWarmupSeconds <= 0 || teleporter.hasPermission(BYPASS_WARMUP_PERMISSION)) {
+            return executeTeleport(plan, true);
+        }
+
         if (warmups.containsKey(teleporter.getUniqueId())) {
-            return TeleportResult.ALREADY_WARMING_UP;
+            teleporter.sendMessage(plugin.getLangManager().getPrefixedComponent("tpa.messages.already-warming-up"));
+            return TeleportResult.ACCEPTED_WITHOUT_TELEPORT;
+        }
+        OptionalIntCooldown teleporterCooldown = getRemainingCooldown(teleporter, acceptCooldowns);
+        if (teleporterCooldown.active()) {
+            sendAcceptCooldown(teleporter, teleporterCooldown.seconds());
+            return TeleportResult.ACCEPTED_WITHOUT_TELEPORT;
+        }
+        if (isMoving(teleporter)) {
+            teleporter.sendMessage(plugin.getLangManager().getPrefixedComponent("tpa.messages.warmup-stand-still"));
+            return TeleportResult.ACCEPTED_WITHOUT_TELEPORT;
         }
 
-        removeIncomingByRequester(target, request.requesterName());
-        request.setStatus(TeleportRequest.Status.ACCEPTED);
-        if (warmupSeconds <= 0 || teleporter.hasPermission(BYPASS_WARMUP_PERMISSION)) {
-            TeleportResult result = executeTeleport(plan, true);
-            if (result.status() == TeleportResult.Status.SUCCESS) {
-                startCooldown(target, acceptCooldowns, acceptCooldownSeconds);
-            }
-            return result;
-        }
-
-        startWarmup(plan);
-        startCooldown(target, acceptCooldowns, acceptCooldownSeconds);
+        startWarmup(plan, playerWarmupSeconds);
         return TeleportResult.WARMING_UP;
     }
 
@@ -265,6 +285,14 @@ public final class TeleportRequestManager implements Listener {
             return TeleportResult.EXPIRED;
         }
         request.setStatus(TeleportRequest.Status.DECLINED);
+        Map<String, String> placeholders = placeholders(request);
+        target.sendMessage(plugin.getLangManager().getPrefixedComponent("tpa.messages.denied-target", placeholders));
+        Player requester = Bukkit.getPlayer(request.requesterId());
+        if (requester != null && requester.isOnline()) {
+            requester.sendMessage(plugin.getLangManager().getPrefixedComponent("tpa.messages.denied-sender", placeholders));
+        } else {
+            target.sendMessage(plugin.getLangManager().getPrefixedComponent("tpa.messages.player-offline", placeholders));
+        }
         return TeleportResult.SUCCESS;
     }
 
@@ -286,6 +314,16 @@ public final class TeleportRequestManager implements Listener {
         return ignoringRequests.contains(player.getUniqueId());
     }
 
+    public boolean isVanished(Player player) {
+        if (VanishCommand.isVanished(player)) {
+            return true;
+        }
+        return player.hasMetadata("vanished") && player.getMetadata("vanished").stream()
+            .map(metadata -> metadata.asBoolean())
+            .findFirst()
+            .orElse(false);
+    }
+
     public boolean toggleIgnoringRequests(Player player) {
         UUID uuid = player.getUniqueId();
         boolean nowIgnoring;
@@ -301,25 +339,13 @@ public final class TeleportRequestManager implements Listener {
     }
 
     public void playRequestReceivedSound(Player player) {
-        playConfiguredSound(player, requestSound, 0.7F, 1.0F);
+        playConfiguredSound(player, requestSound, 1.0F, 1.0F);
     }
 
     public int sendTeleportAllRequest(Player requester) {
-        return sendTeleportAllRequest(requester, ignored -> true);
-    }
-
-    public int sendTeleportAllRequest(Player requester, Predicate<Player> targetFilter) {
-        OptionalIntCooldown sendCooldown = getRemainingCooldown(requester, sendCooldowns);
-        if (sendCooldown.active()) {
-            return -sendCooldown.seconds();
-        }
-
         int recipients = 0;
         for (Player target : Bukkit.getOnlinePlayers()) {
             if (target.getUniqueId().equals(requester.getUniqueId())) {
-                continue;
-            }
-            if (!targetFilter.test(target)) {
                 continue;
             }
             recipients++;
@@ -328,37 +354,37 @@ public final class TeleportRequestManager implements Listener {
                 continue;
             }
             Map<String, String> placeholders = placeholders(result.request());
-            target.sendMessage(plugin.getLangManager().getPrefixedString("tpa.messages.received-tpahere", placeholders));
-            sendResponseHint(target, result.request(), placeholders);
+            target.sendMessage(plugin.getLangManager().getPrefixedComponent("tpa.messages.received-tpahere", placeholders));
+            sendResponseHint(target, placeholders);
             playRequestReceivedSound(target);
-        }
-        if (recipients > 0) {
-            startCooldown(requester, sendCooldowns, sendCooldownSeconds);
         }
         return recipients;
     }
 
-    public int getSendCooldownSeconds(Player player) {
+    public int getRemainingSendCooldownSeconds(Player player) {
         return getRemainingCooldown(player, sendCooldowns).seconds();
     }
 
-    private void sendResponseHint(Player target, TeleportRequest request, Map<String, String> placeholders) {
-        String requesterName = request.requesterName();
-        String acceptCommand = "/tpaccept " + requesterName;
-        String denyCommand = "/tpdeny " + requesterName;
+    public Optional<Player> findOnlinePlayer(String playerName, Predicate<Player> filter) {
+        Optional<Player> exactMatch = Bukkit.getOnlinePlayers().stream()
+            .map(Player.class::cast)
+            .filter(filter)
+            .filter(player -> player.getName().equalsIgnoreCase(playerName))
+            .findFirst();
+        if (exactMatch.isPresent()) {
+            return exactMatch;
+        }
 
-        Component hint = LegacyComponentSerializer.legacySection()
-            .deserialize(plugin.getLangManager().getPrefixedString("tpa.messages.response-hint", placeholders));
-        Component accept = LegacyComponentSerializer.legacySection()
-            .deserialize(plugin.getLangManager().getString("tpa.messages.accept-button"))
-            .clickEvent(ClickEvent.runCommand(acceptCommand))
-            .hoverEvent(HoverEvent.showText(Component.text(acceptCommand, NamedTextColor.GREEN)));
-        Component deny = LegacyComponentSerializer.legacySection()
-            .deserialize(plugin.getLangManager().getString("tpa.messages.deny-button"))
-            .clickEvent(ClickEvent.runCommand(denyCommand))
-            .hoverEvent(HoverEvent.showText(Component.text(denyCommand, NamedTextColor.RED)));
+        String playerNameLower = playerName.toLowerCase();
+        return Bukkit.getOnlinePlayers().stream()
+            .map(Player.class::cast)
+            .filter(filter)
+            .filter(player -> player.getName().toLowerCase().startsWith(playerNameLower))
+            .findFirst();
+    }
 
-        target.sendMessage(hint.append(Component.space()).append(accept).append(Component.space()).append(deny));
+    public void sendResponseHint(Player target, Map<String, String> placeholders) {
+        target.sendMessage(plugin.getLangManager().getPrefixedComponent("tpa.messages.response-buttons", placeholders));
     }
 
     public int getTimeoutSeconds() {
@@ -406,19 +432,40 @@ public final class TeleportRequestManager implements Listener {
         );
     }
 
-    private void startWarmup(TeleportPlan plan) {
+    private int getTeleportWarmupSeconds(Player player) {
+        return player.getEffectivePermissions().stream()
+            .filter(PermissionAttachmentInfo::getValue)
+            .map(PermissionAttachmentInfo::getPermission)
+            .filter(permission -> permission.startsWith(WARMUP_PERMISSION_PREFIX))
+            .map(permission -> permission.substring(WARMUP_PERMISSION_PREFIX.length()))
+            .mapToInt(this::parseWarmupPermission)
+            .filter(seconds -> seconds >= 0)
+            .max()
+            .orElse(warmupSeconds);
+    }
+
+    private int parseWarmupPermission(String value) {
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException ignored) {
+            return -1;
+        }
+    }
+
+    private void startWarmup(TeleportPlan plan, int playerWarmupSeconds) {
         Player teleporter = plan.teleporter();
         UUID uuid = teleporter.getUniqueId();
         PendingTeleport pendingTeleport = new PendingTeleport(
             plan,
             teleporter.getLocation().clone(),
-            warmupSeconds
+            playerWarmupSeconds
         );
+        warmupDamagedPlayers.remove(uuid);
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> tickWarmup(uuid), 0L, 20L);
         pendingTeleport.setTask(task);
         warmups.put(uuid, pendingTeleport);
-        teleporter.sendMessage(plugin.getLangManager().getPrefixedString("tpa.messages.warmup-start",
-            Map.of("seconds", String.valueOf(warmupSeconds))));
+        teleporter.sendMessage(plugin.getLangManager().getPrefixedComponent("tpa.messages.warmup-start",
+            Map.of("seconds", String.valueOf(playerWarmupSeconds))));
     }
 
     private void tickWarmup(UUID teleporterId) {
@@ -433,17 +480,28 @@ public final class TeleportRequestManager implements Listener {
             return;
         }
 
+        if (cancelWarmupOnDamage && warmupDamagedPlayers.contains(teleporterId)) {
+            cancelWarmup(teleporterId, "tpa.messages.warmup-cancelled-damage", true);
+            return;
+        }
+        if (cancelWarmupOnMove && hasMoved(pendingTeleport.startLocation(), teleporter.getLocation())) {
+            cancelWarmup(teleporterId, "tpa.messages.warmup-cancelled-move", true);
+            return;
+        }
+
         if (pendingTeleport.remainingSeconds() <= 0) {
+            sendWarmupStatus(teleporter, "tpa.messages.warmup-processing", Map.of());
             cancelWarmup(teleporterId, null, false);
             TeleportResult result = executeTeleport(pendingTeleport.plan(), true);
-            if (result.status() == TeleportResult.Status.PLAYER_OFFLINE) {
-                teleporter.sendMessage(plugin.getLangManager().getPrefixedString("tpa.messages.player-offline"));
+            if (result.status() == TeleportResult.Status.ON_COOLDOWN) {
+                sendAcceptCooldown(teleporter, result.cooldownSeconds());
             }
             return;
         }
 
-        sendWarmupStatus(teleporter, pendingTeleport.remainingSeconds());
-        playConfiguredSound(teleporter, warmupSound, 0.5F, 1.0F);
+        sendWarmupStatus(teleporter, "tpa.messages.warmup-status",
+            Map.of("seconds", String.valueOf(pendingTeleport.remainingSeconds())));
+        playConfiguredSound(teleporter, warmupSound, 1.0F, 1.0F);
         pendingTeleport.decrementRemainingSeconds();
     }
 
@@ -453,47 +511,143 @@ public final class TeleportRequestManager implements Listener {
             return TeleportResult.PLAYER_OFFLINE;
         }
 
+        OptionalIntCooldown acceptCooldown = getRemainingCooldown(teleporter, acceptCooldowns);
+        if (acceptCooldown.active()) {
+            return TeleportResult.onCooldown(acceptCooldown.seconds());
+        }
+
         Location destination = plan.fixedDestination();
         if (destination == null && plan.dynamicTargetId() != null) {
             Player dynamicTarget = Bukkit.getPlayer(plan.dynamicTargetId());
             if (dynamicTarget == null || !dynamicTarget.isOnline()) {
-                return TeleportResult.PLAYER_OFFLINE;
+                teleporter.sendMessage(plugin.getLangManager().getPrefixedComponent("tpa.messages.target-offline"));
+                return TeleportResult.TARGET_OFFLINE;
             }
             destination = dynamicTarget.getLocation().clone();
         }
 
         if (destination == null) {
-            return TeleportResult.PLAYER_OFFLINE;
+            teleporter.sendMessage(plugin.getLangManager().getPrefixedComponent("tpa.messages.target-offline"));
+            return TeleportResult.TARGET_OFFLINE;
         }
 
-        teleporter.teleportAsync(destination).thenAccept(success -> {
-            if (!success || !notifyCompletion) {
-                return;
+        teleporter.leaveVehicle();
+        teleporter.eject();
+        teleporter.setFallDistance(0.0F);
+        startCooldown(teleporter, acceptCooldowns, acceptCooldownSeconds);
+        if (teleportAsync) {
+            try {
+                teleporter.teleportAsync(destination, PlayerTeleportEvent.TeleportCause.PLUGIN)
+                    .whenComplete((success, throwable) -> {
+                        if (!plugin.isEnabled()) {
+                            return;
+                        }
+                        Bukkit.getScheduler().runTask(plugin, () -> handleTeleportCompletion(
+                            teleporter, Boolean.TRUE.equals(success), throwable, notifyCompletion));
+                    });
+            } catch (RuntimeException exception) {
+                handleTeleportCompletion(teleporter, false, exception, notifyCompletion);
             }
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                if (teleporter.isOnline()) {
-                    teleporter.sendMessage(plugin.getLangManager().getPrefixedString("tpa.messages.teleport-complete"));
-                    playConfiguredSound(teleporter, completeSound, 0.7F, 1.0F);
-                }
-            });
-        });
+        } else {
+            try {
+                boolean success = teleporter.teleport(destination, PlayerTeleportEvent.TeleportCause.PLUGIN);
+                handleTeleportCompletion(teleporter, success, null, notifyCompletion);
+            } catch (RuntimeException exception) {
+                handleTeleportCompletion(teleporter, false, exception, notifyCompletion);
+            }
+        }
         return TeleportResult.SUCCESS;
     }
 
-    private void sendWarmupStatus(Player player, int seconds) {
-        String message = plugin.getLangManager().getString("tpa.messages.warmup-status",
-            Map.of("seconds", String.valueOf(seconds)));
-        if ("actionbar".equalsIgnoreCase(warmupDisplay)) {
-            player.sendActionBar(LegacyComponentSerializer.legacySection().deserialize(message));
+    private void handleTeleportCompletion(Player teleporter, boolean success, Throwable throwable,
+                                          boolean notifyCompletion) {
+        if (!success) {
+            if (teleporter.isOnline()) {
+                teleporter.sendMessage(plugin.getLangManager().getPrefixedComponent("tpa.messages.teleport-failed"));
+            }
+            if (throwable != null) {
+                String detail = throwable.getMessage() == null
+                    ? throwable.getClass().getSimpleName()
+                    : throwable.getMessage();
+                plugin.getLogger().warning("TPA 传送执行失败: " + detail);
+            }
             return;
         }
-        if (!"none".equalsIgnoreCase(warmupDisplay)) {
-            player.sendMessage(message);
+
+        applyTeleportInvulnerability(teleporter);
+        if (notifyCompletion && teleporter.isOnline()) {
+            teleporter.sendMessage(plugin.getLangManager().getPrefixedComponent("tpa.messages.teleport-complete"));
+            playConfiguredSound(teleporter, completeSound, 1.0F, 1.0F);
+        }
+    }
+
+    private void applyTeleportInvulnerability(Player player) {
+        if (teleportInvulnerabilitySeconds <= 0 || !player.isOnline()) {
+            return;
+        }
+
+        UUID uuid = player.getUniqueId();
+        BukkitTask previousTask = invulnerabilityTasks.remove(uuid);
+        if (previousTask != null) {
+            previousTask.cancel();
+        }
+        if (player.isInvulnerable() && !invulnerablePlayers.contains(uuid)) {
+            return;
+        }
+
+        invulnerablePlayers.add(uuid);
+        player.setInvulnerable(true);
+        BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin,
+            () -> clearInvulnerability(uuid), teleportInvulnerabilitySeconds * 20L);
+        invulnerabilityTasks.put(uuid, task);
+    }
+
+    private void clearInvulnerability(UUID uuid) {
+        BukkitTask task = invulnerabilityTasks.remove(uuid);
+        if (task != null) {
+            task.cancel();
+        }
+        if (!invulnerablePlayers.remove(uuid)) {
+            return;
+        }
+        Player player = Bukkit.getPlayer(uuid);
+        if (player != null) {
+            player.setInvulnerable(false);
+        }
+    }
+
+    private void clearAllInvulnerability() {
+        for (BukkitTask task : invulnerabilityTasks.values()) {
+            task.cancel();
+        }
+        invulnerabilityTasks.clear();
+        for (UUID uuid : new HashSet<>(invulnerablePlayers)) {
+            clearInvulnerability(uuid);
+        }
+    }
+
+    private void sendAcceptCooldown(Player player, int seconds) {
+        player.sendMessage(plugin.getLangManager().getPrefixedComponent("tpa.messages.accept-cooldown",
+            Map.of("seconds", String.valueOf(seconds))));
+    }
+
+    private void sendWarmupStatus(Player player, String messagePath, Map<String, String> placeholders) {
+        net.kyori.adventure.text.Component message = plugin.getLangManager().getPrefixedComponent(messagePath, placeholders);
+        switch (warmupDisplay.replace("-", "_")) {
+            case "actionbar", "action_bar" -> player.sendActionBar(message);
+            case "title" -> player.showTitle(Title.title(message, net.kyori.adventure.text.Component.empty(),
+                Title.Times.times(Duration.ZERO, Duration.ofSeconds(1), Duration.ofMillis(250))));
+            case "subtitle" -> player.showTitle(Title.title(net.kyori.adventure.text.Component.empty(), message,
+                Title.Times.times(Duration.ZERO, Duration.ofSeconds(1), Duration.ofMillis(250))));
+            case "none" -> {
+            }
+            default -> player.sendMessage(message);
         }
     }
 
     private void cancelWarmup(UUID teleporterId, String messagePath, boolean playSound) {
         PendingTeleport pendingTeleport = warmups.remove(teleporterId);
+        warmupDamagedPlayers.remove(teleporterId);
         if (pendingTeleport == null) {
             return;
         }
@@ -503,9 +657,10 @@ public final class TeleportRequestManager implements Listener {
 
         Player player = Bukkit.getPlayer(teleporterId);
         if (player != null && player.isOnline() && messagePath != null) {
-            player.sendMessage(plugin.getLangManager().getPrefixedString(messagePath));
+            player.sendMessage(plugin.getLangManager().getPrefixedComponent(messagePath));
+            sendWarmupStatus(player, "tpa.messages.warmup-cancelled-actionbar", Map.of());
             if (playSound) {
-                playConfiguredSound(player, cancelSound, 0.7F, 1.0F);
+                playConfiguredSound(player, cancelSound, 1.0F, 1.0F);
             }
         }
     }
@@ -542,17 +697,6 @@ public final class TeleportRequestManager implements Listener {
         return removed;
     }
 
-    public void purgeExpired() {
-        List<UUID> emptyQueues = new ArrayList<>();
-        for (Map.Entry<UUID, Deque<TeleportRequest>> entry : requests.entrySet()) {
-            entry.getValue().removeIf(TeleportRequest::hasExpired);
-            if (entry.getValue().isEmpty()) {
-                emptyQueues.add(entry.getKey());
-            }
-        }
-        emptyQueues.forEach(requests::remove);
-    }
-
     public Map<String, String> placeholders(TeleportRequest request) {
         Map<String, String> placeholders = new HashMap<>();
         placeholders.put("requester", request.requesterName());
@@ -563,31 +707,12 @@ public final class TeleportRequestManager implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    private void onPlayerMove(PlayerMoveEvent event) {
-        if (!cancelWarmupOnMove || !warmups.containsKey(event.getPlayer().getUniqueId())) {
-            return;
-        }
-
-        PendingTeleport pendingTeleport = warmups.get(event.getPlayer().getUniqueId());
-        Location start = pendingTeleport.startLocation();
-        Location to = event.getTo();
-        if (to == null || !sameWorld(start, to)) {
-            cancelWarmup(event.getPlayer().getUniqueId(), "tpa.messages.warmup-cancelled-move", true);
-            return;
-        }
-
-        double distance = Math.abs(start.getX() - to.getX())
-            + Math.abs(start.getY() - to.getY())
-            + Math.abs(start.getZ() - to.getZ());
-        if (distance > warmupMoveThreshold) {
-            cancelWarmup(event.getPlayer().getUniqueId(), "tpa.messages.warmup-cancelled-move", true);
-        }
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     private void onEntityDamage(EntityDamageEvent event) {
-        if (cancelWarmupOnDamage && event.getEntity() instanceof Player player && warmups.containsKey(player.getUniqueId())) {
-            cancelWarmup(player.getUniqueId(), "tpa.messages.warmup-cancelled-damage", true);
+        if (event.getDamage() <= 0) {
+            return;
+        }
+        if (event.getEntity() instanceof Player player && warmups.containsKey(player.getUniqueId())) {
+            warmupDamagedPlayers.add(player.getUniqueId());
         }
     }
 
@@ -597,33 +722,29 @@ public final class TeleportRequestManager implements Listener {
             return;
         }
 
-        event.getPlayer().sendMessage(plugin.getLangManager().getPrefixedString("tpa.messages.ignore-notification"));
+        event.getPlayer().sendMessage(plugin.getLangManager().getPrefixedComponent("tpa.messages.ignore-notification"));
     }
 
     @EventHandler
     private void onPlayerQuit(PlayerQuitEvent event) {
-        cancelWarmup(event.getPlayer().getUniqueId(), null, false);
+        UUID uuid = event.getPlayer().getUniqueId();
+        cancelWarmup(uuid, null, false);
+        clearInvulnerability(uuid);
     }
 
-    private void startCleanupTask() {
-        if (cleanupTask != null) {
-            return;
+    private boolean hasMoved(Location start, Location current) {
+        if (start.getWorld() == null || current.getWorld() == null
+            || !start.getWorld().getUID().equals(current.getWorld().getUID())) {
+            return true;
         }
-        cleanupTask = Bukkit.getScheduler().runTaskTimer(plugin, this::purgeExpired, 20L * 60L, 20L * 60L);
+        double distance = Math.abs(start.getX() - current.getX())
+            + Math.abs(start.getY() - current.getY())
+            + Math.abs(start.getZ() - current.getZ());
+        return distance > MOVEMENT_THRESHOLD;
     }
 
-    private void cancelCleanupTask() {
-        if (cleanupTask == null) {
-            return;
-        }
-        cleanupTask.cancel();
-        cleanupTask = null;
-    }
-
-    private boolean sameWorld(Location first, Location second) {
-        return first.getWorld() != null
-            && second.getWorld() != null
-            && first.getWorld().getUID().equals(second.getWorld().getUID());
+    private boolean isMoving(Player player) {
+        return player.getVelocity().length() >= MOVEMENT_THRESHOLD;
     }
 
     private void loadIgnoringRequests() {
@@ -673,7 +794,9 @@ public final class TeleportRequestManager implements Listener {
         public static final TeleportResult WARMING_UP = new TeleportResult(Status.WARMING_UP, 0);
         public static final TeleportResult EXPIRED = new TeleportResult(Status.EXPIRED, 0);
         public static final TeleportResult PLAYER_OFFLINE = new TeleportResult(Status.PLAYER_OFFLINE, 0);
+        public static final TeleportResult TARGET_OFFLINE = new TeleportResult(Status.TARGET_OFFLINE, 0);
         public static final TeleportResult ALREADY_WARMING_UP = new TeleportResult(Status.ALREADY_WARMING_UP, 0);
+        public static final TeleportResult ACCEPTED_WITHOUT_TELEPORT = new TeleportResult(Status.ACCEPTED_WITHOUT_TELEPORT, 0);
 
         public static TeleportResult onCooldown(int seconds) {
             return new TeleportResult(Status.ON_COOLDOWN, seconds);
@@ -684,7 +807,9 @@ public final class TeleportRequestManager implements Listener {
             WARMING_UP,
             EXPIRED,
             PLAYER_OFFLINE,
+            TARGET_OFFLINE,
             ALREADY_WARMING_UP,
+            ACCEPTED_WITHOUT_TELEPORT,
             ON_COOLDOWN
         }
     }

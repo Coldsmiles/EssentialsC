@@ -63,21 +63,21 @@ public final class SkinBridgeManager implements Listener {
 
     public void reload() {
         configurationGeneration.incrementAndGet();
-        FileConfiguration config = plugin.getConfig();
+        FileConfiguration config = plugin.getFeatureConfigManager().getSkinBridgeConfig();
         addDefaults(config);
         config.options().copyDefaults(true);
-        plugin.saveConfig();
+        plugin.getFeatureConfigManager().saveSkinBridgeConfig();
 
-        enabled = config.getBoolean("skin-bridge.enabled", false);
-        debug = config.getBoolean("skin-bridge.debug", false);
-        sendPlayerMessage = config.getBoolean("skin-bridge.send-player-message", true);
-        requestTimeoutSeconds = clamp(config.getInt("skin-bridge.profile-request-timeout-seconds", 5), 1, 30);
-        String mineSkinEndpoint = config.getString("skin-bridge.mineskin.endpoint", "https://api.mineskin.org");
-        String mineSkinApiKey = config.getString("skin-bridge.mineskin.api-key", "").trim();
-        String mineSkinVisibility = config.getString("skin-bridge.mineskin.visibility", "unlisted");
-        int mineSkinTimeoutSeconds = clamp(config.getInt("skin-bridge.mineskin.request-timeout-seconds", 30), 10, 180);
-        cacheMinutes = clamp(config.getInt("skin-bridge.cache-minutes", 120), 5, 10080);
-        joinDelayTicks = clamp(config.getLong("skin-bridge.join-delay-ticks", 20L), 0, 200);
+        enabled = config.getBoolean("enabled", false);
+        debug = plugin.getConfig().getBoolean("debug", false);
+        sendPlayerMessage = config.getBoolean("send-player-message", true);
+        requestTimeoutSeconds = clamp(config.getInt("profile-request-timeout-seconds", 5), 1, 30);
+        String mineSkinEndpoint = config.getString("mineskin.endpoint", "https://api.mineskin.org");
+        String mineSkinApiKey = config.getString("mineskin.api-key", "").trim();
+        String mineSkinVisibility = config.getString("mineskin.visibility", "unlisted");
+        int mineSkinTimeoutSeconds = clamp(config.getInt("mineskin.request-timeout-seconds", 30), 10, 180);
+        cacheMinutes = clamp(config.getInt("cache-minutes", 120), 5, 10080);
+        joinDelayTicks = clamp(config.getLong("join-delay-ticks", 20L), 0, 200);
         providers = loadProviders(config);
         cache.clear();
         gateway = loadGateway(mineSkinEndpoint, mineSkinApiKey, mineSkinVisibility, mineSkinTimeoutSeconds);
@@ -322,7 +322,7 @@ public final class SkinBridgeManager implements Listener {
     }
 
     private List<SkinProvider> loadProviders(FileConfiguration config) {
-        ConfigurationSection providersSection = config.getConfigurationSection("skin-bridge.providers");
+        ConfigurationSection providersSection = config.getConfigurationSection("providers");
         if (providersSection == null) {
             return List.of();
         }
@@ -364,16 +364,16 @@ public final class SkinBridgeManager implements Listener {
     }
 
     private void addDefaults(FileConfiguration config) {
-        config.addDefault("skin-bridge.enabled", false);
-        config.addDefault("skin-bridge.debug", false);
-        config.addDefault("skin-bridge.send-player-message", true);
-        config.addDefault("skin-bridge.profile-request-timeout-seconds", 5);
-        config.addDefault("skin-bridge.mineskin.endpoint", "https://api.mineskin.org");
-        config.addDefault("skin-bridge.mineskin.api-key", "");
-        config.addDefault("skin-bridge.mineskin.visibility", "unlisted");
-        config.addDefault("skin-bridge.mineskin.request-timeout-seconds", 30);
-        config.addDefault("skin-bridge.cache-minutes", 120);
-        config.addDefault("skin-bridge.join-delay-ticks", 20);
+        config.addDefault("config-version", 1);
+        config.addDefault("enabled", false);
+        config.addDefault("send-player-message", true);
+        config.addDefault("profile-request-timeout-seconds", 5);
+        config.addDefault("mineskin.endpoint", "https://api.mineskin.org");
+        config.addDefault("mineskin.api-key", "");
+        config.addDefault("mineskin.visibility", "unlisted");
+        config.addDefault("mineskin.request-timeout-seconds", 30);
+        config.addDefault("cache-minutes", 120);
+        config.addDefault("join-delay-ticks", 20);
     }
 
     private void applySkin(UUID playerId, CachedLookup resolved, long lookupGeneration) {

@@ -1,0 +1,73 @@
+# ============================================================================
+# EssentialsC - 便捷菜单布局
+# ============================================================================
+# 模块总开关位于 modules.yml：modules.blocks.enabled
+# 菜单名称与物品文本位于 lang/<语言>.yml 的 blocks-menu 节点。
+
+config-version: 1
+layout-version: 2
+
+# 每个菜单项包含：
+#   slot       槽位编号，范围为 0 - 35
+#   material   Bukkit Material 名称
+#   permission 显示并使用该项目所需的权限
+#   command    点击后执行的 EssentialsC 命令键
+
+sections:
+  # 功能方块命令
+  blocks:
+    items:
+      workbench:
+        slot: 10
+        material: CRAFTING_TABLE
+        permission: essentialsc.command.workbench
+        command: workbench
+      enderchest:
+        slot: 11
+        material: ENDER_CHEST
+        permission: essentialsc.command.enderchest
+        command: enderchest
+      anvil:
+        slot: 12
+        material: ANVIL
+        permission: essentialsc.command.anvil
+        command: anvil
+      grindstone:
+        slot: 19
+        material: GRINDSTONE
+        permission: essentialsc.command.grindstone
+        command: grindstone
+      smithingtable:
+        slot: 20
+        material: SMITHING_TABLE
+        permission: essentialsc.command.smithingtable
+        command: smithingtable
+      stonecutter:
+        slot: 21
+        material: STONECUTTER
+        permission: essentialsc.command.stonecutter
+        command: stonecutter
+      loom:
+        slot: 28
+        material: LOOM
+        permission: essentialsc.command.loom
+        command: loom
+      cartographytable:
+        slot: 29
+        material: CARTOGRAPHY_TABLE
+        permission: essentialsc.command.cartographytable
+        command: cartographytable
+
+  # 玩家快捷功能
+  shortcuts:
+    items:
+      nightvision:
+        slot: 14
+        material: TINTED_GLASS
+        permission: essentialsc.command.nightvision
+        command: nightvision
+      glow:
+        slot: 15
+        material: GLOWSTONE
+        permission: essentialsc.command.glow
+        command: glow
