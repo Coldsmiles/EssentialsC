@@ -11,8 +11,8 @@
 
 - 最低支持版本为 `Paper 1.21.11`
 - 已适配 `Paper 26.2`
-- 构建环境固定为 `Java 21`
-- 配置按职责拆分：主行为配置、模块开关、SkinBridge、菜单布局、维护模式和语言文本分别管理
+- 主插件使用 `Java 21`，Paper 26.x 版本适配模块使用对应服务端要求的 Java 工具链
+- 配置按职责拆分：主行为与 SkinBridge、模块开关、菜单布局、维护模式和语言文本分别管理
 - 支持运行期模块开关，避免为不同功能组合构建多个插件版本
 
 ## 主要功能
@@ -56,20 +56,19 @@
 
 ## 模块配置
 
-项目现在默认构建一个完整插件，功能是否启用由 `plugins/EssentialsC/modules.yml` 控制。
+项目默认构建一个完整插件。玩家常用命令、Vanish 与 TPA 属于核心功能，始终加载并通过权限控制；其他可选功能由 `plugins/EssentialsC/modules.yml` 控制。
 
 | 模块 | 默认状态 | 说明 |
 | --- | --- | --- |
 | `blocks` | 开启 | 便捷方块命令、`/essc blocks` 菜单、潜影盒快捷打开 |
-| `player` | 开启 | 飞行、夜视、发光、治疗、喂食、修复、帽子、自杀、隐身、查询玩家 |
 | `admin-mode` | 开启 | `/essc admin` 管理模式与独立状态保存 |
-| `tpsbar` | 开启 | 插件版 TPSBar，仍受 `config.yml` 中 `tpsbar.mode` 控制 |
+| `tpsbar` | 开启 | 插件版 TPSBar，检测到服务端原生命令时自动避免冲突 |
 | `jei-sync` | 开启 | Fabric / NeoForge JEI 配方同步修复 |
 | `mob-drops` | 关闭 | 末影人掉落控制，默认关闭以保留过去标准版行为 |
 | `maintenance` | 开启 | 维护模式命令、MOTD 替换、登录拦截、白名单和拦截通知 |
 | `skin-bridge` | 关闭 | 查询外置 Yggdrasil profile，并通过 MineSkin 与 Paper Profile API 同步皮肤 |
 
-修改模块开关后可先使用 `/essc reload` 刷新运行期服务与监听器状态。由于 Bukkit 命令表不适合在运行期完整热增删，若模块是在启动时关闭的，对应直连命令可能仍需重启后才会注册；通过 `/essc <子命令>` 入口通常可立即按新的模块状态执行。
+修改模块开关后使用 `/essc reload` 即可刷新运行期服务、监听器和命令门禁。可选模块命令始终注册，模块关闭时会返回统一的停用提示，因此无需为了启用命令重启服务器。
 
 ## 安装说明
 
@@ -83,7 +82,7 @@
 
 当前配置按功能职责拆分，避免所有设置堆积在一个文件中：
 
-SkinBridge 默认关闭。使用前需同时启用 `modules.yml` 中的 `modules.skin-bridge.enabled` 和 `skin-bridge.yml` 中的 `enabled`，填写 `mineskin.api-key`，并至少启用一个 Provider。真实密钥只应填写在服务器运行目录的 `skin-bridge.yml` 中，不要写入源码或提交到公开仓库。该模块不要求安装 SkinsRestorer。`send-player-message` 控制是否向玩家发送检测、匹配和同步结果提示；`providers` 下的键名可自由命名，并会显示在日志和 `/essc skin status <玩家>` 中。
+SkinBridge 默认关闭。使用前需启用 `modules.yml` 中的 `modules.skin-bridge.enabled`，填写 `config.yml` 中的 `skin-bridge.mineskin.api-key`，并至少启用一个 Provider。真实密钥只应填写在服务器运行目录的 `config.yml` 中，不要写入源码或提交到公开仓库。该模块不要求安装 SkinsRestorer。默认支持 InfstarMC 与 LittleSkin；Provider 的 `name` 可自由修改，并会显示在日志和 `/essc skin status <玩家>` 中。生成后的 MineSkin 纹理会按皮肤 URL 缓存到 `skin-cache.yml`，并遵守配置的 TTL。
 
 - `config.yml`
   - 语言选择
@@ -92,11 +91,9 @@ SkinBridge 默认关闭。使用前需同时启用 `modules.yml` 中的 `modules
   - 掉落控制
   - TPSBar 模式
   - TPA 请求、预热、冷却和音效
+  - SkinBridge、MineSkin、Provider 与排除名单
 - `modules.yml`
   - 功能模块开关
-- `skin-bridge.yml`
-  - MineSkin API 与队列设置
-  - Provider、缓存和检测设置
 - `blocks-menu.yml`
   - 便捷菜单分区、槽位、材质和权限
 - `maintenance.yml`
@@ -114,7 +111,7 @@ SkinBridge 默认关闭。使用前需同时启用 `modules.yml` 中的 `modules
   - 管理模式文本
   - TPSBar 文本
 
-配置文件包含 `config-version`。从旧结构升级时，插件会备份主配置，并自动把 SkinBridge 与便捷菜单节点迁移到独立文件。
+主配置当前使用 `config-version: 2`。SkinBridge 直接配置在 `config.yml` 中，便捷菜单配置仍保存在独立文件中。
 
 ## 权限示例
 
@@ -131,6 +128,7 @@ essentialsc.command.heal
 essentialsc.command.feed
 essentialsc.command.repair
 essentialsc.command.vanish
+essentialsc.vanish.see
 essentialsc.command.seen
 essentialsc.command.tpa
 essentialsc.command.tpahere
@@ -146,6 +144,9 @@ essentialsc.command.admin
 essentialsc.command.tpsbar
 essentialsc.command.maintenance
 essentialsc.command.skin
+essentialsc.command.skin.status
+essentialsc.command.skin.refresh
+essentialsc.command.skin.others
 essentialsc.maintenance.bypass
 essentialsc.maintenance.notify
 essentialsc.shulkerbox.open
@@ -178,16 +179,18 @@ Windows 可使用：
 ./gradlew build
 ./gradlew deployToPaper12111
 ./gradlew deployToPaper2612
+./gradlew deployToPaper262
 ```
 
 ## 本地测试服
 
-项目包含两个本地测试服目录：
+项目包含三个本地测试服目录：
 
 | 测试服 | 端口 | 部署任务 | 启动脚本 |
 | --- | --- | --- | --- |
 | Paper 1.21.11 | `25566` | `deployToPaper12111` | `test-server/paper-1.21.11/start.bat` |
 | Paper 26.1.2 | `25565` | `deployToPaper2612` | `test-server/paper-26.1.2/start.bat` |
+| Paper 26.2 | 以本地配置为准 | `deployToPaper262` | `test-server/paper-26.2/start.bat` |
 
 IDEA 运行配置会在启动测试服前自动执行对应部署任务。部署任务会替换 `EssentialsC*.jar`，并删除 `plugins/EssentialsC` 数据目录，以便测试新增默认配置和语言文本。
 
@@ -196,8 +199,8 @@ IDEA 运行配置会在启动测试服前自动执行对应部署任务。部署
 - 使用 `paperweight-userdev` 进行 Paper 开发
 - 使用 Paper Lifecycle Command API 注册命令，避免直接反射 Bukkit CommandMap
 - 涉及 NMS 的功能通过 `compat-api` + `versions/v<版本>` 适配模块隔离，主插件只依赖稳定接口；当前包含 `1.21.11`、`26.1.2`、`26.2`
-- 运行时通过 `modules.yml` 控制模块加载，命令与监听器按模块状态注册
-- 发布流程基于 GitHub Actions 和 Gradle Wrapper
+- 运行时通过 `modules.yml` 控制模块加载，命令始终注册并按模块状态执行门禁
+- 普通 push/PR 会执行构建与测试，版本标签继续生成 GitHub Release
 
 ## 许可证
 

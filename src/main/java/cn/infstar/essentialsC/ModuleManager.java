@@ -5,7 +5,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -14,7 +13,6 @@ public final class ModuleManager {
     private static final int CURRENT_CONFIG_VERSION = 1;
 
     public static final String BLOCKS = "blocks";
-    public static final String PLAYER = "player";
     public static final String ADMIN_MODE = "admin-mode";
     public static final String TPSBAR = "tpsbar";
     public static final String JEI_SYNC = "jei-sync";
@@ -26,7 +24,6 @@ public final class ModuleManager {
 
     static {
         DEFAULT_MODULES.put(BLOCKS, true);
-        DEFAULT_MODULES.put(PLAYER, true);
         DEFAULT_MODULES.put(ADMIN_MODE, true);
         DEFAULT_MODULES.put(TPSBAR, true);
         DEFAULT_MODULES.put(JEI_SYNC, true);
@@ -56,7 +53,6 @@ public final class ModuleManager {
             modulesConfig.addDefault(path(module.getKey()), module.getValue());
         }
         modulesConfig.options().copyDefaults(true);
-        save();
     }
 
     public boolean isEnabled(String moduleKey) {
@@ -70,11 +66,4 @@ public final class ModuleManager {
         return "modules." + moduleKey + ".enabled";
     }
 
-    private void save() {
-        try {
-            modulesConfig.save(modulesFile);
-        } catch (IOException e) {
-            plugin.getLogger().warning("保存 modules.yml 失败: " + e.getMessage());
-        }
-    }
 }

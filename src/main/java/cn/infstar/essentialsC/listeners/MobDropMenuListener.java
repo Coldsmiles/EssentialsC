@@ -2,6 +2,7 @@ package cn.infstar.essentialsC.listeners;
 
 import cn.infstar.essentialsC.EssentialsC;
 import cn.infstar.essentialsC.commands.MobDropCommand;
+import cn.infstar.essentialsC.util.AtomicYamlWriter;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -46,11 +47,11 @@ public class MobDropMenuListener implements Listener {
 
     private void toggleEndermanDrops(Player player) {
         FileConfiguration config = plugin.getConfig();
-        boolean newValue = !config.getBoolean("mob-drops.enderman.enabled", true);
-        config.set("mob-drops.enderman.enabled", newValue);
+        boolean newValue = !config.getBoolean("mob-drops.enderman.allow-drops", true);
+        config.set("mob-drops.enderman.allow-drops", newValue);
 
         try {
-            config.save(plugin.getDataFolder().toPath().resolve("config.yml").toFile());
+            AtomicYamlWriter.save(config, plugin.getDataFolder().toPath().resolve("config.yml").toFile());
         } catch (Exception e) {
             player.sendMessage(EssentialsC.getLangManager().getPrefixedString("messages.mobdrop-save-failed",
                 Map.of("error", e.getMessage())));

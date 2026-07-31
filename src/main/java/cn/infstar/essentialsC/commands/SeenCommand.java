@@ -1,7 +1,6 @@
 package cn.infstar.essentialsC.commands;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
@@ -29,30 +28,27 @@ public class SeenCommand extends BaseCommand {
         }
 
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        StringBuilder info = new StringBuilder();
-        info.append(getLang().getPrefix()).append(ChatColor.GOLD).append("玩家信息: ")
-            .append(ChatColor.WHITE).append(target.getName()).append("\n");
+        player.sendMessage(getLang().getPrefixedComponent("messages.seen-header",
+            Map.of("player", String.valueOf(target.getName()))));
 
         if (target.isOnline()) {
-            info.append(ChatColor.GRAY).append("状态: ").append(ChatColor.GREEN).append("在线").append("\n");
+            player.sendMessage(getLang().getComponent("messages.seen-status-online"));
             Player onlinePlayer = target.getPlayer();
             if (onlinePlayer != null) {
-                info.append(ChatColor.GRAY).append("所在世界: ").append(ChatColor.WHITE)
-                    .append(onlinePlayer.getWorld().getName()).append("\n");
+                player.sendMessage(getLang().getComponent("messages.seen-world",
+                    Map.of("world", onlinePlayer.getWorld().getName())));
             }
         } else {
-            info.append(ChatColor.GRAY).append("状态: ").append(ChatColor.RED).append("离线").append("\n");
+            player.sendMessage(getLang().getComponent("messages.seen-status-offline"));
             long lastSeen = target.getLastSeen();
             if (lastSeen > 0) {
-                info.append(ChatColor.GRAY).append("最后在线: ").append(ChatColor.WHITE)
-                    .append(format.format(new Date(lastSeen))).append("\n");
+                player.sendMessage(getLang().getComponent("messages.seen-last-online",
+                    Map.of("time", format.format(new Date(lastSeen)))));
             }
         }
 
-        info.append(ChatColor.GRAY).append("首次加入: ").append(ChatColor.WHITE)
-            .append(format.format(new Date(target.getFirstPlayed())));
-
-        player.sendMessage(info.toString());
+        player.sendMessage(getLang().getComponent("messages.seen-first-joined",
+            Map.of("time", format.format(new Date(target.getFirstPlayed())))));
         return true;
     }
 }

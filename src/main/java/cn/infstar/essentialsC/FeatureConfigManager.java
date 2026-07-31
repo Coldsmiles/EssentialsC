@@ -1,5 +1,6 @@
 package cn.infstar.essentialsC;
 
+import cn.infstar.essentialsC.util.AtomicYamlWriter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -11,48 +12,33 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 /**
- * 管理体积较大的独立功能配置，并负责从旧版 config.yml 迁移数据。
+ * 管理独立功能配置，并负责迁移旧版配置结构。
  */
 public final class FeatureConfigManager {
 
     private static final int MAIN_CONFIG_VERSION = 2;
 
     private final EssentialsC plugin;
-    private final File skinBridgeFile;
     private final File blocksMenuFile;
-    private FileConfiguration skinBridgeConfig;
     private FileConfiguration blocksMenuConfig;
 
     public FeatureConfigManager(EssentialsC plugin) {
         this.plugin = plugin;
-        this.skinBridgeFile = new File(plugin.getDataFolder(), "skin-bridge.yml");
         this.blocksMenuFile = new File(plugin.getDataFolder(), "blocks-menu.yml");
         reload();
     }
 
     public void reload() {
-        ensureResource(skinBridgeFile, "skin-bridge.yml");
         ensureResource(blocksMenuFile, "blocks-menu.yml");
 
-        skinBridgeConfig = loadWithDefaults(skinBridgeFile, "skin-bridge.yml");
         blocksMenuConfig = loadWithDefaults(blocksMenuFile, "blocks-menu.yml");
         migrateLegacyMainConfig();
         migrateLegacyDebugSettings();
         updateMainConfigVersion();
-        saveSkinBridgeConfig();
-        saveBlocksMenuConfig();
-    }
-
-    public FileConfiguration getSkinBridgeConfig() {
-        return skinBridgeConfig;
     }
 
     public FileConfiguration getBlocksMenuConfig() {
         return blocksMenuConfig;
-    }
-
-    public void saveSkinBridgeConfig() {
-        save(skinBridgeConfig, skinBridgeFile);
     }
 
     public void saveBlocksMenuConfig() {
@@ -63,11 +49,6 @@ public final class FeatureConfigManager {
         FileConfiguration mainConfig = plugin.getConfig();
         boolean migrated = false;
 
-        if (mainConfig.contains("skin-bridge", true)) {
-            copySection(mainConfig.getConfigurationSection("skin-bridge"), skinBridgeConfig);
-            mainConfig.set("skin-bridge", null);
-            migrated = true;
-        }
         if (mainConfig.contains("blocks-menu", true)) {
             copySection(mainConfig.getConfigurationSection("blocks-menu"), blocksMenuConfig);
             mainConfig.set("blocks-menu", null);
@@ -79,25 +60,25 @@ public final class FeatureConfigManager {
         }
 
         mainConfig.set("config-version", MAIN_CONFIG_VERSION);
-        plugin.saveConfig();
-        plugin.getLogger().info("已将 SkinBridge 与便捷菜单配置迁移到独立配置文件。");
+        saveMainConfig();
+        plugin.getLogger().info("已将便捷菜单配置迁移到 blocks-menu.yml。");
     }
 
     private void migrateLegacyDebugSettings() {
         FileConfiguration mainConfig = plugin.getConfig();
         boolean hasJeiDebug = mainConfig.contains("jei-sync.debug", true);
-        boolean hasSkinBridgeDebug = skinBridgeConfig.contains("debug", true);
+        boolean hasSkinBridgeDebug = mainConfig.contains("skin-bridge.debug", true);
         if (!hasJeiDebug && !hasSkinBridgeDebug) {
             return;
         }
 
         boolean debugEnabled = mainConfig.getBoolean("debug", false)
             || mainConfig.getBoolean("jei-sync.debug", false)
-            || skinBridgeConfig.getBoolean("debug", false);
+            || mainConfig.getBoolean("skin-bridge.debug", false);
         mainConfig.set("debug", debugEnabled);
         mainConfig.set("jei-sync.debug", null);
-        skinBridgeConfig.set("debug", null);
-        plugin.saveConfig();
+        mainConfig.set("skin-bridge.debug", null);
+        saveMainConfig();
         plugin.getLogger().info("已将独立功能调试开关合并到 config.yml 的全局 debug。");
     }
 
@@ -106,7 +87,7 @@ public final class FeatureConfigManager {
             return;
         }
         plugin.getConfig().set("config-version", MAIN_CONFIG_VERSION);
-        plugin.saveConfig();
+        saveMainConfig();
     }
 
     private void copySection(ConfigurationSection source, FileConfiguration target) {
@@ -141,9 +122,13 @@ public final class FeatureConfigManager {
 
     private void save(FileConfiguration config, File file) {
         try {
-            config.save(file);
-        } catch (IOException exception) {
+            AtomicYamlWriter.save(config, file);
+        } catch (Exception exception) {
             plugin.getLogger().warning("保存 " + file.getName() + " 失败: " + exception.getMessage());
         }
+    }
+
+    private void saveMainConfig() {
+        save(plugin.getConfig(), new File(plugin.getDataFolder(), "config.yml"));
     }
 }

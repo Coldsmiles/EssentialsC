@@ -18,20 +18,26 @@ public final class MineSkinGateway implements SkinBridgeGateway {
     private static final String TEXTURES_PROPERTY = "textures";
     private static final String QUEUE_PATH = "/v2/queue";
     private static final long POLL_INTERVAL_MILLIS = 1000L;
+    private static final int MAX_RATE_LIMIT_RETRIES = 3;
 
     private final HttpClient httpClient;
     private final URI queueUri;
     private final String apiKey;
     private final String visibility;
     private final int timeoutSeconds;
+    private final long minimumSubmitIntervalMillis;
     private final String userAgent;
+    private final Object submissionLock = new Object();
+    private long lastSubmissionMillis;
 
-    public MineSkinGateway(HttpClient httpClient, String endpoint, String apiKey, String visibility, int timeoutSeconds, String userAgent) {
+    public MineSkinGateway(HttpClient httpClient, String endpoint, String apiKey, String visibility, int timeoutSeconds,
+                           long minimumSubmitIntervalMillis, String userAgent) {
         this.httpClient = httpClient;
         this.queueUri = URI.create(normalizeEndpoint(endpoint) + QUEUE_PATH);
         this.apiKey = apiKey;
         this.visibility = normalizeVisibility(visibility);
         this.timeoutSeconds = timeoutSeconds;
+        this.minimumSubmitIntervalMillis = minimumSubmitIntervalMillis;
         this.userAgent = userAgent;
     }
 
@@ -42,9 +48,15 @@ public final class MineSkinGateway implements SkinBridgeGateway {
         requestBody.addProperty("variant", model == SkinModel.SLIM ? "slim" : "classic");
         requestBody.addProperty("visibility", visibility);
 
-        HttpResponse<String> response = send(HttpRequest.newBuilder(queueUri)
-            .POST(HttpRequest.BodyPublishers.ofString(requestBody.toString(), StandardCharsets.UTF_8))
-            .header("Content-Type", "application/json"));
+        HttpResponse<String> response;
+        synchronized (submissionLock) {
+            waitForSubmissionInterval();
+            try {
+                response = submitWithRateLimitRetry(requestBody.toString());
+            } finally {
+                lastSubmissionMillis = System.currentTimeMillis();
+            }
+        }
         JsonObject body = parseResponse(response);
         if (response.statusCode() == 200) {
             return parseGeneratedSkin(body);
@@ -71,6 +83,10 @@ public final class MineSkinGateway implements SkinBridgeGateway {
         URI jobUri = URI.create(queueUri + "/" + jobId);
         while (System.nanoTime() < deadline) {
             HttpResponse<String> response = send(HttpRequest.newBuilder(jobUri).GET());
+            if (response.statusCode() == 429) {
+                Thread.sleep(readRetryDelayMillis(response, 0));
+                continue;
+            }
             JsonObject body = parseResponse(response);
             if (response.statusCode() != 200) {
                 throw apiError("查询 MineSkin 生成任务", response, body);
@@ -89,7 +105,43 @@ public final class MineSkinGateway implements SkinBridgeGateway {
             }
             Thread.sleep(POLL_INTERVAL_MILLIS);
         }
-        throw new IllegalStateException("MineSkin 生成任务超时，请增大 skin-bridge.yml 中的 mineskin.request-timeout-seconds。");
+        throw new IllegalStateException("MineSkin 生成任务超时，请增大 config.yml 中的 skin-bridge.mineskin.request-timeout-seconds。");
+    }
+
+    private void waitForSubmissionInterval() throws InterruptedException {
+        long waitMillis = minimumSubmitIntervalMillis - (System.currentTimeMillis() - lastSubmissionMillis);
+        if (waitMillis > 0L) {
+            Thread.sleep(waitMillis);
+        }
+    }
+
+    private HttpResponse<String> submitWithRateLimitRetry(String requestBody) throws Exception {
+        HttpResponse<String> response = null;
+        for (int attempt = 0; attempt <= MAX_RATE_LIMIT_RETRIES; attempt++) {
+            response = send(HttpRequest.newBuilder(queueUri)
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody, StandardCharsets.UTF_8))
+                .header("Content-Type", "application/json"));
+            if (response.statusCode() != 429 || attempt == MAX_RATE_LIMIT_RETRIES) {
+                return response;
+            }
+            Thread.sleep(readRetryDelayMillis(response, attempt));
+        }
+        return response;
+    }
+
+    private long readRetryDelayMillis(HttpResponse<?> response, int attempt) {
+        long fallback = Math.min(30_000L, 1000L << Math.min(attempt, 5));
+        return response.headers().firstValue("Retry-After")
+            .map(String::trim)
+            .filter(value -> value.matches("\\d+"))
+            .map(value -> {
+                try {
+                    return Math.min(60_000L, Long.parseLong(value) * 1000L);
+                } catch (NumberFormatException ignored) {
+                    return fallback;
+                }
+            })
+            .orElse(fallback);
     }
 
     private HttpResponse<String> send(HttpRequest.Builder builder) throws Exception {

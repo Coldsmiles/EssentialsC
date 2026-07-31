@@ -80,6 +80,9 @@ public final class EssentialsC extends JavaPlugin {
         if (skinBridgeManager != null) {
             skinBridgeManager.shutdown();
         }
+        if (vanishListener != null) {
+            vanishListener.shutdown();
+        }
         VanishCommand.clearAll(this);
         unregisterRuntimeListeners();
         unregisterPluginChannels();
@@ -120,7 +123,7 @@ public final class EssentialsC extends JavaPlugin {
 
     public void reloadRuntimeModules() {
         moduleStatus.clear();
-        refreshPlayer();
+        refreshCorePlayerFeatures();
         refreshAdminMode();
         refreshMaintenance();
         refreshTpsBar();
@@ -130,22 +133,7 @@ public final class EssentialsC extends JavaPlugin {
         refreshSkinBridge();
     }
 
-    private void refreshPlayer() {
-        if (!moduleManager.isEnabled(ModuleManager.PLAYER)) {
-            if (teleportRequestManager != null) {
-                teleportRequestManager.shutdown();
-                HandlerList.unregisterAll(teleportRequestManager);
-                teleportRequestManager = null;
-            }
-            VanishCommand.clearAll(this);
-            if (vanishListener != null) {
-                HandlerList.unregisterAll(vanishListener);
-                vanishListener = null;
-            }
-            setModuleStatus("玩家功能", false, "已禁用");
-            return;
-        }
-
+    private void refreshCorePlayerFeatures() {
         if (vanishListener == null) {
             vanishListener = new VanishListener(this);
             getServer().getPluginManager().registerEvents(vanishListener, this);
@@ -156,7 +144,6 @@ public final class EssentialsC extends JavaPlugin {
         } else {
             teleportRequestManager.reload();
         }
-        setModuleStatus("玩家功能", true, "命令可用");
     }
 
     private void refreshAdminMode() {
@@ -173,6 +160,8 @@ public final class EssentialsC extends JavaPlugin {
         if (adminModeManager == null) {
             adminModeManager = new AdminModeManager(this);
             getServer().getPluginManager().registerEvents(adminModeManager, this);
+        } else {
+            adminModeManager.reload();
         }
         setModuleStatus("管理模式", true, "监听器已注册");
     }
@@ -380,7 +369,7 @@ public final class EssentialsC extends JavaPlugin {
                 if (!spec.standalone()) {
                     continue;
                 }
-                BaseCommand executor = CommandRegistry.getCommand(spec.name());
+                BaseCommand executor = CommandRegistry.getRegisteredCommand(spec.name());
                 if (executor == null) {
                     continue;
                 }

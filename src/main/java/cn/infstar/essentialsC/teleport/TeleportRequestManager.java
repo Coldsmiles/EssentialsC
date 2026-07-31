@@ -1,7 +1,14 @@
 package cn.infstar.essentialsC.teleport;
 
 import cn.infstar.essentialsC.EssentialsC;
+import cn.infstar.essentialsC.api.event.TeleportEvent;
+import cn.infstar.essentialsC.api.event.TeleportRequestReceiveEvent;
+import cn.infstar.essentialsC.api.event.TeleportRequestReplyEvent;
+import cn.infstar.essentialsC.api.event.TeleportRequestSendEvent;
+import cn.infstar.essentialsC.api.event.TeleportWarmupCancelledEvent;
+import cn.infstar.essentialsC.api.event.TeleportWarmupEvent;
 import cn.infstar.essentialsC.commands.VanishCommand;
+import cn.infstar.essentialsC.util.AtomicYamlWriter;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -19,12 +26,10 @@ import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
-import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,8 +58,11 @@ public final class TeleportRequestManager implements Listener {
     private final Set<UUID> invulnerablePlayers = new HashSet<>();
     private final Set<UUID> ignoringRequests = new HashSet<>();
     private final File ignoreFile;
+    private final File cooldownFile;
+    private BukkitTask cleanupTask;
 
     private int timeoutSeconds;
+    private int maxPendingRequests;
     private boolean strictTpaRequests;
     private boolean strictTpaHereRequests;
     private int warmupSeconds;
@@ -75,11 +83,15 @@ public final class TeleportRequestManager implements Listener {
     public TeleportRequestManager(EssentialsC plugin) {
         this.plugin = plugin;
         this.ignoreFile = new File(plugin.getDataFolder(), "teleport-ignore.yml");
+        this.cooldownFile = new File(plugin.getDataFolder(), "teleport-cooldowns.yml");
         reload();
+        loadCooldowns();
+        cleanupTask = Bukkit.getScheduler().runTaskTimer(plugin, this::cleanupExpiredState, 1200L, 1200L);
     }
 
     public void reload() {
         plugin.getConfig().addDefault("tpa.timeout-seconds", 60);
+        plugin.getConfig().addDefault("tpa.max-pending-requests", 5);
         plugin.getConfig().addDefault("tpa.strict-tpa-requests", false);
         plugin.getConfig().addDefault("tpa.strict-tpahere-requests", true);
         plugin.getConfig().addDefault("tpa.warmup-seconds", 5);
@@ -98,9 +110,10 @@ public final class TeleportRequestManager implements Listener {
         plugin.getConfig().addDefault("tpa.sounds.complete", "entity.enderman.teleport");
         plugin.getConfig().set("tpa.warmup-move-threshold", null);
         plugin.getConfig().options().copyDefaults(true);
-        plugin.saveConfig();
 
         timeoutSeconds = Math.max(0, plugin.getConfig().getInt("tpa.timeout-seconds", 60));
+        maxPendingRequests = Math.max(1, Math.min(100,
+            plugin.getConfig().getInt("tpa.max-pending-requests", 5)));
         strictTpaRequests = plugin.getConfig().getBoolean("tpa.strict-tpa-requests", false);
         strictTpaHereRequests = plugin.getConfig().getBoolean("tpa.strict-tpahere-requests", true);
         warmupSeconds = Math.max(0, plugin.getConfig().getInt("tpa.warmup-seconds", 5));
@@ -122,6 +135,11 @@ public final class TeleportRequestManager implements Listener {
     }
 
     public void shutdown() {
+        if (cleanupTask != null) {
+            cleanupTask.cancel();
+            cleanupTask = null;
+        }
+        saveCooldowns();
         requests.clear();
         sendCooldowns.clear();
         acceptCooldowns.clear();
@@ -140,16 +158,6 @@ public final class TeleportRequestManager implements Listener {
             return new CreateRequestResult(CreateRequestStatus.ON_COOLDOWN, null, sendCooldown.seconds());
         }
 
-        Optional<TeleportRequest> existingRequest = findIncoming(target, requester.getName());
-        if (existingRequest.isPresent()
-            && existingRequest.get().type() == type
-            && !existingRequest.get().hasExpired()) {
-            if (applyCooldown) {
-                startCooldown(requester, sendCooldowns, sendCooldownSeconds);
-            }
-            return new CreateRequestResult(CreateRequestStatus.DUPLICATE, existingRequest.get());
-        }
-
         TeleportRequest request = new TeleportRequest(
             requester.getUniqueId(),
             requester.getName(),
@@ -162,6 +170,14 @@ public final class TeleportRequestManager implements Listener {
             TeleportRequest.Status.PENDING
         );
 
+        if (applyCooldown) {
+            TeleportRequestSendEvent sendEvent = new TeleportRequestSendEvent(requester, request);
+            Bukkit.getPluginManager().callEvent(sendEvent);
+            if (sendEvent.isCancelled()) {
+                return new CreateRequestResult(CreateRequestStatus.CANCELLED, request);
+            }
+        }
+
         if (isIgnoringRequests(target) || isVanished(target)) {
             request.setStatus(TeleportRequest.Status.IGNORED);
             if (applyCooldown) {
@@ -170,8 +186,24 @@ public final class TeleportRequestManager implements Listener {
             return new CreateRequestResult(CreateRequestStatus.IGNORED, request);
         }
 
+        Optional<TeleportRequest> existingRequest = findIncoming(target, requester.getName());
+        if (existingRequest.isPresent()
+            && existingRequest.get().type() == type
+            && !existingRequest.get().hasExpired()) {
+            if (applyCooldown) {
+                startCooldown(requester, sendCooldowns, sendCooldownSeconds);
+            }
+            return new CreateRequestResult(CreateRequestStatus.DUPLICATE, existingRequest.get());
+        }
+
+        TeleportRequestReceiveEvent receiveEvent = new TeleportRequestReceiveEvent(target, request);
+        Bukkit.getPluginManager().callEvent(receiveEvent);
+        if (receiveEvent.isCancelled()) {
+            return new CreateRequestResult(CreateRequestStatus.CANCELLED, request);
+        }
         Deque<TeleportRequest> targetRequests = requests.computeIfAbsent(target.getUniqueId(), ignored -> new ArrayDeque<>());
-        targetRequests.addFirst(request);
+        pruneExpiredRequests(targetRequests);
+        TeleportRequestQueuePolicy.addFirstBounded(targetRequests, request, maxPendingRequests);
         if (applyCooldown) {
             startCooldown(requester, sendCooldowns, sendCooldownSeconds);
         }
@@ -195,15 +227,6 @@ public final class TeleportRequestManager implements Listener {
         return targetRequests.stream()
             .filter(request -> request.requesterName().equalsIgnoreCase(requesterName))
             .findFirst();
-    }
-
-    public Optional<TeleportRequest> findOutgoing(Player requester, String targetName) {
-        return requests.values().stream()
-            .flatMap(Deque::stream)
-            .filter(request -> request.requesterId().equals(requester.getUniqueId()))
-            .filter(request -> !request.hasExpired())
-            .filter(request -> targetName == null || request.targetName().equalsIgnoreCase(targetName))
-            .max(Comparator.comparingLong(TeleportRequest::expiresAtMillis));
     }
 
     public List<String> getIncomingRequesterNames(Player target, String partial) {
@@ -242,6 +265,11 @@ public final class TeleportRequestManager implements Listener {
         }
 
         request.setStatus(TeleportRequest.Status.ACCEPTED);
+        TeleportRequestReplyEvent replyEvent = new TeleportRequestReplyEvent(target, request);
+        Bukkit.getPluginManager().callEvent(replyEvent);
+        if (replyEvent.isCancelled()) {
+            return TeleportResult.CANCELLED;
+        }
         Map<String, String> placeholders = placeholders(request);
         target.sendMessage(plugin.getLangManager().getPrefixedComponent("tpa.messages.accepted-target", placeholders));
 
@@ -273,8 +301,9 @@ public final class TeleportRequestManager implements Listener {
             return TeleportResult.ACCEPTED_WITHOUT_TELEPORT;
         }
 
-        startWarmup(plan, playerWarmupSeconds);
-        return TeleportResult.WARMING_UP;
+        return startWarmup(plan, playerWarmupSeconds)
+            ? TeleportResult.WARMING_UP
+            : TeleportResult.CANCELLED;
     }
 
     public TeleportResult deny(Player target, TeleportRequest request) {
@@ -285,6 +314,11 @@ public final class TeleportRequestManager implements Listener {
             return TeleportResult.EXPIRED;
         }
         request.setStatus(TeleportRequest.Status.DECLINED);
+        TeleportRequestReplyEvent replyEvent = new TeleportRequestReplyEvent(target, request);
+        Bukkit.getPluginManager().callEvent(replyEvent);
+        if (replyEvent.isCancelled()) {
+            return TeleportResult.CANCELLED;
+        }
         Map<String, String> placeholders = placeholders(request);
         target.sendMessage(plugin.getLangManager().getPrefixedComponent("tpa.messages.denied-target", placeholders));
         Player requester = Bukkit.getPlayer(request.requesterId());
@@ -294,20 +328,6 @@ public final class TeleportRequestManager implements Listener {
             target.sendMessage(plugin.getLangManager().getPrefixedComponent("tpa.messages.player-offline", placeholders));
         }
         return TeleportResult.SUCCESS;
-    }
-
-    public boolean cancel(TeleportRequest request) {
-        Deque<TeleportRequest> targetRequests = requests.get(request.targetId());
-        if (targetRequests == null) {
-            return false;
-        }
-
-        boolean removed = targetRequests.removeIf(candidate ->
-            candidate.requesterName().equalsIgnoreCase(request.requesterName()));
-        if (targetRequests.isEmpty()) {
-            requests.remove(request.targetId());
-        }
-        return removed;
     }
 
     public boolean isIgnoringRequests(Player player) {
@@ -422,13 +442,15 @@ public final class TeleportRequestManager implements Listener {
             return new TeleportPlan(
                 requester,
                 strictTpaRequests ? currentTarget.getLocation().clone() : null,
-                strictTpaRequests ? null : currentTarget.getUniqueId()
+                strictTpaRequests ? null : currentTarget.getUniqueId(),
+                request
             );
         }
         return new TeleportPlan(
             currentTarget,
             strictTpaHereRequests ? request.requesterLocation().clone() : null,
-            strictTpaHereRequests ? null : requester.getUniqueId()
+            strictTpaHereRequests ? null : requester.getUniqueId(),
+            request
         );
     }
 
@@ -452,9 +474,14 @@ public final class TeleportRequestManager implements Listener {
         }
     }
 
-    private void startWarmup(TeleportPlan plan, int playerWarmupSeconds) {
+    private boolean startWarmup(TeleportPlan plan, int playerWarmupSeconds) {
         Player teleporter = plan.teleporter();
         UUID uuid = teleporter.getUniqueId();
+        TeleportWarmupEvent warmupEvent = new TeleportWarmupEvent(teleporter, plan.request(), playerWarmupSeconds);
+        Bukkit.getPluginManager().callEvent(warmupEvent);
+        if (warmupEvent.isCancelled()) {
+            return false;
+        }
         PendingTeleport pendingTeleport = new PendingTeleport(
             plan,
             teleporter.getLocation().clone(),
@@ -466,6 +493,7 @@ public final class TeleportRequestManager implements Listener {
         warmups.put(uuid, pendingTeleport);
         teleporter.sendMessage(plugin.getLangManager().getPrefixedComponent("tpa.messages.warmup-start",
             Map.of("seconds", String.valueOf(playerWarmupSeconds))));
+        return true;
     }
 
     private void tickWarmup(UUID teleporterId) {
@@ -476,16 +504,18 @@ public final class TeleportRequestManager implements Listener {
 
         Player teleporter = Bukkit.getPlayer(teleporterId);
         if (teleporter == null || !teleporter.isOnline()) {
-            cancelWarmup(teleporterId, null, false);
+            cancelWarmup(teleporterId, null, false, TeleportWarmupCancelledEvent.Reason.PLAYER_QUIT);
             return;
         }
 
         if (cancelWarmupOnDamage && warmupDamagedPlayers.contains(teleporterId)) {
-            cancelWarmup(teleporterId, "tpa.messages.warmup-cancelled-damage", true);
+            cancelWarmup(teleporterId, "tpa.messages.warmup-cancelled-damage", true,
+                TeleportWarmupCancelledEvent.Reason.PLAYER_DAMAGE);
             return;
         }
         if (cancelWarmupOnMove && hasMoved(pendingTeleport.startLocation(), teleporter.getLocation())) {
-            cancelWarmup(teleporterId, "tpa.messages.warmup-cancelled-move", true);
+            cancelWarmup(teleporterId, "tpa.messages.warmup-cancelled-move", true,
+                TeleportWarmupCancelledEvent.Reason.PLAYER_MOVE);
             return;
         }
 
@@ -530,6 +560,13 @@ public final class TeleportRequestManager implements Listener {
             teleporter.sendMessage(plugin.getLangManager().getPrefixedComponent("tpa.messages.target-offline"));
             return TeleportResult.TARGET_OFFLINE;
         }
+
+        TeleportEvent teleportEvent = new TeleportEvent(teleporter, plan.request(), destination);
+        Bukkit.getPluginManager().callEvent(teleportEvent);
+        if (teleportEvent.isCancelled()) {
+            return TeleportResult.CANCELLED;
+        }
+        destination = teleportEvent.getDestination();
 
         teleporter.leaveVehicle();
         teleporter.eject();
@@ -646,6 +683,11 @@ public final class TeleportRequestManager implements Listener {
     }
 
     private void cancelWarmup(UUID teleporterId, String messagePath, boolean playSound) {
+        cancelWarmup(teleporterId, messagePath, playSound, null);
+    }
+
+    private void cancelWarmup(UUID teleporterId, String messagePath, boolean playSound,
+                              TeleportWarmupCancelledEvent.Reason reason) {
         PendingTeleport pendingTeleport = warmups.remove(teleporterId);
         warmupDamagedPlayers.remove(teleporterId);
         if (pendingTeleport == null) {
@@ -663,12 +705,18 @@ public final class TeleportRequestManager implements Listener {
                 playConfiguredSound(player, cancelSound, 1.0F, 1.0F);
             }
         }
+        if (player != null && reason != null) {
+            int duration = pendingTeleport.initialSeconds();
+            Bukkit.getPluginManager().callEvent(new TeleportWarmupCancelledEvent(
+                player, pendingTeleport.plan().request(), duration,
+                Math.max(0, duration - pendingTeleport.remainingSeconds()), reason));
+        }
     }
 
     private void cancelAllWarmups() {
         List<UUID> warmingPlayers = new ArrayList<>(warmups.keySet());
         for (UUID warmingPlayer : warmingPlayers) {
-            cancelWarmup(warmingPlayer, null, false);
+            cancelWarmup(warmingPlayer, null, false, TeleportWarmupCancelledEvent.Reason.PLUGIN_SHUTDOWN);
         }
     }
 
@@ -728,8 +776,13 @@ public final class TeleportRequestManager implements Listener {
     @EventHandler
     private void onPlayerQuit(PlayerQuitEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
-        cancelWarmup(uuid, null, false);
+        cancelWarmup(uuid, null, false, TeleportWarmupCancelledEvent.Reason.PLAYER_QUIT);
         clearInvulnerability(uuid);
+        requests.remove(uuid);
+        requests.values().removeIf(targetRequests -> {
+            targetRequests.removeIf(request -> request.requesterId().equals(uuid));
+            return targetRequests.isEmpty();
+        });
     }
 
     private boolean hasMoved(Location start, Location current) {
@@ -745,6 +798,71 @@ public final class TeleportRequestManager implements Listener {
 
     private boolean isMoving(Player player) {
         return player.getVelocity().length() >= MOVEMENT_THRESHOLD;
+    }
+
+    private void pruneExpiredRequests(Deque<TeleportRequest> targetRequests) {
+        long retentionMillis = Math.max(60_000L, timeoutSeconds * 1000L);
+        long now = System.currentTimeMillis();
+        targetRequests.removeIf(request -> TeleportRequestQueuePolicy.shouldPrune(
+            request.expiresAtMillis(), now, retentionMillis));
+    }
+
+    private void cleanupExpiredState() {
+        requests.entrySet().removeIf(entry -> {
+            pruneExpiredRequests(entry.getValue());
+            return entry.getValue().isEmpty();
+        });
+        long now = System.currentTimeMillis();
+        sendCooldowns.values().removeIf(expiresAt -> expiresAt <= now);
+        acceptCooldowns.values().removeIf(expiresAt -> expiresAt <= now);
+        saveCooldowns();
+    }
+
+    private void loadCooldowns() {
+        if (!cooldownFile.exists()) {
+            return;
+        }
+        FileConfiguration cooldownConfig = YamlConfiguration.loadConfiguration(cooldownFile);
+        loadCooldownMap(cooldownConfig, "send", sendCooldowns);
+        loadCooldownMap(cooldownConfig, "accept", acceptCooldowns);
+    }
+
+    private void loadCooldownMap(FileConfiguration config, String path, Map<UUID, Long> destination) {
+        if (!config.isConfigurationSection(path)) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        for (String key : config.getConfigurationSection(path).getKeys(false)) {
+            try {
+                UUID uuid = UUID.fromString(key);
+                long expiresAt = config.getLong(path + "." + key, 0L);
+                if (expiresAt > now) {
+                    destination.put(uuid, expiresAt);
+                }
+            } catch (IllegalArgumentException ignored) {
+                plugin.getLogger().warning("忽略无效的 TPA 冷却记录 UUID: " + key);
+            }
+        }
+    }
+
+    private void saveCooldowns() {
+        FileConfiguration cooldownConfig = new YamlConfiguration();
+        long now = System.currentTimeMillis();
+        saveCooldownMap(cooldownConfig, "send", sendCooldowns, now);
+        saveCooldownMap(cooldownConfig, "accept", acceptCooldowns, now);
+        try {
+            AtomicYamlWriter.save(cooldownConfig, cooldownFile);
+        } catch (Exception exception) {
+            plugin.getLogger().warning("保存 teleport-cooldowns.yml 失败: " + exception.getMessage());
+        }
+    }
+
+    private void saveCooldownMap(FileConfiguration config, String path, Map<UUID, Long> source, long now) {
+        source.forEach((uuid, expiresAt) -> {
+            if (expiresAt > now) {
+                config.set(path + "." + uuid, expiresAt);
+            }
+        });
     }
 
     private void loadIgnoringRequests() {
@@ -776,8 +894,8 @@ public final class TeleportRequestManager implements Listener {
             ignoreConfig.set("ignored." + uuid, true);
         }
         try {
-            ignoreConfig.save(ignoreFile);
-        } catch (IOException e) {
+            AtomicYamlWriter.save(ignoreConfig, ignoreFile);
+        } catch (Exception e) {
             plugin.getLogger().warning("保存 teleport-ignore.yml 失败: " + e.getMessage());
         }
     }
@@ -786,7 +904,8 @@ public final class TeleportRequestManager implements Listener {
         SUCCESS,
         DUPLICATE,
         IGNORED,
-        ON_COOLDOWN
+        ON_COOLDOWN,
+        CANCELLED
     }
 
     public record TeleportResult(Status status, int cooldownSeconds) {
@@ -797,6 +916,7 @@ public final class TeleportRequestManager implements Listener {
         public static final TeleportResult TARGET_OFFLINE = new TeleportResult(Status.TARGET_OFFLINE, 0);
         public static final TeleportResult ALREADY_WARMING_UP = new TeleportResult(Status.ALREADY_WARMING_UP, 0);
         public static final TeleportResult ACCEPTED_WITHOUT_TELEPORT = new TeleportResult(Status.ACCEPTED_WITHOUT_TELEPORT, 0);
+        public static final TeleportResult CANCELLED = new TeleportResult(Status.CANCELLED, 0);
 
         public static TeleportResult onCooldown(int seconds) {
             return new TeleportResult(Status.ON_COOLDOWN, seconds);
@@ -810,7 +930,8 @@ public final class TeleportRequestManager implements Listener {
             TARGET_OFFLINE,
             ALREADY_WARMING_UP,
             ACCEPTED_WITHOUT_TELEPORT,
-            ON_COOLDOWN
+            ON_COOLDOWN,
+            CANCELLED
         }
     }
 
@@ -902,7 +1023,8 @@ public final class TeleportRequestManager implements Listener {
         }
     }
 
-    private record TeleportPlan(Player teleporter, Location fixedDestination, UUID dynamicTargetId) {
+    private record TeleportPlan(Player teleporter, Location fixedDestination, UUID dynamicTargetId,
+                                TeleportRequest request) {
     }
 
     private record OptionalIntCooldown(boolean active, int seconds) {
@@ -914,12 +1036,14 @@ public final class TeleportRequestManager implements Listener {
     private static final class PendingTeleport {
         private final TeleportPlan plan;
         private final Location startLocation;
+        private final int initialSeconds;
         private int remainingSeconds;
         private BukkitTask task;
 
         private PendingTeleport(TeleportPlan plan, Location startLocation, int remainingSeconds) {
             this.plan = plan;
             this.startLocation = startLocation;
+            this.initialSeconds = remainingSeconds;
             this.remainingSeconds = remainingSeconds;
         }
 
@@ -933,6 +1057,10 @@ public final class TeleportRequestManager implements Listener {
 
         private int remainingSeconds() {
             return remainingSeconds;
+        }
+
+        private int initialSeconds() {
+            return initialSeconds;
         }
 
         private void decrementRemainingSeconds() {

@@ -74,10 +74,12 @@ public final class MaintenanceListener implements Listener {
             return;
         }
 
-        String address = "";
-        InetAddress inetAddress = event.getAddress();
-        if (inetAddress != null) {
-            address = inetAddress.getHostAddress();
+        String address = EssentialsC.getLangManager().getString("maintenance.status.address-hidden");
+        if (maintenanceManager.shouldIncludeAddressInNotification()) {
+            InetAddress inetAddress = event.getAddress();
+            if (inetAddress != null) {
+                address = inetAddress.getHostAddress();
+            }
         }
 
         String message = EssentialsC.getLangManager().getPrefixedString("maintenance.messages.login-blocked",

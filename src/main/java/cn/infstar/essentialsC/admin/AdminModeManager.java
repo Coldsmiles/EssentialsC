@@ -1,6 +1,7 @@
 package cn.infstar.essentialsC.admin;
 
 import cn.infstar.essentialsC.EssentialsC;
+import cn.infstar.essentialsC.util.AtomicYamlWriter;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
@@ -15,7 +16,6 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -39,6 +39,23 @@ public final class AdminModeManager implements Listener {
         addConfigDefaults();
         this.dataFile = new File(plugin.getDataFolder(), "admin-mode.yml");
         this.data = YamlConfiguration.loadConfiguration(dataFile);
+    }
+
+    public void reload() {
+        if (actionBarTask != null) {
+            actionBarTask.cancel();
+            actionBarTask = null;
+        }
+        float flySpeed = getAdminFlySpeed();
+        for (UUID uuid : new ArrayList<>(activePlayers)) {
+            Player player = plugin.getServer().getPlayer(uuid);
+            if (player != null && player.isOnline()) {
+                player.setFlySpeed(flySpeed);
+            }
+        }
+        if (!activePlayers.isEmpty()) {
+            startActionBarTask();
+        }
     }
 
     public boolean isAdminMode(Player player) {
@@ -95,13 +112,18 @@ public final class AdminModeManager implements Listener {
         String playerPath = getPlayerPath(player);
         player.closeInventory();
         saveProfile(player, playerPath + ".normal");
+        data.set(playerPath + ".active", true);
+        if (!saveData()) {
+            sendLangMessage(player, "admin-mode.messages.save-failed");
+            data.set(playerPath + ".active", false);
+            return;
+        }
 
         if (!loadProfile(player, playerPath + ".admin")) {
             clearInventory(player);
         }
 
         activePlayers.add(player.getUniqueId());
-        data.set(playerPath + ".active", true);
 
         player.setGameMode(GameMode.CREATIVE);
         player.setAllowFlight(true);
@@ -320,11 +342,13 @@ public final class AdminModeManager implements Listener {
         player.sendMessage(EssentialsC.getLangManager().getPrefixedString(path));
     }
 
-    private void saveData() {
+    private boolean saveData() {
         try {
-            data.save(dataFile);
-        } catch (IOException e) {
+            AtomicYamlWriter.save(data, dataFile);
+            return true;
+        } catch (Exception e) {
             plugin.getLogger().warning("保存 admin-mode.yml 失败: " + e.getMessage());
+            return false;
         }
     }
 
@@ -332,6 +356,5 @@ public final class AdminModeManager implements Listener {
         plugin.getConfig().addDefault("admin-mode.fly-speed", 0.2D);
         plugin.getConfig().addDefault("admin-mode.actionbar.interval-ticks", 40);
         plugin.getConfig().options().copyDefaults(true);
-        plugin.saveConfig();
     }
 }

@@ -28,8 +28,15 @@ messages:
   glow-usage: '<#FF3300>Error:</#FF3300> <#FF7E5E>Usage: /glow [on|off|toggle]</#FF7E5E>'
   vanish-enabled: '<#00FB9A>You are now vanished.</#00FB9A>'
   vanish-disabled: '<#FF7E5E>You are no longer vanished.</#FF7E5E>'
+  vanish-permission-removed: '<#FFC43B>Your vanish permission was removed, so vanish mode was disabled.</#FFC43B>'
   seen-usage: '<#FF3300>Error:</#FF3300> <#FF7E5E>Usage: /seen [player]</#FF7E5E>'
   seen-usage-console: '<#FF3300>Error:</#FF3300> <#FF7E5E>Usage: /seen [player]</#FF7E5E>'
+  seen-header: '<#00FB9A>Player information:</#00FB9A> <white>{player}</white>'
+  seen-status-online: '<gray>Status: <#00FB9A>Online</#00FB9A></gray>'
+  seen-status-offline: '<gray>Status: <#FF7E5E>Offline</#FF7E5E></gray>'
+  seen-world: '<gray>World: <white>{world}</white></gray>'
+  seen-last-online: '<gray>Last online: <white>{time}</white></gray>'
+  seen-first-joined: '<gray>First joined: <white>{time}</white></gray>'
   player-not-found: '<#FF3300>Error:</#FF3300> <#FF7E5E>Could not find the player {player}.</#FF7E5E>'
   no-permission-others: '<#FF3300>Error:</#FF3300> <#FF7E5E>You do not have permission to affect other players.</#FF7E5E>'
 
@@ -139,20 +146,25 @@ skin-bridge:
   notifications:
     detecting: '<#00FB9A>Detecting your skin source…</#00FB9A>'
     synced: '<#00FB9A>Skin synchronized through <bold>{provider}</bold>.</#00FB9A>'
+    excluded: '<gray>You are excluded from SkinBridge detection; your current skin was kept.</gray>'
+    queue-full: '<#FFC43B>Skin detection is busy; this check was skipped.</#FFC43B>'
     not-external: '<gray>No external skin provider matched; your current skin was kept.</gray>'
     failed: '<#FF3300>Error:</#FF3300> <#FF7E5E>Skin detection or synchronization failed. Please try again later.</#FF7E5E>'
   messages:
     usage: '<#FF3300>Error:</#FF3300> <#FF7E5E>Usage: /essc skin [status|refresh] [player]</#FF7E5E>'
-    feature-disabled: '<#FF3300>Error:</#FF3300> <#FF7E5E>SkinBridge is disabled in skin-bridge.yml.</#FF7E5E>'
-    dependency-missing: '<#FF3300>Error:</#FF3300> <#FF7E5E>No valid MineSkin API key is configured in skin-bridge.yml.</#FF7E5E>'
+    dependency-missing: '<#FF3300>Error:</#FF3300> <#FF7E5E>No valid MineSkin API key is configured in config.yml.</#FF7E5E>'
     no-providers: '<#FF3300>Error:</#FF3300> <#FF7E5E>No valid SkinBridge provider is enabled.</#FF7E5E>'
     status-external: '<#00FB9A>{player} is identified as an external skin provider player.</#00FB9A> <gray>Provider: <white>{provider}</white></gray>'
+    status-excluded: '<gray>{player} is excluded from SkinBridge detection.</gray>'
     status-not-external: '<gray>{player} does not match any configured external skin provider.</gray>'
     status-pending: '<#FFC43B>SkinBridge is still detecting {player}''s login source.</#FFC43B>'
     status-unknown: '<gray>{player} has not been checked by SkinBridge yet.</gray>'
     refresh-queued: '<#00FB9A>SkinBridge is detecting and refreshing {player}''s skin.</#00FB9A>'
     refresh-cached: '<gray>{player} is using a valid skin cache entry.</gray>'
     refresh-running: '<#FFC43B>SkinBridge is already processing {player}.</#FFC43B>'
+    refresh-excluded: '<gray>{player} is excluded from SkinBridge detection; no skin was changed.</gray>'
+    refresh-cooldown: '<#FFC43B>Wait {seconds} seconds before refreshing {player} again.</#FFC43B>'
+    queue-full: '<#FFC43B>The SkinBridge lookup queue is full. Please try again later.</#FFC43B>'
 
 blocks-menu:
   title: '<#00FB9A><bold>Shortcut Menu</bold></#00FB9A>'
@@ -214,6 +226,7 @@ admin-mode:
     enabled: '<#00FB9A>Admin mode enabled; normal inventory has been saved.</#00FB9A>'
     disabled: '<#FF7E5E>Admin mode disabled; normal inventory has been restored.</#FF7E5E>'
     crash-restored: '<#FFC43B>The previous admin mode session has been restored safely.</#FFC43B>'
+    save-failed: '<#FF3300>Error:</#FF3300> <#FF7E5E>Could not safely save your inventory; admin mode was not enabled.</#FF7E5E>'
 
 tpsbar:
   title-format: '<#00FB9A>TPS</#00FB9A><gray>: {tps_1m} | </gray><#00FB9A>MSPT</#00FB9A><gray>: {mspt} | </gray><#00FB9A>Ping</#00FB9A><gray>: {ping}</gray>'
@@ -227,8 +240,6 @@ tpsbar:
     no-targets: '<#FF3300>Error:</#FF3300> <#FF7E5E>No matching players were found to toggle.</#FF7E5E>'
     native-detected: '<gray>Detected a native /tpsbar command on this server; skipped plugin implementation.</gray>'
     plugin-enabled: '<gray>No native /tpsbar command was detected; plugin implementation enabled.</gray>'
-    plugin-forced-but-native-exists: '<#FFC43B>The configuration requests the plugin TPSBar, but a native /tpsbar already exists, so the plugin implementation was skipped to avoid conflicts.</#FFC43B>'
-    mode-changed-reload: '<#FFC43B>TPSBar mode has been updated, but command registration changes require a server restart to fully take effect.</#FFC43B>'
 
 mobdrops-menu:
   title: '<#00FB9A><bold>Mob Drop Control</bold></#00FB9A>'
@@ -244,6 +255,7 @@ maintenance:
   status:
     enabled: '<#FF7E5E>Enabled</#FF7E5E>'
     disabled: '<#00FB9A>Disabled</#00FB9A>'
+    address-hidden: 'hidden'
   messages:
     enabled: '<#00FB9A>Maintenance mode enabled.</#00FB9A>'
     disabled: '<#FF7E5E>Maintenance mode disabled.</#FF7E5E>'

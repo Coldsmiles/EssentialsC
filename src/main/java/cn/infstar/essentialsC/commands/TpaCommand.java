@@ -66,6 +66,9 @@ public class TpaCommand extends BaseCommand implements TabCompleter {
                 Map.of("seconds", String.valueOf(createdRequest.cooldownSeconds()))));
             return true;
         }
+        if (createdRequest.status() == TeleportRequestManager.CreateRequestStatus.CANCELLED) {
+            return true;
+        }
 
         TeleportRequestManager.TeleportRequest request = createdRequest.request();
         Map<String, String> placeholders = manager.placeholders(request);
