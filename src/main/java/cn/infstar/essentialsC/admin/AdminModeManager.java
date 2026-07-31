@@ -1,8 +1,6 @@
 package cn.infstar.essentialsC.admin;
 
 import cn.infstar.essentialsC.EssentialsC;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
@@ -270,9 +268,7 @@ public final class AdminModeManager implements Listener {
     }
 
     private void sendActionBar(Player player) {
-        String text = EssentialsC.getLangManager().getString("admin-mode.actionbar");
-        Component component = LegacyComponentSerializer.legacyAmpersand().deserialize(text);
-        player.sendActionBar(component);
+        player.sendActionBar(EssentialsC.getLangManager().getComponent("admin-mode.actionbar"));
     }
 
     private float getAdminFlySpeed() {

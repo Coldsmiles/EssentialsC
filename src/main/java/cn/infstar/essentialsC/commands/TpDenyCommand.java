@@ -1,7 +1,6 @@
 package cn.infstar.essentialsC.commands;
 
 import cn.infstar.essentialsC.teleport.TeleportRequestManager;
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
@@ -20,17 +19,17 @@ public final class TpDenyCommand extends BaseCommand implements TabCompleter {
     @Override
     protected boolean execute(Player player, String[] args) {
         if (args.length > 1) {
-            player.sendMessage(getLang().getPrefixedString("tpa.messages.usage-tpdeny"));
+            player.sendMessage(getLang().getPrefixedComponent("tpa.messages.usage-tpdeny"));
             return true;
         }
 
         TeleportRequestManager manager = plugin.getTeleportRequestManager();
         if (manager == null) {
-            player.sendMessage(getLang().getPrefixedString("messages.module-disabled"));
+            player.sendMessage(getLang().getPrefixedComponent("messages.module-disabled"));
             return true;
         }
         if (manager.isIgnoringRequests(player)) {
-            player.sendMessage(getLang().getPrefixedString("tpa.messages.ignoring-requests"));
+            player.sendMessage(getLang().getPrefixedComponent("tpa.messages.ignoring-requests"));
             return true;
         }
 
@@ -39,23 +38,19 @@ public final class TpDenyCommand extends BaseCommand implements TabCompleter {
             args.length == 0 ? null : args[0]
         );
         if (request.isEmpty()) {
-            player.sendMessage(getLang().getPrefixedString("tpa.messages.no-request"));
+            player.sendMessage(args.length == 0
+                ? getLang().getPrefixedComponent("tpa.messages.no-request")
+                : getLang().getPrefixedComponent("tpa.messages.invalid-request", Map.of("requester", args[0])));
             return true;
         }
 
         TeleportRequestManager.TeleportRequest denied = request.get();
         TeleportRequestManager.TeleportResult result = manager.deny(player, denied);
         if (result.status() == TeleportRequestManager.TeleportResult.Status.EXPIRED) {
-            player.sendMessage(getLang().getPrefixedString("tpa.messages.expired", manager.placeholders(denied)));
+            player.sendMessage(getLang().getPrefixedComponent("tpa.messages.expired", manager.placeholders(denied)));
             return true;
         }
 
-        Map<String, String> placeholders = manager.placeholders(denied);
-        player.sendMessage(getLang().getPrefixedString("tpa.messages.denied-target", placeholders));
-        Player requester = Bukkit.getPlayer(denied.requesterId());
-        if (requester != null && requester.isOnline()) {
-            requester.sendMessage(getLang().getPrefixedString("tpa.messages.denied-sender", placeholders));
-        }
         return true;
     }
 

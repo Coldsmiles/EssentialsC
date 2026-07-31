@@ -1,0 +1,64 @@
+# ============================================================================
+# EssentialsC - SkinBridge 配置
+# ============================================================================
+# 模块总开关位于 modules.yml：modules.skin-bridge.enabled
+# 本文件控制 SkinBridge 内部行为。修改后使用 /essc reload 重载。
+
+config-version: 1
+
+# ----------------------------------------------------------------------------
+# 基础设置
+# ----------------------------------------------------------------------------
+
+# 是否启用外置皮肤站检测与皮肤同步。
+enabled: false
+
+# 是否在玩家加入时发送检测与同步结果提示。
+send-player-message: true
+
+# 玩家加入后延迟多少 tick 开始检测，避免登录资料尚未稳定。
+join-delay-ticks: 20
+
+# 玩家登录来源与生成皮肤的内存缓存时间，单位为分钟。
+cache-minutes: 120
+
+# 查询皮肤站 Yggdrasil Profile 的超时时间，单位为秒。
+profile-request-timeout-seconds: 5
+
+# ----------------------------------------------------------------------------
+# MineSkin v2
+# ----------------------------------------------------------------------------
+
+mineskin:
+  # API 地址，一般不需要修改。
+  endpoint: "https://api.mineskin.org"
+
+  # MineSkin API Key。只应填写在服务器运行目录，禁止提交到公开仓库。
+  api-key: ""
+
+  # 生成结果可见性：public / unlisted / private
+  visibility: "unlisted"
+
+  # 等待 MineSkin 队列完成的最长时间，单位为秒。
+  request-timeout-seconds: 30
+
+# ----------------------------------------------------------------------------
+# 外置皮肤站 Provider
+# ----------------------------------------------------------------------------
+# 每个一级子节点代表一个皮肤站，节点名称可自由修改，并显示在日志与
+# /essc skin status 中。建议只使用小写英文、数字和连字符，不要使用点号。
+#
+# 可用占位符：
+#   {uuid}        无连字符 UUID
+#   {uuid-dashed} 标准带连字符 UUID
+
+providers:
+  littleskin:
+    enabled: false
+    priority: 10
+    profile-url: "https://littleskin.cn/api/yggdrasil/sessionserver/session/minecraft/profile/{uuid}?unsigned=false"
+
+  my-blessing-skin:
+    enabled: false
+    priority: 20
+    profile-url: "https://skin.example.com/api/yggdrasil/sessionserver/session/minecraft/profile/{uuid}?unsigned=false"

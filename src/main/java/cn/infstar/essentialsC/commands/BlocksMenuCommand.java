@@ -5,6 +5,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -60,7 +61,8 @@ public class BlocksMenuCommand extends BaseCommand implements Listener {
     private void openMenu(Player player) {
         Inventory menu = new BlocksMenuHolder(getLang().getString("blocks-menu.title")).getInventory();
 
-        var sectionsConfig = plugin.getConfig().getConfigurationSection("blocks-menu.sections");
+        FileConfiguration menuConfig = plugin.getFeatureConfigManager().getBlocksMenuConfig();
+        var sectionsConfig = menuConfig.getConfigurationSection("sections");
         if (sectionsConfig != null) {
             int visibleSections = renderSections(menu, player, sectionsConfig);
             if (visibleSections > 1) {
@@ -75,7 +77,7 @@ public class BlocksMenuCommand extends BaseCommand implements Listener {
             return;
         }
 
-        var itemsConfig = plugin.getConfig().getConfigurationSection("blocks-menu.items");
+        var itemsConfig = menuConfig.getConfigurationSection("items");
         if (itemsConfig == null) {
             return;
         }
@@ -253,66 +255,69 @@ public class BlocksMenuCommand extends BaseCommand implements Listener {
     }
 
     private void addConfigDefaults() {
-        plugin.getConfig().addDefault("blocks-menu.layout-version", 2);
+        FileConfiguration config = plugin.getFeatureConfigManager().getBlocksMenuConfig();
+        config.addDefault("config-version", 1);
+        config.addDefault("layout-version", 2);
 
-        addMenuItemDefaults("blocks-menu.sections.blocks.items.workbench", 10, "CRAFTING_TABLE",
+        addMenuItemDefaults(config, "sections.blocks.items.workbench", 10, "CRAFTING_TABLE",
             "essentialsc.command.workbench", "workbench");
-        addMenuItemDefaults("blocks-menu.sections.blocks.items.enderchest", 11, "ENDER_CHEST",
+        addMenuItemDefaults(config, "sections.blocks.items.enderchest", 11, "ENDER_CHEST",
             "essentialsc.command.enderchest", "enderchest");
-        addMenuItemDefaults("blocks-menu.sections.blocks.items.anvil", 12, "ANVIL",
+        addMenuItemDefaults(config, "sections.blocks.items.anvil", 12, "ANVIL",
             "essentialsc.command.anvil", "anvil");
-        addMenuItemDefaults("blocks-menu.sections.blocks.items.grindstone", 19, "GRINDSTONE",
+        addMenuItemDefaults(config, "sections.blocks.items.grindstone", 19, "GRINDSTONE",
             "essentialsc.command.grindstone", "grindstone");
-        addMenuItemDefaults("blocks-menu.sections.blocks.items.smithingtable", 20, "SMITHING_TABLE",
+        addMenuItemDefaults(config, "sections.blocks.items.smithingtable", 20, "SMITHING_TABLE",
             "essentialsc.command.smithingtable", "smithingtable");
-        addMenuItemDefaults("blocks-menu.sections.blocks.items.stonecutter", 21, "STONECUTTER",
+        addMenuItemDefaults(config, "sections.blocks.items.stonecutter", 21, "STONECUTTER",
             "essentialsc.command.stonecutter", "stonecutter");
-        addMenuItemDefaults("blocks-menu.sections.blocks.items.loom", 28, "LOOM",
+        addMenuItemDefaults(config, "sections.blocks.items.loom", 28, "LOOM",
             "essentialsc.command.loom", "loom");
-        addMenuItemDefaults("blocks-menu.sections.blocks.items.cartographytable", 29, "CARTOGRAPHY_TABLE",
+        addMenuItemDefaults(config, "sections.blocks.items.cartographytable", 29, "CARTOGRAPHY_TABLE",
             "essentialsc.command.cartographytable", "cartographytable");
 
-        addMenuItemDefaults("blocks-menu.sections.shortcuts.items.nightvision", 14, "TINTED_GLASS",
+        addMenuItemDefaults(config, "sections.shortcuts.items.nightvision", 14, "TINTED_GLASS",
             "essentialsc.command.nightvision", "nightvision");
-        addMenuItemDefaults("blocks-menu.sections.shortcuts.items.glow", 15, "GLOWSTONE",
+        addMenuItemDefaults(config, "sections.shortcuts.items.glow", 15, "GLOWSTONE",
             "essentialsc.command.glow", "glow");
 
-        plugin.getConfig().options().copyDefaults(true);
-        migrateLayoutIfNeeded();
-        plugin.saveConfig();
+        config.options().copyDefaults(true);
+        migrateLayoutIfNeeded(config);
+        plugin.getFeatureConfigManager().saveBlocksMenuConfig();
     }
 
-    private void migrateLayoutIfNeeded() {
-        boolean hasStoredLayoutVersion = plugin.getConfig().contains("blocks-menu.layout-version", true);
-        if (hasStoredLayoutVersion && plugin.getConfig().getInt("blocks-menu.layout-version", 0) >= 2) {
+    private void migrateLayoutIfNeeded(FileConfiguration config) {
+        boolean hasStoredLayoutVersion = config.contains("layout-version", true);
+        if (hasStoredLayoutVersion && config.getInt("layout-version", 0) >= 2) {
             return;
         }
 
-        applySlot("blocks", "workbench", 10);
-        applySlot("blocks", "enderchest", 11);
-        applySlot("blocks", "anvil", 12);
-        applySlot("blocks", "grindstone", 19);
-        applySlot("blocks", "smithingtable", 20);
-        applySlot("blocks", "stonecutter", 21);
-        applySlot("blocks", "loom", 28);
-        applySlot("blocks", "cartographytable", 29);
-        applySlot("shortcuts", "nightvision", 14);
-        applySlot("shortcuts", "glow", 15);
+        applySlot(config, "blocks", "workbench", 10);
+        applySlot(config, "blocks", "enderchest", 11);
+        applySlot(config, "blocks", "anvil", 12);
+        applySlot(config, "blocks", "grindstone", 19);
+        applySlot(config, "blocks", "smithingtable", 20);
+        applySlot(config, "blocks", "stonecutter", 21);
+        applySlot(config, "blocks", "loom", 28);
+        applySlot(config, "blocks", "cartographytable", 29);
+        applySlot(config, "shortcuts", "nightvision", 14);
+        applySlot(config, "shortcuts", "glow", 15);
 
-        plugin.getConfig().set("blocks-menu.sections.blocks.title-item", null);
-        plugin.getConfig().set("blocks-menu.sections.shortcuts.title-item", null);
-        plugin.getConfig().set("blocks-menu.layout-version", 2);
+        config.set("sections.blocks.title-item", null);
+        config.set("sections.shortcuts.title-item", null);
+        config.set("layout-version", 2);
     }
 
-    private void applySlot(String section, String key, int slot) {
-        plugin.getConfig().set("blocks-menu.sections." + section + ".items." + key + ".slot", slot);
+    private void applySlot(FileConfiguration config, String section, String key, int slot) {
+        config.set("sections." + section + ".items." + key + ".slot", slot);
     }
 
-    private void addMenuItemDefaults(String path, int slot, String material, String permission, String command) {
-        plugin.getConfig().addDefault(path + ".slot", slot);
-        plugin.getConfig().addDefault(path + ".material", material);
-        plugin.getConfig().addDefault(path + ".permission", permission);
-        plugin.getConfig().addDefault(path + ".command", command);
+    private void addMenuItemDefaults(FileConfiguration config, String path, int slot, String material,
+                                     String permission, String command) {
+        config.addDefault(path + ".slot", slot);
+        config.addDefault(path + ".material", material);
+        config.addDefault(path + ".permission", permission);
+        config.addDefault(path + ".command", command);
     }
 
     private record MenuItem(int slot, Material material, String name, List<String> lore, String commandKey) {

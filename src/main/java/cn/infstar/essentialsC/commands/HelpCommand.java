@@ -34,6 +34,7 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
             }
             plugin.reloadConfig();
             EssentialsC.getLangManager().reload();
+            plugin.getFeatureConfigManager().reload();
             plugin.getModuleManager().reload();
             CommandRegistry.clearCache();
             plugin.reloadRuntimeModules();
@@ -55,6 +56,7 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
                 }
                 plugin.reloadConfig();
                 EssentialsC.getLangManager().reload();
+                plugin.getFeatureConfigManager().reload();
                 plugin.getModuleManager().reload();
                 CommandRegistry.clearCache();
                 plugin.reloadRuntimeModules();

@@ -32,7 +32,7 @@ public class JeiRecipeSyncListener implements Listener {
         plugin.saveConfig();
 
         this.enabled = config.getBoolean("jei-sync.enabled", true);
-        this.debug = config.getBoolean("jei-sync.debug", config.getBoolean("debug", false));
+        this.debug = config.getBoolean("debug", false);
         this.sendPlayerMessage = config.getBoolean("jei-sync.send-player-message", true);
         this.brandCheckDelayTicks = Math.max(0, config.getInt("jei-sync.brand-check-delay-ticks", 20));
         this.adapter = loadAdapter();
@@ -112,10 +112,7 @@ public class JeiRecipeSyncListener implements Listener {
             return;
         }
 
-        String fullMessage = EssentialsC.getLangManager().getPrefixedString(messageKey);
-        net.kyori.adventure.text.Component component =
-            net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacyAmpersand().deserialize(fullMessage);
-        player.sendMessage(component);
+        player.sendMessage(EssentialsC.getLangManager().getPrefixedComponent(messageKey));
     }
 
     private void sendFabricRecipeSync(Player player) {

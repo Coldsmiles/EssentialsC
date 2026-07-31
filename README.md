@@ -12,7 +12,7 @@
 - 最低支持版本为 `Paper 1.21.11`
 - 已适配 `Paper 26.2`
 - 构建环境固定为 `Java 21`
-- 配置、模块开关与文本分离：行为配置放在 `config.yml`，模块开关放在 `modules.yml`，提示文本放在 `lang/`
+- 配置按职责拆分：主行为配置、模块开关、SkinBridge、菜单布局、维护模式和语言文本分别管理
 - 支持运行期模块开关，避免为不同功能组合构建多个插件版本
 
 ## 主要功能
@@ -76,14 +76,14 @@
 1. 从 [Releases](https://github.com/Coldsmiles/EssentialsC/releases) 下载所需版本。
 2. 将插件放入服务端的 `plugins/` 目录。
 3. 启动一次服务端以生成配置文件。
-4. 按需修改 `plugins/EssentialsC/config.yml` 与 `plugins/EssentialsC/lang/` 下的语言文件。
+4. 按需修改 `plugins/EssentialsC/` 下的配置文件与 `lang/` 语言文件。
 5. 如有需要，使用权限插件为玩家授权。
 
 ## 配置说明
 
-当前配置结构以“行为配置”和“文本配置”分离为原则：
+当前配置按功能职责拆分，避免所有设置堆积在一个文件中：
 
-SkinBridge 默认关闭。使用前需同时将 `modules.yml` 中的 `modules.skin-bridge.enabled` 与 `config.yml` 中的 `skin-bridge.enabled` 设为 `true`，在 `skin-bridge.mineskin.api-key` 中配置 MineSkin API Key，并至少启用一个 Provider。真实密钥只应填写在服务器运行目录的 `config.yml` 中，不要写入源码或提交到公开仓库。该模块不再要求安装 SkinsRestorer。`skin-bridge.send-player-message` 控制是否向玩家发送检测、匹配和同步结果提示。`skin-bridge.providers` 下的键名可自由命名，会显示在日志和 `/essc skin status <玩家>` 中；建议使用小写英文、数字和连字符，避免使用点号。控制台可使用 `/essc skin status <玩家>` 与 `/essc skin refresh <玩家>` 进行验证。
+SkinBridge 默认关闭。使用前需同时启用 `modules.yml` 中的 `modules.skin-bridge.enabled` 和 `skin-bridge.yml` 中的 `enabled`，填写 `mineskin.api-key`，并至少启用一个 Provider。真实密钥只应填写在服务器运行目录的 `skin-bridge.yml` 中，不要写入源码或提交到公开仓库。该模块不要求安装 SkinsRestorer。`send-player-message` 控制是否向玩家发送检测、匹配和同步结果提示；`providers` 下的键名可自由命名，并会显示在日志和 `/essc skin status <玩家>` 中。
 
 - `config.yml`
   - 语言选择
@@ -91,10 +91,14 @@ SkinBridge 默认关闭。使用前需同时将 `modules.yml` 中的 `modules.sk
   - JEI 同步开关
   - 掉落控制
   - TPSBar 模式
-  - SkinBridge Provider、缓存和超时配置
-  - 便捷菜单布局
+  - TPA 请求、预热、冷却和音效
 - `modules.yml`
   - 功能模块开关
+- `skin-bridge.yml`
+  - MineSkin API 与队列设置
+  - Provider、缓存和检测设置
+- `blocks-menu.yml`
+  - 便捷菜单分区、槽位、材质和权限
 - `maintenance.yml`
   - 维护模式状态
   - 维护 MOTD
@@ -110,7 +114,7 @@ SkinBridge 默认关闭。使用前需同时将 `modules.yml` 中的 `modules.sk
   - 管理模式文本
   - TPSBar 文本
 
-配置文件包含 `config-version`，后续如有结构升级，可基于版本号进行迁移与重建。
+配置文件包含 `config-version`。从旧结构升级时，插件会备份主配置，并自动把 SkinBridge 与便捷菜单节点迁移到独立文件。
 
 ## 权限示例
 
@@ -128,6 +132,16 @@ essentialsc.command.feed
 essentialsc.command.repair
 essentialsc.command.vanish
 essentialsc.command.seen
+essentialsc.command.tpa
+essentialsc.command.tpahere
+essentialsc.command.tpaall
+essentialsc.command.tpaccept
+essentialsc.command.tpdeny
+essentialsc.command.tpignore
+essentialsc.tpa.bypass-warmup
+essentialsc.tpa.bypass-cooldown
+# 使用数字覆盖玩家预热时间，例如 3 秒
+essentialsc.tpa.warmup.3
 essentialsc.command.admin
 essentialsc.command.tpsbar
 essentialsc.command.maintenance

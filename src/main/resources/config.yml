@@ -1,176 +1,72 @@
-# EssentialsC 主配置文件
+# EssentialsC 主配置
+# 其他配置：modules.yml、maintenance.yml、skin-bridge.yml、blocks-menu.yml
+# 消息与颜色：lang/<语言>.yml
+# 修改后使用 /essc reload 重载；命令注册状态发生变化时建议重启服务器。
 
-# 配置文件版本号
 config-version: 2
-
-# 语言文件名称，对应插件数据目录下 lang/<语言名>.yml
 language: "zh_CN"
 
-# 是否输出更详细的调试日志。
+# 输出 EssentialsC 及所有功能模块的详细调试日志。
 debug: false
 
+# 管理模式
 admin-mode:
-  # 原版默认飞行速度为 0.1，这里 0.2 表示两倍飞行速度
+  # 原版飞行速度为 0.1；0.2 表示两倍速度。
   fly-speed: 0.2
+  # 状态提示刷新间隔，单位为 tick。
   actionbar:
-    # 管理模式状态提示的刷新间隔，单位为 tick
     interval-ticks: 40
 
-jei-sync:
-  # 是否启用 JEI 配方同步修复
-  enabled: true
-  # 是否输出调试日志
-  debug: false
-  # 玩家加入后延迟多少 tick 再检测客户端品牌，避免品牌信息尚未同步完成。
-  brand-check-delay-ticks: 20
-  # 是否在玩家加入时发送同步提示
-  send-player-message: true
-
-mob-drops:
-  enderman:
-    # 是否允许末影人掉落方块
-    enabled: true
-
+# TPS 状态栏：off（关闭）/ auto（自动检测）/ on（请求启用）
 tpsbar:
-  # 可选值：off / auto / on
-  # auto: 若服务端没有原生 /tpsbar，则启用插件实现
-  # on: 始终启用插件实现；若服务端已有原生命令，则自动跳过以避免冲突
   mode: auto
 
+# JEI 配方同步修复；同时受 modules.yml 中的模块开关控制。
+jei-sync:
+  enabled: true
+  # 玩家加入后延迟多少 tick 检测客户端品牌。
+  brand-check-delay-ticks: 20
+  send-player-message: true
+
+# 生物掉落
+mob-drops:
+  enderman:
+    # 允许末影人掉落搬运的方块。
+    enabled: true
+
+# TPA 传送请求，行为参考 HuskHomes。
 tpa:
-  # TPA 请求有效时间，单位为秒
+  # 请求有效时间，单位为秒。
   timeout-seconds: 60
-  # 是否让 /tpa 接受后传送到接受时目标所在的位置快照，而不是传送完成时目标当前位置。
+
+  # 位置规则
+  # /tpa：使用目标接受请求时的位置快照。
   strict-tpa-requests: false
-  # 是否让 /tpahere 接受后传送到请求发起时的位置，而不是请求者当前所在位置。
-  # 该行为与 HuskHomes 的 strict_tpa_here_requests 默认值一致。
+  # /tpahere：使用请求者发起请求时的位置快照。
   strict-tpahere-requests: true
-  # 接受请求后的传送预热时间，单位为秒。设置为 0 可关闭预热。
+
+  # 传送预热
   warmup-seconds: 5
-  # 预热期间移动是否取消传送。
   cancel-warmup-on-move: true
-  # 预热期间受到伤害是否取消传送。
   cancel-warmup-on-damage: true
+  # chat / actionbar / title / subtitle / none
+  warmup-display: actionbar
+  # 异步传送会先加载目标区块，推荐 Paper / Leaves 服务器保持开启。
+  teleport-async: true
+  # 传送完成后的无敌时间，单位为秒；0 表示关闭。
+  teleport-invulnerability-seconds: 0
+
+  # 冷却时间；单位为秒，0 表示关闭对应冷却。
   cooldowns:
-    # 是否启用 TPA 冷却系统。
     enabled: true
     cooldown-times:
-      # 发送传送请求后的冷却时间，单位为秒。0 表示关闭。
       SEND_TELEPORT_REQUEST: 0
-      # 接受传送请求后的冷却时间，单位为秒。0 表示关闭。
       ACCEPT_TELEPORT_REQUEST: 0
-  # 判断移动取消的曼哈顿距离阈值。0.1 与 HuskHomes 行为接近，可避免只转头就取消。
-  warmup-move-threshold: 0.1
-  # 预热倒计时显示位置：actionbar / chat / none。
-  warmup-display: actionbar
+
+  # 音效
   sounds:
-    # 是否播放 TPA 相关音效。
     enabled: true
-    # 收到请求时播放的音效。
     request-received: "entity.experience_orb.pickup"
-    # 预热倒计时时播放的音效。
     warmup: "block.note_block.banjo"
-    # 预热被取消时播放的音效。
     cancelled: "entity.item.break"
-    # 传送完成时播放的音效。
     complete: "entity.enderman.teleport"
-
-skin-bridge:
-  # 是否启用外置皮肤站桥接。还需要在 modules.yml 启用 skin-bridge 模块。
-  enabled: false
-  # 是否输出 Provider 查询和皮肤应用的调试日志。
-  debug: false
-  # 是否像 JEI 修复一样向玩家发送检测与同步提示。
-  send-player-message: true
-  # 查询 Yggdrasil profile 的超时时间，单位为秒。
-  profile-request-timeout-seconds: 5
-  mineskin:
-    # MineSkin v2 API 地址，一般不需要修改。
-    endpoint: "https://api.mineskin.org"
-    # MineSkin API Key。请仅在服务器运行目录中填写，不要提交到公开仓库。
-    api-key: ""
-    # 生成结果的可见性：public、unlisted 或 private。默认使用 unlisted。
-    visibility: "unlisted"
-    # MineSkin 生成队列的总等待时间，单位为秒。
-    request-timeout-seconds: 30
-  # 玩家登录来源与生成皮肤的内存缓存时间，单位为分钟。
-  cache-minutes: 120
-  # 玩家加入后延迟多少 tick 再查询，避免登录资料尚未完全稳定。
-  join-delay-ticks: 20
-  providers:
-    # 每个子节点都是一个 Provider，键名可自由命名，并会显示在日志和 /essc skin status 中。
-    # 建议使用小写英文、数字和连字符；不要使用点号，因为点号会被 Bukkit 视为配置路径分隔符。
-    littleskin:
-      # LittleSkin 示例 Provider。键名 littleskin 可按需改名。
-      enabled: false
-      priority: 10
-      # {uuid} 为无连字符 UUID；{uuid-dashed} 为标准 UUID。
-      profile-url: "https://littleskin.cn/api/yggdrasil/sessionserver/session/minecraft/profile/{uuid}?unsigned=false"
-    my-blessing-skin:
-      # 自建 Blessing Skin 示例 Provider。my-blessing-skin 可替换为皮肤站名称。
-      enabled: false
-      priority: 20
-      profile-url: "https://skin.example.com/api/yggdrasil/sessionserver/session/minecraft/profile/{uuid}?unsigned=false"
-
-blocks-menu:
-  # 菜单布局版本，用于后续自动迁移槽位布局
-  layout-version: 2
-  sections:
-    blocks:
-      items:
-        workbench:
-          # 物品所在槽位
-          slot: 10
-          # 菜单图标材质
-          material: CRAFTING_TABLE
-          # 所需权限
-          permission: essentialsc.command.workbench
-          # 点击后执行的命令键
-          command: workbench
-        enderchest:
-          slot: 11
-          material: ENDER_CHEST
-          permission: essentialsc.command.enderchest
-          command: enderchest
-        anvil:
-          slot: 12
-          material: ANVIL
-          permission: essentialsc.command.anvil
-          command: anvil
-        grindstone:
-          slot: 19
-          material: GRINDSTONE
-          permission: essentialsc.command.grindstone
-          command: grindstone
-        smithingtable:
-          slot: 20
-          material: SMITHING_TABLE
-          permission: essentialsc.command.smithingtable
-          command: smithingtable
-        stonecutter:
-          slot: 21
-          material: STONECUTTER
-          permission: essentialsc.command.stonecutter
-          command: stonecutter
-        loom:
-          slot: 28
-          material: LOOM
-          permission: essentialsc.command.loom
-          command: loom
-        cartographytable:
-          slot: 29
-          material: CARTOGRAPHY_TABLE
-          permission: essentialsc.command.cartographytable
-          command: cartographytable
-    shortcuts:
-      items:
-        nightvision:
-          slot: 14
-          material: TINTED_GLASS
-          permission: essentialsc.command.nightvision
-          command: nightvision
-        glow:
-          slot: 15
-          material: GLOWSTONE
-          permission: essentialsc.command.glow
-          command: glow

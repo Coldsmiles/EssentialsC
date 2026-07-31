@@ -1,259 +1,261 @@
 # English language file
+# HuskHomes-inspired style: MiniMessage, green success, red errors, gray details.
 
-prefix: "&6[EssentialsC] &r"
+prefix: ''
 
 messages:
-  no-permission: "&cYou don't have permission to use this command!\n&7Required permission: {permission}"
-  player-only: "&cThis command can only be executed by players!"
-  config-reloaded: "&aConfiguration reloaded."
-  version: "&fEssentialsC v{version}"
-  paper-version: "&7Running on Paper {version}"
-  unknown-subcommand: "&cUnknown subcommand: {command}"
-  help-usage: "&7Use &f/essc help &7to view available commands."
-  module-disabled: "&cThis feature module is currently disabled. Please contact an administrator."
-  blocks-menu-empty: "&cYou do not currently have any available shortcut menu entries."
+  no-permission: '<#FF3300>Error:</#FF3300> <#FF7E5E>You do not have permission to use this command.</#FF7E5E> <gray>Required: {permission}</gray>'
+  player-only: '<#FF3300>Error:</#FF3300> <#FF7E5E>This command can only be run by players.</#FF7E5E>'
+  config-reloaded: '<#00FB9A>Configuration reloaded.</#00FB9A>'
+  version: '<#00FB9A>EssentialsC v{version}</#00FB9A>'
+  paper-version: '<gray>Running on Paper {version}</gray>'
+  unknown-subcommand: '<#FF3300>Error:</#FF3300> <#FF7E5E>Unknown subcommand: {command}</#FF7E5E>'
+  help-usage: '<gray>Use <white>/essc help</white> to view available commands.</gray>'
+  module-disabled: '<#FF3300>Error:</#FF3300> <#FF7E5E>This feature module is currently disabled.</#FF7E5E>'
+  blocks-menu-empty: '<#FF3300>Error:</#FF3300> <#FF7E5E>You do not have any available shortcut menu entries.</#FF7E5E>'
 
-  hat-success: "&aYou are now wearing {item} on your head!"
-  hat-failed: "&cFailed to wear the item on your head!"
-  hat-no-item: "&cYou need to hold an item in your hand!"
-  suicide-message: "&e{player} has committed suicide!"
-  fly-enabled: "&aFlight mode enabled!"
-  fly-disabled: "&cFlight mode disabled!"
-  nightvision-enabled: "&aNight vision enabled!"
-  nightvision-disabled: "&cNight vision disabled!"
-  nightvision-usage: "&cUsage: /nightvision [on|off|toggle]"
-  glow-enabled: "&aGlowing enabled!"
-  glow-disabled: "&cGlowing disabled!"
-  glow-usage: "&cUsage: /glow [on|off|toggle]"
-  vanish-enabled: "&aYou are now vanished!"
-  vanish-disabled: "&cYou are no longer vanished!"
-  seen-usage: "&cUsage: /seen <player>"
-  seen-usage-console: "&cUsage: /seen <player>"
-  player-not-found: "&cPlayer not found: {player}"
-  no-permission-others: "&cYou don't have permission to affect other players!"
+  hat-success: '<#00FB9A>You are now wearing <bold>{item}</bold> on your head.</#00FB9A>'
+  hat-failed: '<#FF3300>Error:</#FF3300> <#FF7E5E>Could not wear that item on your head.</#FF7E5E>'
+  hat-no-item: '<#FF3300>Error:</#FF3300> <#FF7E5E>You need to hold an item.</#FF7E5E>'
+  suicide-message: '<#FF7E5E>{player} died by suicide.</#FF7E5E>'
+  fly-enabled: '<#00FB9A>Flight mode enabled.</#00FB9A>'
+  fly-disabled: '<#FF7E5E>Flight mode disabled.</#FF7E5E>'
+  nightvision-enabled: '<#00FB9A>Night vision enabled.</#00FB9A>'
+  nightvision-disabled: '<#FF7E5E>Night vision disabled.</#FF7E5E>'
+  nightvision-usage: '<#FF3300>Error:</#FF3300> <#FF7E5E>Usage: /nightvision [on|off|toggle]</#FF7E5E>'
+  glow-enabled: '<#00FB9A>Glowing enabled.</#00FB9A>'
+  glow-disabled: '<#FF7E5E>Glowing disabled.</#FF7E5E>'
+  glow-usage: '<#FF3300>Error:</#FF3300> <#FF7E5E>Usage: /glow [on|off|toggle]</#FF7E5E>'
+  vanish-enabled: '<#00FB9A>You are now vanished.</#00FB9A>'
+  vanish-disabled: '<#FF7E5E>You are no longer vanished.</#FF7E5E>'
+  seen-usage: '<#FF3300>Error:</#FF3300> <#FF7E5E>Usage: /seen [player]</#FF7E5E>'
+  seen-usage-console: '<#FF3300>Error:</#FF3300> <#FF7E5E>Usage: /seen [player]</#FF7E5E>'
+  player-not-found: '<#FF3300>Error:</#FF3300> <#FF7E5E>Could not find the player {player}.</#FF7E5E>'
+  no-permission-others: '<#FF3300>Error:</#FF3300> <#FF7E5E>You do not have permission to affect other players.</#FF7E5E>'
 
-  anvil-opened: "&aAnvil opened!"
-  enchantingtable-opened: "&aEnchanting table opened!"
-  heal-self: "&aYour health and hunger have been restored!"
-  heal-other: "&aYou have healed player {player}!"
-  heal-by-other: "&aYou have been healed by admin {admin}!"
-  feed-self: "&aYour hunger has been restored!"
-  feed-other: "&aYou have fed player {player}!"
-  feed-by-other: "&aYou have been fed by admin {admin}!"
-  repair-hand-success: "&aItem in hand repaired!"
-  repair-all-success: "&aRepaired {count} items!"
-  repair-not-damaged: "&cThis item is not damaged!"
-  repair-no-item-in-hand: "&cYou don't have an item in your hand!"
-  repair-no-items: "&cNo repairable items in inventory!"
-  no-permission-repair-all: "&cYou don't have permission to repair all items!"
+  anvil-opened: '<#00FB9A>Opened an anvil.</#00FB9A>'
+  enchantingtable-opened: '<#00FB9A>Opened an enchanting table.</#00FB9A>'
+  heal-self: '<#00FB9A>Your health and hunger have been restored.</#00FB9A>'
+  heal-other: '<#00FB9A>You healed <bold>{player}</bold>.</#00FB9A>'
+  heal-by-other: '<#00FB9A>You were healed by <bold>{admin}</bold>.</#00FB9A>'
+  feed-self: '<#00FB9A>Your hunger has been restored.</#00FB9A>'
+  feed-other: '<#00FB9A>You fed <bold>{player}</bold>.</#00FB9A>'
+  feed-by-other: '<#00FB9A>You were fed by <bold>{admin}</bold>.</#00FB9A>'
+  repair-hand-success: '<#00FB9A>Repaired the item in your hand.</#00FB9A>'
+  repair-all-success: '<#00FB9A>Repaired <bold>{count}</bold> item(s).</#00FB9A>'
+  repair-not-damaged: '<#FF3300>Error:</#FF3300> <#FF7E5E>This item is not damaged.</#FF7E5E>'
+  repair-no-item-in-hand: '<#FF3300>Error:</#FF3300> <#FF7E5E>You do not have an item in your hand.</#FF7E5E>'
+  repair-no-items: '<#FF3300>Error:</#FF3300> <#FF7E5E>There are no repairable items in your inventory.</#FF7E5E>'
+  no-permission-repair-all: '<#FF3300>Error:</#FF3300> <#FF7E5E>You do not have permission to repair all items.</#FF7E5E>'
 
-  mobdrop-save-failed: "&cFailed to save config: {error}"
-  mobdrop-toggled: "&aEnderman drops are now {status}&a."
-  shulkerbox-nested: "&cYou cannot put a shulker box inside another shulker box."
-  shulkerbox-unstack-first: "&cPlease unstack the shulker box before using quick open."
-  jei-sync-fabric: "&6JEI-FIX&8(&bFabric&8): &eSynchronizing recipes..."
-  jei-sync-neoforge: "&6JEI-FIX&8(&bNeoForge&8): &eSynchronizing recipes..."
+  mobdrop-save-failed: '<#FF3300>Error:</#FF3300> <#FF7E5E>Failed to save config: {error}</#FF7E5E>'
+  mobdrop-toggled: '<#00FB9A>Enderman drops are now {status}.</#00FB9A>'
+  shulkerbox-nested: '<#FF3300>Error:</#FF3300> <#FF7E5E>You cannot put a shulker box inside another shulker box.</#FF7E5E>'
+  shulkerbox-unstack-first: '<#FF3300>Error:</#FF3300> <#FF7E5E>Please unstack the shulker box before quick opening it.</#FF7E5E>'
+  jei-sync-fabric: '<#00FB9A>Synchronizing recipes for your <bold>Fabric</bold> client…</#00FB9A>'
+  jei-sync-neoforge: '<#00FB9A>Synchronizing recipes for your <bold>NeoForge</bold> client…</#00FB9A>'
 
 help:
-  title: "&6========== &eEssentialsC Help &6=========="
-  version: "&7Plugin Version: &f{version}"
-  section-blocks: "&6Functional Block Commands:"
-  section-other: "&6Other Commands:"
-  footer: "&7Each command requires the corresponding permission."
+  title: '<#00FB9A><bold>EssentialsC</bold></#00FB9A> <gray>Command Help</gray>'
+  version: '<gray>Plugin version: <white>{version}</white></gray>'
+  section-blocks: '<#00FB9A>Functional Block Commands</#00FB9A>'
+  section-other: '<#00FB9A>Other Commands</#00FB9A>'
+  footer: '<gray>Each command requires the corresponding permission.</gray>'
 
   commands:
-    workbench: "  &f/workbench &7- Open a crafting table"
-    anvil: "  &f/anvil &7- Open an anvil"
-    enchantingtable: "  &f/enchantingtable &7- Open an enchanting table"
-    cartographytable: "  &f/cartographytable &7- Open a cartography table"
-    grindstone: "  &f/grindstone &7- Open a grindstone"
-    loom: "  &f/loom &7- Open a loom"
-    smithingtable: "  &f/smithingtable &7- Open a smithing table"
-    stonecutter: "  &f/stonecutter &7- Open a stonecutter"
-    enderchest: "  &f/enderchest &7- Open your ender chest"
-    blocks: "  &f/blocks &7- Open the shortcut menu"
-    hat: "  &f/hat &7- Wear the held item as a hat"
-    suicide: "  &f/suicide &7- Commit suicide"
-    fly: "  &f/fly &7- Toggle flight mode"
-    nightvision: "  &f/nightvision &7- Toggle night vision"
-    glow: "  &f/glow &7- Toggle glowing"
-    heal: "  &f/heal &7- Restore health and hunger"
-    vanish: "  &f/vanish &7- Toggle vanish mode"
-    seen: "  &f/seen &7- View player information"
-    feed: "  &f/feed &7- Restore hunger"
-    repair: "  &f/repair &7- Repair held or all items"
-    tpa: "  &f/tpa <player> &7- Request to teleport to a player"
-    tpahere: "  &f/tpahere <player> &7- Request a player teleport to you"
-    tpaall: "  &f/tpaall &7- Request all players teleport to you"
-    tpaccept: "  &f/tpaccept [player] &7- Accept a teleport request"
-    tpdeny: "  &f/tpdeny [player] &7- Deny a teleport request"
-    tpignore: "  &f/tpignore &7- Toggle ignoring teleport requests"
-    skin: "  &f/essc skin <status|refresh> [player] &7- View or refresh SkinBridge status"
-    admin: "  &f/essc admin &7- Toggle admin mode"
-    tpsbar: "  &f/tpsbar [player] &7- Toggle TPS boss bar"
-    maintenance: "  &f/maintenance <on|off|status|reload|add|remove|list> &7- Manage maintenance mode"
+    workbench: '<white>/workbench</white> <gray>- Open a crafting table</gray>'
+    anvil: '<white>/anvil</white> <gray>- Open an anvil</gray>'
+    enchantingtable: '<white>/enchantingtable</white> <gray>- Open an enchanting table</gray>'
+    cartographytable: '<white>/cartographytable</white> <gray>- Open a cartography table</gray>'
+    grindstone: '<white>/grindstone</white> <gray>- Open a grindstone</gray>'
+    loom: '<white>/loom</white> <gray>- Open a loom</gray>'
+    smithingtable: '<white>/smithingtable</white> <gray>- Open a smithing table</gray>'
+    stonecutter: '<white>/stonecutter</white> <gray>- Open a stonecutter</gray>'
+    enderchest: '<white>/enderchest</white> <gray>- Open your ender chest</gray>'
+    blocks: '<white>/blocks</white> <gray>- Open the shortcut menu</gray>'
+    hat: '<white>/hat</white> <gray>- Wear the held item as a hat</gray>'
+    suicide: '<white>/suicide</white> <gray>- Die by suicide</gray>'
+    fly: '<white>/fly</white> <gray>- Toggle flight mode</gray>'
+    nightvision: '<white>/nightvision</white> <gray>- Toggle night vision</gray>'
+    glow: '<white>/glow</white> <gray>- Toggle glowing</gray>'
+    heal: '<white>/heal</white> <gray>- Restore health and hunger</gray>'
+    vanish: '<white>/vanish</white> <gray>- Toggle vanish mode</gray>'
+    seen: '<white>/seen</white> <gray>- View player information</gray>'
+    feed: '<white>/feed</white> <gray>- Restore hunger</gray>'
+    repair: '<white>/repair</white> <gray>- Repair held or all items</gray>'
+    tpa: '<white>/tpa [player]</white> <gray>- Request to teleport to a player</gray>'
+    tpahere: '<white>/tpahere [player]</white> <gray>- Request a player teleport to you</gray>'
+    tpaall: '<white>/tpaall</white> <gray>- Request all players teleport to you</gray>'
+    tpaccept: '<white>/tpaccept [player]</white> <gray>- Accept a teleport request</gray>'
+    tpdeny: '<white>/tpdeny [player]</white> <gray>- Deny a teleport request</gray>'
+    tpignore: '<white>/tpignore</white> <gray>- Toggle ignoring teleport requests</gray>'
+    skin: '<white>/essc skin [status|refresh] [player]</white> <gray>- View or refresh SkinBridge status</gray>'
+    admin: '<white>/essc admin</white> <gray>- Toggle admin mode</gray>'
+    tpsbar: '<white>/tpsbar [player]</white> <gray>- Toggle TPS boss bar</gray>'
+    maintenance: '<white>/maintenance [on|off|status|reload|add|remove|list]</white> <gray>- Manage maintenance mode</gray>'
 
 tpa:
   messages:
-    usage-tpa: "&cUsage: /tpa <player>"
-    usage-tpahere: "&cUsage: /tpahere <player>"
-    usage-tpaall: "&cUsage: /tpaall"
-    usage-tpaccept: "&cUsage: /tpaccept [player]"
-    usage-tpdeny: "&cUsage: /tpdeny [player]"
-    self: "&cYou cannot send a teleport request to yourself."
-    sent-tpa: "&aSent a teleport request to {target}. It expires in {seconds} seconds."
-    sent-tpahere: "&aInvited {target} to teleport to you. The request expires in {seconds} seconds."
-    duplicate-request: "&eYou already have a pending request of this type for {target}."
-    ignoring-requests: "&cYou are currently ignoring teleport requests."
-    send-cooldown: "&cPlease wait {seconds} seconds before sending another teleport request."
-    accept-cooldown: "&cPlease wait {seconds} seconds before accepting another teleport request."
-    received-tpa: "&e{requester} wants to teleport to you."
-    received-tpahere: "&e{requester} invited you to teleport to them."
-    response-hint: "&7Type &f/tpaccept {requester} &7to accept or &f/tpdeny {requester} &7to deny."
-    accept-button: "&a[Accept]"
-    deny-button: "&c[Deny]"
-    no-request: "&cYou do not have any pending teleport requests."
-    accepted-target: "&aAccepted {requester}'s teleport request."
-    accepted-sender: "&a{target} accepted your teleport request."
-    denied-target: "&cDenied {requester}'s teleport request."
-    denied-sender: "&c{target} denied your teleport request."
-    expired: "&cYour pending teleport request has expired."
-    expired-sender: "&cYour teleport request to {target} expired."
-    expired-target: "&cThe teleport request from {requester} expired."
-    player-offline: "&cTeleport failed because a player in the request is now offline."
-    already-warming-up: "&cA related player is already warming up for teleportation."
-    warmup-start: "&eTeleporting in {seconds} seconds. Do not move or take damage."
-    warmup-status: "&eTeleporting in {seconds} seconds"
-    warmup-cancelled-move: "&cTeleport cancelled because you moved during warmup."
-    warmup-cancelled-damage: "&cTeleport cancelled because you took damage during warmup."
-    teleport-complete: "&aTeleport complete."
-    ignore-enabled: "&eYou are now ignoring teleport requests."
-    ignore-disabled: "&aYou are now accepting teleport requests."
-    ignore-notification: "&7You are currently ignoring teleport requests."
-    tpaall-sent: "&aSent teleport requests to all players."
-    tpaall-no-targets: "&cThere are no online players who can receive the request."
+    usage-tpa: '<#FF3300>Error:</#FF3300> <#FF7E5E>Usage: /tpa [player]</#FF7E5E>'
+    usage-tpahere: '<#FF3300>Error:</#FF3300> <#FF7E5E>Usage: /tpahere [player]</#FF7E5E>'
+    usage-tpaall: '<#FF3300>Error:</#FF3300> <#FF7E5E>Usage: /tpaall</#FF7E5E>'
+    usage-tpaccept: '<#FF3300>Error:</#FF3300> <#FF7E5E>Usage: /tpaccept [player]</#FF7E5E>'
+    usage-tpdeny: '<#FF3300>Error:</#FF3300> <#FF7E5E>Usage: /tpdeny [player]</#FF7E5E>'
+    self: '<#FF3300>Error:</#FF3300> <#FF7E5E>You cannot send a teleport request to yourself.</#FF7E5E>'
+    sent-tpa: '<#00FB9A>You sent a teleport request asking to teleport to</#00FB9A> <bold><#00FB9A>{target}</#00FB9A></bold><#00FB9A>.</#00FB9A>'
+    sent-tpahere: '<#00FB9A>You sent a teleport request asking</#00FB9A> <bold><#00FB9A>{target}</#00FB9A></bold> <#00FB9A>to teleport to you.</#00FB9A>'
+    ignoring-requests: '<#FF3300>Error:</#FF3300> <#FF7E5E>You are currently ignoring teleport requests.</#FF7E5E> <#FF7E5E><click:run_command:/tpignore><hover:show_text:"<#FF7E5E>Click to listen for incoming teleport requests</#FF7E5E>">[Stop Ignoring...]</hover></click></#FF7E5E>'
+    send-cooldown: '<#FF3300>Error:</#FF3300> <#FF7E5E>You must wait {seconds}s before doing that again.</#FF7E5E>'
+    accept-cooldown: '<#FF3300>Error:</#FF3300> <#FF7E5E>You must wait {seconds}s before doing that again.</#FF7E5E>'
+    received-tpa: '<bold><#00FB9A>{requester}</#00FB9A></bold> <#00FB9A>has requested to teleport to you.</#00FB9A>'
+    received-tpahere: '<bold><#00FB9A>{requester}</#00FB9A></bold> <#00FB9A>has requested that you teleport to them.</#00FB9A>'
+    response-buttons: '<gray>Options:</gray> <#00FB9A><click:run_command:''/tpaccept {requester}''><hover:show_text:"<#00FB9A>Accept teleport request\n<dark_gray>Click to accept {requester}''s request</dark_gray></#00FB9A>">[✔ Accept…]</hover></click></#00FB9A>   <#FF3300><click:run_command:''/tpdeny {requester}''><hover:show_text:"<#FF3300>Decline teleport request\n<dark_gray>Click to decline {requester}''s request</dark_gray></#FF3300>">[❌ Decline…]</hover></click></#FF3300>'
+    no-request: '<#FF3300>Error:</#FF3300> <#FF7E5E>You do not have a pending teleport request.</#FF7E5E>'
+    invalid-request: '<#FF3300>Error:</#FF3300> <#FF7E5E>You do not have a pending teleport request from {requester}.</#FF7E5E>'
+    accepted-target: '<#00FB9A>You accepted {requester}''s teleport request!</#00FB9A>'
+    accepted-sender: '<#00FB9A>{target} has accepted your teleport request!</#00FB9A>'
+    denied-target: '<#FF7E5E>You declined {requester}''s teleport request.</#FF7E5E>'
+    denied-sender: '<#FF7E5E>{target} has declined your teleport request.</#FF7E5E>'
+    expired: '<#FF3300>Error:</#FF3300> <#FF7E5E>Your pending teleport request has expired.</#FF7E5E>'
+    player-offline: '<#FF3300>Error:</#FF3300> <#FF7E5E>The sender of your pending teleport request is no longer online.</#FF7E5E>'
+    target-offline: '<#FF3300>Error:</#FF3300> <#FF7E5E>The teleport target could not be found.</#FF7E5E>'
+    already-warming-up: '<#FF3300>Error:</#FF3300> <#FF7E5E>A related player is already warming up for teleportation.</#FF7E5E>'
+    warmup-start: '<#00FB9A>You will be teleported in</#00FB9A> <bold><#00FB9A>{seconds}</#00FB9A></bold> <#00FB9A>seconds, please stand still…</#00FB9A>'
+    warmup-status: '<#00FB9A>Teleporting in</#00FB9A> <bold><#00FB9A>{seconds}</#00FB9A></bold><#00FB9A>…</#00FB9A>'
+    warmup-processing: '<#00FB9A>Teleporting…</#00FB9A>'
+    warmup-cancelled-move: '<#FF7E5E>Teleportation cancelled—you moved!</#FF7E5E>'
+    warmup-cancelled-damage: '<#FF7E5E>Teleportation cancelled—you took damage!</#FF7E5E>'
+    warmup-cancelled-actionbar: '<#FF7E5E>Teleportation cancelled!</#FF7E5E>'
+    warmup-stand-still: '<#FF3300>Error:</#FF3300> <#FF7E5E>You must be standing still before starting a teleport!</#FF7E5E>'
+    teleport-complete: '<#00FB9A>Teleportation complete!</#00FB9A>'
+    teleport-failed: '<#FF3300>Error:</#FF3300> <#FF7E5E>Teleportation could not be completed. Please try again.</#FF7E5E>'
+    ignore-enabled: '<#00FB9A>Now</#00FB9A> <bold><#00FB9A>ignoring</#00FB9A></bold> <#00FB9A>incoming teleport requests.</#00FB9A>'
+    ignore-disabled: '<#00FB9A>Now</#00FB9A> <bold><#00FB9A>listening</#00FB9A></bold> <#00FB9A>to incoming teleport requests.</#00FB9A>'
+    ignore-notification: '<gray>You are currently ignoring teleport requests.</gray>'
+    tpaall-sent: '<#00FB9A>You sent a teleport request to every player asking them to teleport to you.</#00FB9A>'
+    tpaall-no-targets: '<#FF3300>Error:</#FF3300> <#FF7E5E>There are no other players online.</#FF7E5E>'
 
 skin-bridge:
   notifications:
-    detecting: "&6SKIN-FIX&8: &eDetecting your skin source..."
-    synced: "&6SKIN-FIX&8(&b{provider}&8): &aSkin synchronization completed."
-    not-external: "&6SKIN-FIX&8: &7No external skin provider matched; your current skin was kept."
-    failed: "&6SKIN-FIX&8: &cSkin detection or synchronization failed. Please try again later."
+    detecting: '<#00FB9A>Detecting your skin source…</#00FB9A>'
+    synced: '<#00FB9A>Skin synchronized through <bold>{provider}</bold>.</#00FB9A>'
+    not-external: '<gray>No external skin provider matched; your current skin was kept.</gray>'
+    failed: '<#FF3300>Error:</#FF3300> <#FF7E5E>Skin detection or synchronization failed. Please try again later.</#FF7E5E>'
   messages:
-    usage: "&cUsage: /essc skin <status|refresh> [player]"
-    feature-disabled: "&cSkinBridge is disabled in config.yml."
-    dependency-missing: "&cNo valid MineSkin API key is configured in config.yml."
-    no-providers: "&cNo valid SkinBridge provider is enabled."
-    status-external: "&a{player} is identified as an external skin provider player. Provider: &f{provider}"
-    status-not-external: "&7{player} does not match any configured external skin provider."
-    status-pending: "&eSkinBridge is still detecting {player}'s login source."
-    status-unknown: "&7{player} has not been checked by SkinBridge yet."
-    refresh-queued: "&aSkinBridge is detecting and refreshing {player}'s skin."
-    refresh-cached: "&7{player} is using a valid skin cache entry."
-    refresh-running: "&eSkinBridge is already processing {player}."
+    usage: '<#FF3300>Error:</#FF3300> <#FF7E5E>Usage: /essc skin [status|refresh] [player]</#FF7E5E>'
+    feature-disabled: '<#FF3300>Error:</#FF3300> <#FF7E5E>SkinBridge is disabled in skin-bridge.yml.</#FF7E5E>'
+    dependency-missing: '<#FF3300>Error:</#FF3300> <#FF7E5E>No valid MineSkin API key is configured in skin-bridge.yml.</#FF7E5E>'
+    no-providers: '<#FF3300>Error:</#FF3300> <#FF7E5E>No valid SkinBridge provider is enabled.</#FF7E5E>'
+    status-external: '<#00FB9A>{player} is identified as an external skin provider player.</#00FB9A> <gray>Provider: <white>{provider}</white></gray>'
+    status-not-external: '<gray>{player} does not match any configured external skin provider.</gray>'
+    status-pending: '<#FFC43B>SkinBridge is still detecting {player}''s login source.</#FFC43B>'
+    status-unknown: '<gray>{player} has not been checked by SkinBridge yet.</gray>'
+    refresh-queued: '<#00FB9A>SkinBridge is detecting and refreshing {player}''s skin.</#00FB9A>'
+    refresh-cached: '<gray>{player} is using a valid skin cache entry.</gray>'
+    refresh-running: '<#FFC43B>SkinBridge is already processing {player}.</#FFC43B>'
 
 blocks-menu:
-  title: "&6&lEssentialsC &8- &e&lShortcut Menu"
+  title: '<#00FB9A><bold>Shortcut Menu</bold></#00FB9A>'
   items:
     workbench:
-      name: "&eWorkbench"
+      name: '<#00FB9A>Workbench</#00FB9A>'
       lore:
-        - "&7/workbench"
-        - "&7Open a crafting table"
+        - '<gray>/workbench</gray>'
+        - '<gray>Open a crafting table</gray>'
     enderchest:
-      name: "&eEnder Chest"
+      name: '<#00FB9A>Ender Chest</#00FB9A>'
       lore:
-        - "&7/enderchest"
-        - "&7Open your ender chest"
+        - '<gray>/enderchest</gray>'
+        - '<gray>Open your ender chest</gray>'
     anvil:
-      name: "&eAnvil"
+      name: '<#00FB9A>Anvil</#00FB9A>'
       lore:
-        - "&7/anvil"
-        - "&7Open an anvil"
+        - '<gray>/anvil</gray>'
+        - '<gray>Open an anvil</gray>'
     grindstone:
-      name: "&eGrindstone"
+      name: '<#00FB9A>Grindstone</#00FB9A>'
       lore:
-        - "&7/grindstone"
-        - "&7Open a grindstone"
+        - '<gray>/grindstone</gray>'
+        - '<gray>Open a grindstone</gray>'
     smithingtable:
-      name: "&eSmithing Table"
+      name: '<#00FB9A>Smithing Table</#00FB9A>'
       lore:
-        - "&7/smithingtable"
-        - "&7Open a smithing table"
+        - '<gray>/smithingtable</gray>'
+        - '<gray>Open a smithing table</gray>'
     stonecutter:
-      name: "&eStonecutter"
+      name: '<#00FB9A>Stonecutter</#00FB9A>'
       lore:
-        - "&7/stonecutter"
-        - "&7Open a stonecutter"
+        - '<gray>/stonecutter</gray>'
+        - '<gray>Open a stonecutter</gray>'
     loom:
-      name: "&eLoom"
+      name: '<#00FB9A>Loom</#00FB9A>'
       lore:
-        - "&7/loom"
-        - "&7Open a loom"
+        - '<gray>/loom</gray>'
+        - '<gray>Open a loom</gray>'
     cartographytable:
-      name: "&eCartography Table"
+      name: '<#00FB9A>Cartography Table</#00FB9A>'
       lore:
-        - "&7/cartographytable"
-        - "&7Open a cartography table"
+        - '<gray>/cartographytable</gray>'
+        - '<gray>Open a cartography table</gray>'
     nightvision:
-      name: "&bNight Vision"
+      name: '<#00FB9A>Night Vision</#00FB9A>'
       lore:
-        - "&7/nightvision"
-        - "&7Toggle night vision"
+        - '<gray>/nightvision</gray>'
+        - '<gray>Toggle night vision</gray>'
     glow:
-      name: "&eGlow"
+      name: '<#00FB9A>Glow</#00FB9A>'
       lore:
-        - "&7/glow"
-        - "&7Toggle your glowing effect"
+        - '<gray>/glow</gray>'
+        - '<gray>Toggle your glowing effect</gray>'
 
 admin-mode:
-  actionbar: "&c&lAdmin Mode"
+  actionbar: '<#FF7E5E><bold>Admin Mode</bold></#FF7E5E>'
   messages:
-    enabled: "&aAdmin mode enabled, normal inventory has been saved."
-    disabled: "&cAdmin mode disabled, normal inventory has been restored."
-    crash-restored: "&eThe previous admin mode session has been restored safely."
+    enabled: '<#00FB9A>Admin mode enabled; normal inventory has been saved.</#00FB9A>'
+    disabled: '<#FF7E5E>Admin mode disabled; normal inventory has been restored.</#FF7E5E>'
+    crash-restored: '<#FFC43B>The previous admin mode session has been restored safely.</#FFC43B>'
 
 tpsbar:
-  title-format: "&eTPS&7: {tps_1m} &8| &eMSPT&7: {mspt} &8| &ePing&7: {ping}"
+  title-format: '<#00FB9A>TPS</#00FB9A><gray>: {tps_1m} | </gray><#00FB9A>MSPT</#00FB9A><gray>: {mspt} | </gray><#00FB9A>Ping</#00FB9A><gray>: {ping}</gray>'
   messages:
-    enabled-self: "&aTPSBar enabled."
-    disabled-self: "&cTPSBar disabled."
-    enabled-other: "&aEnabled TPSBar for {player}."
-    disabled-other: "&cDisabled TPSBar for {player}."
-    usage: "&cUsage: /tpsbar [player]"
-    player-not-found: "&cPlayer not found: {player}"
-    no-targets: "&cNo matching players were found to toggle."
-    native-detected: "&7Detected a native /tpsbar command on this server, skipped plugin implementation."
-    plugin-enabled: "&7No native /tpsbar command was detected, plugin implementation enabled."
-    plugin-forced-but-native-exists: "&eThe configuration requests the plugin TPSBar, but a native /tpsbar already exists, so the plugin implementation was skipped to avoid conflicts."
-    mode-changed-reload: "&eTPSBar mode has been updated, but command registration changes require a server restart to fully take effect."
+    enabled-self: '<#00FB9A>TPSBar enabled.</#00FB9A>'
+    disabled-self: '<#FF7E5E>TPSBar disabled.</#FF7E5E>'
+    enabled-other: '<#00FB9A>Enabled TPSBar for {player}.</#00FB9A>'
+    disabled-other: '<#FF7E5E>Disabled TPSBar for {player}.</#FF7E5E>'
+    usage: '<#FF3300>Error:</#FF3300> <#FF7E5E>Usage: /tpsbar [player]</#FF7E5E>'
+    player-not-found: '<#FF3300>Error:</#FF3300> <#FF7E5E>Could not find the player {player}.</#FF7E5E>'
+    no-targets: '<#FF3300>Error:</#FF3300> <#FF7E5E>No matching players were found to toggle.</#FF7E5E>'
+    native-detected: '<gray>Detected a native /tpsbar command on this server; skipped plugin implementation.</gray>'
+    plugin-enabled: '<gray>No native /tpsbar command was detected; plugin implementation enabled.</gray>'
+    plugin-forced-but-native-exists: '<#FFC43B>The configuration requests the plugin TPSBar, but a native /tpsbar already exists, so the plugin implementation was skipped to avoid conflicts.</#FFC43B>'
+    mode-changed-reload: '<#FFC43B>TPSBar mode has been updated, but command registration changes require a server restart to fully take effect.</#FFC43B>'
 
 mobdrops-menu:
-  title: "&6&lMob Drop Control"
+  title: '<#00FB9A><bold>Mob Drop Control</bold></#00FB9A>'
   status:
-    enabled: "&aEnabled"
-    disabled: "&cDisabled"
+    enabled: '<#00FB9A>Enabled</#00FB9A>'
+    disabled: '<#FF7E5E>Disabled</#FF7E5E>'
   enderman:
-    name: "&dEnderman Drops"
-    status: "&7Current status: {status}"
-    toggle: "&eClick to toggle"
+    name: '<#00FB9A>Enderman Drops</#00FB9A>'
+    status: '<gray>Current status: {status}</gray>'
+    toggle: '<gray>Click to toggle</gray>'
 
 maintenance:
   status:
-    enabled: "&cEnabled"
-    disabled: "&aDisabled"
+    enabled: '<#FF7E5E>Enabled</#FF7E5E>'
+    disabled: '<#00FB9A>Disabled</#00FB9A>'
   messages:
-    enabled: "&aMaintenance mode enabled."
-    disabled: "&cMaintenance mode disabled."
-    reloaded: "&aMaintenance configuration reloaded."
-    status: "&7Maintenance mode status: {status} &8| &7Whitelist: &f{whitelist_count}"
-    usage: "&cUsage: /maintenance <on|off|status|reload|add|remove|list>"
-    add-usage: "&cUsage: /maintenance add <player|uuid>"
-    remove-usage: "&cUsage: /maintenance remove <player|uuid>"
-    whitelist-added: "&aAdded {player} to the maintenance whitelist."
-    whitelist-removed: "&aRemoved {player} from the maintenance whitelist."
-    whitelist-exists: "&e{player} is already on the maintenance whitelist."
-    whitelist-missing: "&c{player} is not on the maintenance whitelist."
-    whitelist-empty: "&7The maintenance whitelist is empty."
-    whitelist-list: "&7Maintenance whitelist ({count}): &f{entries}"
-    login-blocked: "&e{player} was blocked by maintenance mode. &7UUID: {uuid} &8| &7IP: {address}"
+    enabled: '<#00FB9A>Maintenance mode enabled.</#00FB9A>'
+    disabled: '<#FF7E5E>Maintenance mode disabled.</#FF7E5E>'
+    reloaded: '<#00FB9A>Maintenance configuration reloaded.</#00FB9A>'
+    status: '<gray>Maintenance mode status: {status} | Whitelist: <white>{whitelist_count}</white></gray>'
+    usage: '<#FF3300>Error:</#FF3300> <#FF7E5E>Usage: /maintenance [on|off|status|reload|add|remove|list]</#FF7E5E>'
+    add-usage: '<#FF3300>Error:</#FF3300> <#FF7E5E>Usage: /maintenance add [player|uuid]</#FF7E5E>'
+    remove-usage: '<#FF3300>Error:</#FF3300> <#FF7E5E>Usage: /maintenance remove [player|uuid]</#FF7E5E>'
+    whitelist-added: '<#00FB9A>Added {player} to the maintenance whitelist.</#00FB9A>'
+    whitelist-removed: '<#00FB9A>Removed {player} from the maintenance whitelist.</#00FB9A>'
+    whitelist-exists: '<#FFC43B>{player} is already on the maintenance whitelist.</#FFC43B>'
+    whitelist-missing: '<#FF3300>Error:</#FF3300> <#FF7E5E>{player} is not on the maintenance whitelist.</#FF7E5E>'
+    whitelist-empty: '<gray>The maintenance whitelist is empty.</gray>'
+    whitelist-list: '<gray>Maintenance whitelist ({count}): <white>{entries}</white></gray>'
+    login-blocked: '<#FFC43B>{player} was blocked by maintenance mode.</#FFC43B> <gray>UUID: {uuid} | IP: {address}</gray>'

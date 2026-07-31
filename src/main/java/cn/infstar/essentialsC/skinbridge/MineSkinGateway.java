@@ -89,7 +89,7 @@ public final class MineSkinGateway implements SkinBridgeGateway {
             }
             Thread.sleep(POLL_INTERVAL_MILLIS);
         }
-        throw new IllegalStateException("MineSkin 生成任务超时，请增大 skin-bridge.mineskin.request-timeout-seconds。");
+        throw new IllegalStateException("MineSkin 生成任务超时，请增大 skin-bridge.yml 中的 mineskin.request-timeout-seconds。");
     }
 
     private HttpResponse<String> send(HttpRequest.Builder builder) throws Exception {
