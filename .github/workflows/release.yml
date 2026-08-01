@@ -27,7 +27,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: 配置 Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       - name: 构建插件
         shell: bash

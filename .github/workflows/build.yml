@@ -26,10 +26,10 @@ jobs:
           cache: gradle
 
       - name: 验证 Gradle Wrapper
-        uses: gradle/actions/wrapper-validation@v4
+        uses: gradle/actions/wrapper-validation@v6
 
       - name: 配置 Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       - name: 授予执行权限
         run: chmod +x gradlew
