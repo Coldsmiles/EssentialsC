@@ -40,7 +40,7 @@ jobs:
           ./gradlew clean build --no-daemon -PpluginVersion="$VERSION"
 
       - name: 创建发行版
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: build/libs/EssentialsC*.jar
           generate_release_notes: true
