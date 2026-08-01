@@ -176,8 +176,7 @@ public final class CommandRegistry {
         }
     }
 
-    public static void clearCache() {
-        COMMAND_CACHE.clear();
+    public static void clearInitializationFailures() {
         UNAVAILABLE_COMMANDS.clear();
     }
 

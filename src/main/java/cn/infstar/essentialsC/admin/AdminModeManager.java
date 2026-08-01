@@ -94,9 +94,22 @@ public final class AdminModeManager implements Listener {
         }
 
         saveProfile(player, playerPath + ".admin");
+        if (!saveData()) {
+            activePlayers.add(player.getUniqueId());
+            startActionBarTask();
+            sendLangMessage(player, "admin-mode.messages.save-failed");
+            return;
+        }
         restoreNormalProfile(player);
         data.set(playerPath + ".active", false);
-        saveData();
+        if (!saveData()) {
+            data.set(playerPath + ".active", true);
+            loadProfile(player, playerPath + ".admin");
+            activePlayers.add(player.getUniqueId());
+            startActionBarTask();
+            sendLangMessage(player, "admin-mode.messages.save-failed");
+            return;
+        }
         sendLangMessage(player, "admin-mode.messages.crash-restored");
     }
 
@@ -129,27 +142,43 @@ public final class AdminModeManager implements Listener {
         player.setAllowFlight(true);
         player.setFlying(true);
         player.setFlySpeed(getAdminFlySpeed());
-        saveData();
 
         sendLangMessage(player, "admin-mode.messages.enabled");
         sendActionBar(player);
         startActionBarTask();
     }
 
-    private void disable(Player player, boolean notify) {
+    private boolean disable(Player player, boolean notify) {
         String playerPath = getPlayerPath(player);
         player.closeInventory();
         saveProfile(player, playerPath + ".admin");
+        data.set(playerPath + ".active", true);
+        if (!saveData()) {
+            if (notify) {
+                sendLangMessage(player, "admin-mode.messages.save-failed");
+            }
+            return false;
+        }
         restoreNormalProfile(player);
 
-        activePlayers.remove(player.getUniqueId());
         data.set(playerPath + ".active", false);
-        saveData();
+        if (!saveData()) {
+            data.set(playerPath + ".active", true);
+            loadProfile(player, playerPath + ".admin");
+            activePlayers.add(player.getUniqueId());
+            if (notify) {
+                sendLangMessage(player, "admin-mode.messages.save-failed");
+            }
+            return false;
+        }
+
+        activePlayers.remove(player.getUniqueId());
 
         if (notify) {
             sendLangMessage(player, "admin-mode.messages.disabled");
         }
         stopActionBarTaskIfIdle();
+        return true;
     }
 
     private void restoreNormalProfile(Player player) {

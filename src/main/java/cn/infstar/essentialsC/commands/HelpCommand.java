@@ -21,6 +21,17 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
     }
 
     @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length > 0) {
+            if (sender instanceof Player player) {
+                return handleCommand(sender, player, args);
+            }
+            return executeConsole(sender, args);
+        }
+        return super.onCommand(sender, command, label, args);
+    }
+
+    @Override
     protected boolean execute(Player player, String[] args) {
         return handleCommand(player, player, args);
     }
@@ -36,7 +47,7 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
             EssentialsC.getLangManager().reload();
             plugin.getFeatureConfigManager().reload();
             plugin.getModuleManager().reload();
-            CommandRegistry.clearCache();
+            CommandRegistry.clearInitializationFailures();
             plugin.reloadRuntimeModules();
             sender.sendMessage(getLang().getPrefixedString("messages.config-reloaded"));
             return true;
@@ -58,7 +69,7 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
                 EssentialsC.getLangManager().reload();
                 plugin.getFeatureConfigManager().reload();
                 plugin.getModuleManager().reload();
-                CommandRegistry.clearCache();
+                CommandRegistry.clearInitializationFailures();
                 plugin.reloadRuntimeModules();
                 sender.sendMessage(getLang().getPrefixedString("messages.config-reloaded"));
                 return true;

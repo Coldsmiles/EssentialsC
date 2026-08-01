@@ -22,6 +22,9 @@ import java.util.logging.Logger;
 
 public final class JeiRecipeSyncAdapterImpl implements JeiRecipeSyncAdapter {
 
+    private DiscardedPayload fabricPayloadCache;
+    private DiscardedPayload neoForgePayloadCache;
+
     @Override
     @SuppressWarnings({"unchecked", "deprecation"})
     public void sendFabricRecipeSync(Player player, Logger logger, boolean debug) {
@@ -31,6 +34,10 @@ public final class JeiRecipeSyncAdapterImpl implements JeiRecipeSyncAdapter {
             if (debug) {
                 logger.warning("服务端实例为 null");
             }
+            return;
+        }
+        if (fabricPayloadCache != null) {
+            serverPlayer.connection.send(new ClientboundCustomPayloadPacket(fabricPayloadCache));
             return;
         }
 
@@ -66,13 +73,18 @@ public final class JeiRecipeSyncAdapterImpl implements JeiRecipeSyncAdapter {
         }
 
         RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), server.registryAccess());
-        getFabricCodec().encode(buffer, payload);
-
-        byte[] bytes = new byte[buffer.writerIndex()];
-        buffer.getBytes(0, bytes);
+        byte[] bytes;
+        try {
+            getFabricCodec().encode(buffer, payload);
+            bytes = new byte[buffer.writerIndex()];
+            buffer.getBytes(0, bytes);
+        } finally {
+            buffer.release();
+        }
 
         Identifier id = Identifier.fromNamespaceAndPath("fabric", "recipe_sync");
         DiscardedPayload discardedPayload = new DiscardedPayload(id, bytes);
+        fabricPayloadCache = discardedPayload;
         serverPlayer.connection.send(new ClientboundCustomPayloadPacket(discardedPayload));
 
         if (debug) {
@@ -91,6 +103,11 @@ public final class JeiRecipeSyncAdapterImpl implements JeiRecipeSyncAdapter {
             }
             return;
         }
+        if (neoForgePayloadCache != null) {
+            serverPlayer.connection.send(new ClientboundCustomPayloadPacket(neoForgePayloadCache));
+            sendTags(serverPlayer, server);
+            return;
+        }
 
         RecipeMap recipeMap = server.getRecipeManager().recipes;
         if (debug) {
@@ -105,21 +122,36 @@ public final class JeiRecipeSyncAdapterImpl implements JeiRecipeSyncAdapter {
 
         var payload = createNeoForgePayload(allRecipeTypes, recipeMap);
         RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), server.registryAccess());
-        getNeoForgeStreamCodec().encode(buffer, payload);
-
-        byte[] bytes = new byte[buffer.writerIndex()];
-        buffer.getBytes(0, bytes);
+        byte[] bytes;
+        try {
+            getNeoForgeStreamCodec().encode(buffer, payload);
+            bytes = new byte[buffer.writerIndex()];
+            buffer.getBytes(0, bytes);
+        } finally {
+            buffer.release();
+        }
 
         Identifier id = Identifier.fromNamespaceAndPath("neoforge", "recipe_content");
         DiscardedPayload discardedPayload = new DiscardedPayload(id, bytes);
+        neoForgePayloadCache = discardedPayload;
         serverPlayer.connection.send(new ClientboundCustomPayloadPacket(discardedPayload));
-        serverPlayer.connection.send(new net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket(
-            net.minecraft.tags.TagNetworkSerialization.serializeTagsToNetwork(server.registries())
-        ));
+        sendTags(serverPlayer, server);
 
         if (debug) {
             logger.info("已发送 NeoForge 配方同步 [" + id + "], 大小: " + bytes.length + " bytes");
         }
+    }
+
+    @Override
+    public void clearCache() {
+        fabricPayloadCache = null;
+        neoForgePayloadCache = null;
+    }
+
+    private void sendTags(ServerPlayer serverPlayer, MinecraftServer server) {
+        serverPlayer.connection.send(new net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket(
+            net.minecraft.tags.TagNetworkSerialization.serializeTagsToNetwork(server.registries())
+        ));
     }
 
     @SuppressWarnings({"unchecked", "deprecation"})

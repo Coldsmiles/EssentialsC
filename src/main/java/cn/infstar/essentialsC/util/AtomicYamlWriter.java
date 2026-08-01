@@ -22,7 +22,11 @@ public final class AtomicYamlWriter {
             Files.createDirectories(parent);
         }
 
-        Path temporary = Files.createTempFile(parent, targetFile.getName(), ".tmp");
+        String temporaryPrefix = targetFile.getName();
+        if (temporaryPrefix.length() < 3) {
+            temporaryPrefix = (temporaryPrefix + "___").substring(0, 3);
+        }
+        Path temporary = Files.createTempFile(parent, temporaryPrefix, ".tmp");
         try {
             Files.writeString(temporary, configuration.saveToString(), StandardCharsets.UTF_8);
             try {

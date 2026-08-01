@@ -9,4 +9,6 @@ public interface JeiRecipeSyncAdapter {
     void sendFabricRecipeSync(Player player, Logger logger, boolean debug) throws Exception;
 
     void sendNeoForgeRecipeSync(Player player, Logger logger, boolean debug) throws Exception;
+
+    void clearCache();
 }

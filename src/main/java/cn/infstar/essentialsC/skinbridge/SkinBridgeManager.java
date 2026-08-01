@@ -16,6 +16,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 import java.net.URI;
@@ -37,6 +38,9 @@ import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -55,8 +59,11 @@ public final class SkinBridgeManager implements Listener {
     private final ConcurrentMap<UUID, CachedLookup> cache = new ConcurrentHashMap<>();
     private final ConcurrentMap<SkinCacheKey, GeneratedCacheEntry> generatedSkinCache = new ConcurrentHashMap<>();
     private final ConcurrentMap<UUID, Long> pendingLookups = new ConcurrentHashMap<>();
+    private final ConcurrentMap<UUID, BukkitRunnable> scheduledLookups = new ConcurrentHashMap<>();
+    private final ConcurrentMap<LookupKey, Future<?>> runningLookups = new ConcurrentHashMap<>();
     private final ConcurrentMap<UUID, Long> forceRefreshCooldowns = new ConcurrentHashMap<>();
     private final ConcurrentMap<UUID, String> loginSkinUrls = new ConcurrentHashMap<>();
+    private final ConcurrentMap<SkinCacheKey, CompletableFuture<GeneratedSkin>> pendingGenerations = new ConcurrentHashMap<>();
     private final AtomicLong configurationGeneration = new AtomicLong();
 
     private volatile List<SkinProvider> providers = List.of();
@@ -66,6 +73,7 @@ public final class SkinBridgeManager implements Listener {
     private volatile boolean logDetectionResults;
     private volatile int requestTimeoutSeconds;
     private volatile int cacheMinutes;
+    private volatile int maxGeneratedCacheEntries;
     private volatile int forceRefreshCooldownSeconds;
     private volatile boolean requireCurrentTextureMatch;
     private volatile long joinDelayTicks;
@@ -94,6 +102,10 @@ public final class SkinBridgeManager implements Listener {
 
     public void reload() {
         configurationGeneration.incrementAndGet();
+        cancelScheduledLookups();
+        cancelRunningLookups();
+        pendingLookups.clear();
+        pendingGenerations.clear();
         FileConfiguration config = plugin.getConfig();
 
         debug = plugin.getConfig().getBoolean("debug", false);
@@ -107,6 +119,7 @@ public final class SkinBridgeManager implements Listener {
         long minimumSubmitIntervalMillis = clamp(
             config.getLong("skin-bridge.mineskin.minimum-submit-interval-millis", 1000L), 0L, 10000L);
         cacheMinutes = clamp(config.getInt("skin-bridge.cache-minutes", 120), 5, 10080);
+        maxGeneratedCacheEntries = clamp(config.getInt("skin-bridge.max-generated-cache-entries", 500), 10, 10_000);
         forceRefreshCooldownSeconds = clamp(config.getInt("skin-bridge.force-refresh-cooldown-seconds", 30), 0, 3600);
         requireCurrentTextureMatch = config.getBoolean("skin-bridge.require-current-texture-match", true);
         joinDelayTicks = clamp(config.getLong("skin-bridge.join-delay-ticks", 20L), 0, 200);
@@ -124,11 +137,14 @@ public final class SkinBridgeManager implements Listener {
 
     public void shutdown() {
         configurationGeneration.incrementAndGet();
+        cancelScheduledLookups();
+        cancelRunningLookups();
         executor.shutdownNow();
         saveGeneratedSkinCache();
         cache.clear();
         generatedSkinCache.clear();
         pendingLookups.clear();
+        pendingGenerations.clear();
         forceRefreshCooldowns.clear();
         loginSkinUrls.clear();
     }
@@ -145,7 +161,11 @@ public final class SkinBridgeManager implements Listener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        loginSkinUrls.remove(event.getPlayer().getUniqueId());
+        UUID playerId = event.getPlayer().getUniqueId();
+        loginSkinUrls.remove(playerId);
+        pendingLookups.remove(playerId);
+        cancelScheduledLookup(playerId);
+        cancelRunningLookup(playerId);
     }
 
     public SyncResult queueSync(Player player, boolean force) {
@@ -200,8 +220,18 @@ public final class SkinBridgeManager implements Listener {
         String loginSkinUrl = loginSkinUrls.computeIfAbsent(playerId,
             ignored -> getCurrentSkinUrl(player).orElse(""));
         String currentSkinUrl = loginSkinUrl.isEmpty() ? null : loginSkinUrl;
-        Bukkit.getScheduler().runTaskLater(plugin,
-            () -> startLookup(playerId, playerName, currentSkinUrl, lookupGeneration), joinDelayTicks);
+        BukkitRunnable scheduledLookup = new BukkitRunnable() {
+            @Override
+            public void run() {
+                scheduledLookups.remove(playerId, this);
+                startLookup(playerId, playerName, currentSkinUrl, lookupGeneration);
+            }
+        };
+        BukkitRunnable previousLookup = scheduledLookups.put(playerId, scheduledLookup);
+        if (previousLookup != null) {
+            previousLookup.cancel();
+        }
+        scheduledLookup.runTaskLater(plugin, joinDelayTicks);
         sendPlayerNotification(playerId, "skin-bridge.notifications.detecting", Map.of());
         return SyncResult.QUEUED;
     }
@@ -241,15 +271,18 @@ public final class SkinBridgeManager implements Listener {
     }
 
     private void startLookup(UUID playerId, String playerName, String currentSkinUrl, long lookupGeneration) {
-        if (executor.isShutdown() || lookupGeneration != configurationGeneration.get()) {
+        Player player = Bukkit.getPlayer(playerId);
+        if (executor.isShutdown() || lookupGeneration != configurationGeneration.get()
+            || !isLookupActive(playerId, lookupGeneration) || player == null || !player.isOnline()) {
             pendingLookups.remove(playerId, lookupGeneration);
             return;
         }
+        LookupKey lookupKey = new LookupKey(playerId, lookupGeneration);
         try {
-            executor.execute(() -> {
+            Future<?> lookupTask = executor.submit(() -> {
                 try {
                     CachedLookup resolved = resolve(playerId, playerName, currentSkinUrl);
-                    if (lookupGeneration != configurationGeneration.get()) {
+                    if (lookupGeneration != configurationGeneration.get() || !isLookupActive(playerId, lookupGeneration)) {
                         return;
                     }
                     cache.put(playerId, resolved);
@@ -262,6 +295,9 @@ public final class SkinBridgeManager implements Listener {
                         }
                     }
                 } catch (Exception exception) {
+                    if (!isLookupActive(playerId, lookupGeneration) || exception instanceof InterruptedException) {
+                        return;
+                    }
                     plugin.getLogger().warning("SkinBridge 查询 " + playerName + " 的皮肤资料失败: " + exception.getMessage());
                     sendPlayerNotification(playerId, "skin-bridge.notifications.failed", Map.of());
                     if (debug) {
@@ -269,8 +305,15 @@ public final class SkinBridgeManager implements Listener {
                     }
                 } finally {
                     pendingLookups.remove(playerId, lookupGeneration);
+                    runningLookups.remove(lookupKey);
                 }
             });
+            runningLookups.put(lookupKey, lookupTask);
+            if (!isLookupActive(playerId, lookupGeneration)) {
+                runningLookups.remove(lookupKey, lookupTask);
+                lookupTask.cancel(true);
+                executor.purge();
+            }
         } catch (RejectedExecutionException exception) {
             pendingLookups.remove(playerId, lookupGeneration);
             plugin.getLogger().warning("SkinBridge 查询队列拒绝了玩家任务: " + playerName);
@@ -325,17 +368,7 @@ public final class SkinBridgeManager implements Listener {
                 plugin.getLogger().info("SkinBridge 已识别玩家 " + playerName + " 的皮肤来源: " + provider.name());
             }
             SkinCacheKey cacheKey = new SkinCacheKey(matchedProfile.skinUrl(), matchedProfile.model());
-            GeneratedCacheEntry generatedEntry = generatedSkinCache.get(cacheKey);
-            GeneratedSkin generatedSkin;
-            if (generatedEntry != null && !generatedEntry.hasExpired()) {
-                generatedSkin = generatedEntry.skin();
-            } else {
-                generatedSkinCache.remove(cacheKey);
-                generatedSkin = currentGateway.generateSkin(matchedProfile.skinUrl(), matchedProfile.model());
-                generatedSkinCache.put(cacheKey, new GeneratedCacheEntry(generatedSkin,
-                    System.currentTimeMillis() + Duration.ofMinutes(cacheMinutes).toMillis()));
-                saveGeneratedSkinCache();
-            }
+            GeneratedSkin generatedSkin = getOrGenerateSkin(cacheKey, currentGateway);
             return cached(provider.name(), generatedSkin, State.EXTERNAL);
         }
 
@@ -472,12 +505,14 @@ public final class SkinBridgeManager implements Listener {
                 plugin.getLogger().warning("忽略无效的 SkinBridge 缓存记录: " + id);
             }
         }
+        trimGeneratedSkinCache();
     }
 
     private synchronized void saveGeneratedSkinCache() {
         FileConfiguration config = new YamlConfiguration();
         long now = System.currentTimeMillis();
         generatedSkinCache.entrySet().removeIf(entry -> entry.getValue().expiresAtMillis() <= now);
+        trimGeneratedSkinCache();
         generatedSkinCache.forEach((key, entry) -> {
             String path = "entries." + cacheId(key);
             config.set(path + ".skin-url", key.skinUrl());
@@ -501,6 +536,111 @@ public final class SkinBridgeManager implements Listener {
         } catch (NoSuchAlgorithmException exception) {
             throw new IllegalStateException("当前 Java 环境不支持 SHA-256。", exception);
         }
+    }
+
+    private GeneratedSkin getOrGenerateSkin(SkinCacheKey cacheKey, SkinBridgeGateway currentGateway) throws Exception {
+        GeneratedCacheEntry cachedEntry = generatedSkinCache.get(cacheKey);
+        if (cachedEntry != null && !cachedEntry.hasExpired()) {
+            return cachedEntry.skin();
+        }
+        if (cachedEntry != null) {
+            generatedSkinCache.remove(cacheKey, cachedEntry);
+        }
+
+        CompletableFuture<GeneratedSkin> created = new CompletableFuture<>();
+        CompletableFuture<GeneratedSkin> running = pendingGenerations.putIfAbsent(cacheKey, created);
+        if (running != null) {
+            return awaitGeneratedSkin(running);
+        }
+
+        try {
+            GeneratedSkin generated = currentGateway.generateSkin(cacheKey.skinUrl(), cacheKey.model());
+            cacheGeneratedSkin(cacheKey, generated);
+            created.complete(generated);
+            return generated;
+        } catch (Exception exception) {
+            created.completeExceptionally(exception);
+            throw exception;
+        } catch (Error error) {
+            created.completeExceptionally(error);
+            throw error;
+        } finally {
+            pendingGenerations.remove(cacheKey, created);
+        }
+    }
+
+    private GeneratedSkin awaitGeneratedSkin(CompletableFuture<GeneratedSkin> running) throws Exception {
+        try {
+            return running.get();
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            throw exception;
+        } catch (ExecutionException exception) {
+            Throwable cause = exception.getCause();
+            if (cause instanceof Exception nested) {
+                throw nested;
+            }
+            if (cause instanceof Error error) {
+                throw error;
+            }
+            throw new IllegalStateException("MineSkin 生成任务失败。", cause);
+        }
+    }
+
+    private synchronized void cacheGeneratedSkin(SkinCacheKey cacheKey, GeneratedSkin generatedSkin) {
+        generatedSkinCache.put(cacheKey, new GeneratedCacheEntry(generatedSkin,
+            System.currentTimeMillis() + Duration.ofMinutes(cacheMinutes).toMillis()));
+        trimGeneratedSkinCache();
+        saveGeneratedSkinCache();
+    }
+
+    private void trimGeneratedSkinCache() {
+        long now = System.currentTimeMillis();
+        generatedSkinCache.entrySet().removeIf(entry -> entry.getValue().expiresAtMillis() <= now);
+        int excessEntries = generatedSkinCache.size() - maxGeneratedCacheEntries;
+        if (excessEntries <= 0) {
+            return;
+        }
+        generatedSkinCache.entrySet().stream()
+            .sorted(Comparator.comparingLong(entry -> entry.getValue().expiresAtMillis()))
+            .limit(excessEntries)
+            .map(Map.Entry::getKey)
+            .forEach(generatedSkinCache::remove);
+    }
+
+    private boolean isLookupActive(UUID playerId, long lookupGeneration) {
+        return Long.valueOf(lookupGeneration).equals(pendingLookups.get(playerId));
+    }
+
+    private void cancelScheduledLookup(UUID playerId) {
+        BukkitRunnable scheduledLookup = scheduledLookups.remove(playerId);
+        if (scheduledLookup != null) {
+            scheduledLookup.cancel();
+        }
+    }
+
+    private void cancelScheduledLookups() {
+        for (UUID playerId : List.copyOf(scheduledLookups.keySet())) {
+            cancelScheduledLookup(playerId);
+        }
+    }
+
+    private void cancelRunningLookup(UUID playerId) {
+        runningLookups.forEach((lookupKey, lookupTask) -> {
+            if (lookupKey.playerId().equals(playerId) && runningLookups.remove(lookupKey, lookupTask)) {
+                lookupTask.cancel(true);
+            }
+        });
+        executor.purge();
+    }
+
+    private void cancelRunningLookups() {
+        runningLookups.forEach((lookupKey, lookupTask) -> {
+            if (runningLookups.remove(lookupKey, lookupTask)) {
+                lookupTask.cancel(true);
+            }
+        });
+        executor.purge();
     }
 
     private List<SkinProvider> loadProviders(FileConfiguration config) {
@@ -653,6 +793,9 @@ public final class SkinBridgeManager implements Listener {
     }
 
     private record SkinCacheKey(String skinUrl, SkinModel model) {
+    }
+
+    private record LookupKey(UUID playerId, long generation) {
     }
 
     private record GeneratedCacheEntry(GeneratedSkin skin, long expiresAtMillis) {
