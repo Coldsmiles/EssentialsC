@@ -27,14 +27,23 @@ public class VanishCommand extends BaseCommand {
 
         if (vanishedPlayers.contains(uuid)) {
             vanishedPlayers.remove(uuid);
+            if (!saveState(plugin)) {
+                vanishedPlayers.add(uuid);
+                player.sendMessage(getLang().getPrefixedString("messages.vanish-save-failed"));
+                return true;
+            }
             showPlayerToAll(plugin, player);
             player.sendMessage(getLang().getPrefixedString("messages.vanish-disabled"));
         } else {
             vanishedPlayers.add(uuid);
+            if (!saveState(plugin)) {
+                vanishedPlayers.remove(uuid);
+                player.sendMessage(getLang().getPrefixedString("messages.vanish-save-failed"));
+                return true;
+            }
             hidePlayerFromAll(plugin, player);
             player.sendMessage(getLang().getPrefixedString("messages.vanish-enabled"));
         }
-        saveState(plugin);
         return true;
     }
 
@@ -111,7 +120,7 @@ public class VanishCommand extends BaseCommand {
         return vanishedPlayers.contains(player.getUniqueId());
     }
 
-    private static void saveState(EssentialsC plugin) {
+    private static boolean saveState(EssentialsC plugin) {
         if (stateFile == null) {
             stateFile = new File(plugin.getDataFolder(), "vanished-players.yml");
         }
@@ -119,8 +128,10 @@ public class VanishCommand extends BaseCommand {
         state.set("players", vanishedPlayers.stream().map(UUID::toString).sorted().toList());
         try {
             AtomicYamlWriter.save(state, stateFile);
+            return true;
         } catch (Exception exception) {
             plugin.getLogger().warning("保存 vanished-players.yml 失败: " + exception.getMessage());
+            return false;
         }
     }
 }

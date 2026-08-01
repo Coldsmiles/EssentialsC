@@ -80,6 +80,9 @@ public final class EssentialsC extends JavaPlugin {
         if (skinBridgeManager != null) {
             skinBridgeManager.shutdown();
         }
+        if (shulkerBoxListener != null) {
+            shulkerBoxListener.shutdown();
+        }
         if (vanishListener != null) {
             vanishListener.shutdown();
         }
@@ -225,6 +228,7 @@ public final class EssentialsC extends JavaPlugin {
     private void refreshBlocks() {
         if (!moduleManager.isEnabled(ModuleManager.BLOCKS)) {
             if (shulkerBoxListener != null) {
+                shulkerBoxListener.shutdown();
                 HandlerList.unregisterAll(shulkerBoxListener);
                 shulkerBoxListener = null;
             }
@@ -418,6 +422,11 @@ public final class EssentialsC extends JavaPlugin {
                 return completer.onTabComplete(commandSourceStack.getSender(), commandAdapter, name, args);
             }
             return List.of();
+        }
+
+        @Override
+        public String permission() {
+            return "essentialsc".equals(name) ? null : executor.getPermission();
         }
     }
 }

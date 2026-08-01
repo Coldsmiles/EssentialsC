@@ -41,12 +41,18 @@ public class MaintenanceCommand extends BaseCommand implements TabCompleter {
 
         switch (args[0].toLowerCase(Locale.ROOT)) {
             case "on", "enable", "enabled" -> {
-                maintenanceManager.setEnabled(true);
+                if (maintenanceManager.setEnabled(true) == MaintenanceManager.OperationResult.SAVE_FAILED) {
+                    sendSaveFailed(sender);
+                    return true;
+                }
                 sender.sendMessage(getLang().getPrefixedString("maintenance.messages.enabled"));
                 return true;
             }
             case "off", "disable", "disabled" -> {
-                maintenanceManager.setEnabled(false);
+                if (maintenanceManager.setEnabled(false) == MaintenanceManager.OperationResult.SAVE_FAILED) {
+                    sendSaveFailed(sender);
+                    return true;
+                }
                 sender.sendMessage(getLang().getPrefixedString("maintenance.messages.disabled"));
                 return true;
             }
@@ -62,7 +68,10 @@ public class MaintenanceCommand extends BaseCommand implements TabCompleter {
                 }
 
                 String target = args[1];
-                if (maintenanceManager.addWhitelistEntry(target)) {
+                MaintenanceManager.OperationResult result = maintenanceManager.addWhitelistEntry(target);
+                if (result == MaintenanceManager.OperationResult.SAVE_FAILED) {
+                    sendSaveFailed(sender);
+                } else if (result == MaintenanceManager.OperationResult.SUCCESS) {
                     sender.sendMessage(getLang().getPrefixedString("maintenance.messages.whitelist-added",
                         Map.of("player", target)));
                 } else {
@@ -78,7 +87,10 @@ public class MaintenanceCommand extends BaseCommand implements TabCompleter {
                 }
 
                 String target = args[1];
-                if (maintenanceManager.removeWhitelistEntry(target)) {
+                MaintenanceManager.OperationResult result = maintenanceManager.removeWhitelistEntry(target);
+                if (result == MaintenanceManager.OperationResult.SAVE_FAILED) {
+                    sendSaveFailed(sender);
+                } else if (result == MaintenanceManager.OperationResult.SUCCESS) {
                     sender.sendMessage(getLang().getPrefixedString("maintenance.messages.whitelist-removed",
                         Map.of("player", target)));
                 } else {
@@ -121,6 +133,10 @@ public class MaintenanceCommand extends BaseCommand implements TabCompleter {
                 "count", String.valueOf(entries.size()),
                 "entries", String.join(", ", entries)
             )));
+    }
+
+    private void sendSaveFailed(CommandSender sender) {
+        sender.sendMessage(getLang().getPrefixedString("maintenance.messages.save-failed"));
     }
 
     @Override

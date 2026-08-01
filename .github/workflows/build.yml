@@ -28,7 +28,11 @@ jobs:
       - name: 验证 Gradle Wrapper
         uses: gradle/actions/wrapper-validation@v4
 
-      - name: 构建插件
+      - name: 配置 Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          arguments: clean build
+
+      - name: 授予执行权限
+        run: chmod +x gradlew
+
+      - name: 构建插件
+        run: ./gradlew clean build --no-daemon

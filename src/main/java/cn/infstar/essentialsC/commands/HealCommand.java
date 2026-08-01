@@ -1,6 +1,8 @@
 package cn.infstar.essentialsC.commands;
 
 import org.bukkit.Bukkit;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Player;
 
 import java.util.Map;
@@ -37,7 +39,8 @@ public class HealCommand extends BaseCommand {
     }
 
     private void healPlayer(Player player) {
-        player.setHealth(player.getMaxHealth());
+        AttributeInstance maxHealth = player.getAttribute(Attribute.MAX_HEALTH);
+        player.setHealth(maxHealth == null ? player.getHealth() : maxHealth.getValue());
         player.setFoodLevel(20);
         player.setSaturation(20f);
         player.clearActivePotionEffects();

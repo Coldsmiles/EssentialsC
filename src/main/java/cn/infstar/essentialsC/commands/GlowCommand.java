@@ -54,6 +54,11 @@ public class GlowCommand extends BaseCommand {
 
     private boolean isPluginGlowEnabled(Player player) {
         Byte value = player.getPersistentDataContainer().get(enabledKey, PersistentDataType.BYTE);
-        return value != null && value == (byte) 1;
+        boolean enabled = value != null && value == (byte) 1;
+        if (enabled && !player.isGlowing()) {
+            player.getPersistentDataContainer().remove(enabledKey);
+            return false;
+        }
+        return enabled;
     }
 }

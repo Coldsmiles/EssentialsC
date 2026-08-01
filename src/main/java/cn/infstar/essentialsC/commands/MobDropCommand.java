@@ -8,6 +8,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.util.List;
 import java.util.Map;
@@ -52,12 +54,12 @@ public class MobDropCommand extends BaseCommand {
         ItemStack endermanItem = new ItemStack(Material.ENDER_PEARL);
         ItemMeta endermanMeta = endermanItem.getItemMeta();
         if (endermanMeta != null) {
-            endermanMeta.setDisplayName(lang.getString("mobdrops-menu.enderman.name"));
-            endermanMeta.setLore(List.of(
+            endermanMeta.displayName(legacyComponent(lang.getString("mobdrops-menu.enderman.name")));
+            endermanMeta.lore(List.of(
                 lang.getString("mobdrops-menu.enderman.status", Map.of("status", status)),
                 "",
                 lang.getString("mobdrops-menu.enderman.toggle")
-            ));
+            ).stream().map(MobDropCommand::legacyComponent).toList());
             endermanItem.setItemMeta(endermanMeta);
         }
         menu.setItem(ENDERMAN_SLOT, endermanItem);
@@ -65,7 +67,7 @@ public class MobDropCommand extends BaseCommand {
         ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemMeta glassMeta = glass.getItemMeta();
         if (glassMeta != null) {
-            glassMeta.setDisplayName(" ");
+            glassMeta.displayName(Component.text(" "));
             glass.setItemMeta(glassMeta);
         }
 
@@ -80,6 +82,10 @@ public class MobDropCommand extends BaseCommand {
 
     public static int getEndermanSlot() {
         return ENDERMAN_SLOT;
+    }
+
+    private static Component legacyComponent(String text) {
+        return LegacyComponentSerializer.legacySection().deserialize(text == null ? "" : text);
     }
 
     private void openMobDropMenu(Player player) {

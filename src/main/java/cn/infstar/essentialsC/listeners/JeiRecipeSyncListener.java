@@ -2,6 +2,7 @@ package cn.infstar.essentialsC.listeners;
 
 import cn.infstar.essentialsC.EssentialsC;
 import cn.infstar.essentialsC.compat.jei.JeiRecipeSyncAdapter;
+import io.papermc.paper.event.server.ServerResourcesReloadedEvent;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -50,6 +51,13 @@ public class JeiRecipeSyncListener implements Listener {
 
         Player player = event.getPlayer();
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> detectAndSync(player), brandCheckDelayTicks);
+    }
+
+    @EventHandler
+    public void onServerResourcesReloaded(ServerResourcesReloadedEvent event) {
+        if (adapter != null) {
+            adapter.clearCache();
+        }
     }
 
     private void detectAndSync(Player player) {

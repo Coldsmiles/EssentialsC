@@ -10,6 +10,7 @@ import org.bukkit.boss.BossBar;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -67,13 +68,21 @@ public final class MaintenanceManager {
         return config.getBoolean("enabled", false);
     }
 
-    public void setEnabled(boolean enabled) {
+    public OperationResult setEnabled(boolean enabled) {
+        if (isEnabled() == enabled) {
+            return OperationResult.UNCHANGED;
+        }
+        boolean previous = isEnabled();
         config.set("enabled", enabled);
-        save();
+        if (!save()) {
+            config.set("enabled", previous);
+            return OperationResult.SAVE_FAILED;
+        }
         refreshBossBar();
         if (enabled) {
             kickUnauthorizedPlayers();
         }
+        return OperationResult.SUCCESS;
     }
 
     public String getBypassPermission() {
@@ -105,10 +114,10 @@ public final class MaintenanceManager {
             || getWhitelistNames().contains(normalizeName(player.getName()));
     }
 
-    public boolean addWhitelistEntry(String input) {
+    public OperationResult addWhitelistEntry(String input) {
         String normalized = normalizeEntry(input);
         if (normalized.isEmpty()) {
-            return false;
+            return OperationResult.UNCHANGED;
         }
 
         UUID uuid = parseUuid(normalized);
@@ -124,10 +133,10 @@ public final class MaintenanceManager {
         return addWhitelistName(input);
     }
 
-    public boolean removeWhitelistEntry(String input) {
+    public OperationResult removeWhitelistEntry(String input) {
         String normalized = normalizeEntry(input);
         if (normalized.isEmpty()) {
-            return false;
+            return OperationResult.UNCHANGED;
         }
 
         UUID uuid = parseUuid(normalized);
@@ -136,8 +145,11 @@ public final class MaintenanceManager {
         }
 
         Player onlinePlayer = Bukkit.getPlayerExact(normalized);
-        if (onlinePlayer != null && removeWhitelistUuid(onlinePlayer.getUniqueId().toString())) {
-            return true;
+        if (onlinePlayer != null) {
+            OperationResult uuidResult = removeWhitelistUuid(onlinePlayer.getUniqueId().toString());
+            if (uuidResult != OperationResult.UNCHANGED) {
+                return uuidResult;
+            }
         }
 
         return removeWhitelistName(input);
@@ -202,7 +214,7 @@ public final class MaintenanceManager {
         String message = getKickMessage();
         for (Player player : List.copyOf(plugin.getServer().getOnlinePlayers())) {
             if (!canJoin(player)) {
-                player.kickPlayer(message);
+                player.kick(LegacyComponentSerializer.legacySection().deserialize(message));
             }
         }
     }
@@ -248,27 +260,28 @@ public final class MaintenanceManager {
         return Math.max(0.0D, Math.min(1.0D, progress));
     }
 
-    private boolean addWhitelistUuid(String uuid) {
+    private OperationResult addWhitelistUuid(String uuid) {
         return updateWhitelist("whitelist.uuids", uuid.toLowerCase(Locale.ROOT), true);
     }
 
-    private boolean addWhitelistName(String name) {
+    private OperationResult addWhitelistName(String name) {
         return updateWhitelist("whitelist.names", normalizeName(name), true);
     }
 
-    private boolean removeWhitelistUuid(String uuid) {
+    private OperationResult removeWhitelistUuid(String uuid) {
         return updateWhitelist("whitelist.uuids", uuid.toLowerCase(Locale.ROOT), false);
     }
 
-    private boolean removeWhitelistName(String name) {
+    private OperationResult removeWhitelistName(String name) {
         return updateWhitelist("whitelist.names", normalizeName(name), false);
     }
 
-    private boolean updateWhitelist(String path, String value, boolean add) {
+    private OperationResult updateWhitelist(String path, String value, boolean add) {
         if (value == null || value.isBlank()) {
-            return false;
+            return OperationResult.UNCHANGED;
         }
 
+        List<String> previousEntries = new ArrayList<>(config.getStringList(path));
         Set<String> entries = path.endsWith(".names") ? getWhitelistNames() : getWhitelistUuids();
         boolean changed;
         if (add) {
@@ -277,15 +290,20 @@ public final class MaintenanceManager {
             changed = entries.remove(value);
         }
 
-        if (changed) {
-            config.set(path, new ArrayList<>(entries));
-            save();
-            refreshBossBar();
-            if (isEnabled()) {
-                kickUnauthorizedPlayers();
-            }
+        if (!changed) {
+            return OperationResult.UNCHANGED;
         }
-        return changed;
+
+        config.set(path, new ArrayList<>(entries));
+        if (!save()) {
+            config.set(path, previousEntries);
+            return OperationResult.SAVE_FAILED;
+        }
+        refreshBossBar();
+        if (isEnabled()) {
+            kickUnauthorizedPlayers();
+        }
+        return OperationResult.SUCCESS;
     }
 
     private Set<String> getWhitelistUuids() {
@@ -340,11 +358,19 @@ public final class MaintenanceManager {
         return ChatColor.translateAlternateColorCodes('&', text == null ? "" : text);
     }
 
-    private void save() {
+    private boolean save() {
         try {
             AtomicYamlWriter.save(config, configFile);
+            return true;
         } catch (Exception e) {
             plugin.getLogger().warning("保存 maintenance.yml 失败: " + e.getMessage());
+            return false;
         }
+    }
+
+    public enum OperationResult {
+        SUCCESS,
+        UNCHANGED,
+        SAVE_FAILED
     }
 }

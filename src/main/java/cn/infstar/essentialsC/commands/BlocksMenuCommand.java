@@ -1,7 +1,6 @@
 package cn.infstar.essentialsC.commands;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
@@ -16,6 +15,8 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,8 +26,6 @@ public class BlocksMenuCommand extends BaseCommand implements Listener {
 
     private static final int MENU_SIZE = 36;
     private static final int[] DIVIDER_SLOTS = {4, 13, 22, 31};
-    private static boolean listenerRegistered = false;
-
     private final NamespacedKey blockKey;
 
     private static final class BlocksMenuHolder implements InventoryHolder {
@@ -45,10 +44,7 @@ public class BlocksMenuCommand extends BaseCommand implements Listener {
     public BlocksMenuCommand() {
         super("essentialsc.command.blocks");
         addConfigDefaults();
-        if (!listenerRegistered) {
-            plugin.getServer().getPluginManager().registerEvents(this, plugin);
-            listenerRegistered = true;
-        }
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.blockKey = new NamespacedKey(plugin, "block_key");
     }
 
@@ -170,8 +166,10 @@ public class BlocksMenuCommand extends BaseCommand implements Listener {
         ItemStack item = new ItemStack(menuItem.material());
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(menuItem.name());
-            meta.setLore(menuItem.lore().isEmpty() ? null : menuItem.lore());
+            meta.displayName(legacyComponent(menuItem.name()));
+            meta.lore(menuItem.lore().isEmpty() ? null : menuItem.lore().stream()
+                .map(this::legacyComponent)
+                .toList());
             if (menuItem.commandKey() != null && !menuItem.commandKey().isBlank()) {
                 meta.getPersistentDataContainer().set(blockKey, PersistentDataType.STRING, menuItem.commandKey());
             }
@@ -184,7 +182,7 @@ public class BlocksMenuCommand extends BaseCommand implements Listener {
         ItemStack divider = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
         ItemMeta meta = divider.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(" ");
+            meta.displayName(Component.text(" "));
             divider.setItemMeta(meta);
         }
 
@@ -250,8 +248,8 @@ public class BlocksMenuCommand extends BaseCommand implements Listener {
         }
     }
 
-    private String translateColor(String text) {
-        return text == null ? "" : ChatColor.translateAlternateColorCodes('&', text);
+    private Component legacyComponent(String text) {
+        return LegacyComponentSerializer.legacySection().deserialize(text == null ? "" : text);
     }
 
     private void addConfigDefaults() {

@@ -79,6 +79,8 @@ skin-bridge:
   join-delay-ticks: 20
   # 检测结果与生成皮肤的内存缓存时间，单位为分钟。
   cache-minutes: 120
+  # 持久化 MineSkin 纹理缓存的最大条目数，超出时优先清理最早过期的记录。
+  max-generated-cache-entries: 500
   # 强制刷新同一玩家皮肤的冷却时间，单位为秒。
   force-refresh-cooldown-seconds: 30
   # 仅当 Provider 纹理与玩家登录时携带的纹理一致时，才确认其来自该皮肤站。

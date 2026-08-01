@@ -17,10 +17,13 @@ public final class TpIgnoreCommand extends BaseCommand {
             return true;
         }
 
-        boolean ignoring = manager.toggleIgnoringRequests(player);
-        player.sendMessage(getLang().getPrefixedComponent(ignoring
-            ? "tpa.messages.ignore-enabled"
-            : "tpa.messages.ignore-disabled"));
+        TeleportRequestManager.ToggleIgnoreResult result = manager.toggleIgnoringRequests(player);
+        String messagePath = switch (result) {
+            case ENABLED -> "tpa.messages.ignore-enabled";
+            case DISABLED -> "tpa.messages.ignore-disabled";
+            case SAVE_FAILED -> "tpa.messages.ignore-save-failed";
+        };
+        player.sendMessage(getLang().getPrefixedComponent(messagePath));
         return true;
     }
 }

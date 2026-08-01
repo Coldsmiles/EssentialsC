@@ -230,24 +230,24 @@ public final class TeleportRequestManager implements Listener {
     }
 
     public List<String> getIncomingRequesterNames(Player target, String partial) {
-        String partialLower = partial == null ? "" : partial.toLowerCase();
+        String partialLower = partial == null ? "" : partial.toLowerCase(Locale.ROOT);
         return requests.getOrDefault(target.getUniqueId(), new ArrayDeque<>()).stream()
             .filter(request -> !request.hasExpired())
             .map(TeleportRequest::requesterName)
-            .filter(name -> name.toLowerCase().startsWith(partialLower))
+            .filter(name -> name.toLowerCase(Locale.ROOT).startsWith(partialLower))
             .distinct()
             .sorted(String.CASE_INSENSITIVE_ORDER)
             .toList();
     }
 
     public List<String> getOutgoingTargetNames(Player requester, String partial) {
-        String partialLower = partial == null ? "" : partial.toLowerCase();
+        String partialLower = partial == null ? "" : partial.toLowerCase(Locale.ROOT);
         return requests.values().stream()
             .flatMap(Deque::stream)
             .filter(request -> request.requesterId().equals(requester.getUniqueId()))
             .filter(request -> !request.hasExpired())
             .map(TeleportRequest::targetName)
-            .filter(name -> name.toLowerCase().startsWith(partialLower))
+            .filter(name -> name.toLowerCase(Locale.ROOT).startsWith(partialLower))
             .distinct()
             .sorted(String.CASE_INSENSITIVE_ORDER)
             .toList();
@@ -344,7 +344,7 @@ public final class TeleportRequestManager implements Listener {
             .orElse(false);
     }
 
-    public boolean toggleIgnoringRequests(Player player) {
+    public ToggleIgnoreResult toggleIgnoringRequests(Player player) {
         UUID uuid = player.getUniqueId();
         boolean nowIgnoring;
         if (ignoringRequests.contains(uuid)) {
@@ -354,8 +354,15 @@ public final class TeleportRequestManager implements Listener {
             ignoringRequests.add(uuid);
             nowIgnoring = true;
         }
-        saveIgnoringRequests();
-        return nowIgnoring;
+        if (!saveIgnoringRequests()) {
+            if (nowIgnoring) {
+                ignoringRequests.remove(uuid);
+            } else {
+                ignoringRequests.add(uuid);
+            }
+            return ToggleIgnoreResult.SAVE_FAILED;
+        }
+        return nowIgnoring ? ToggleIgnoreResult.ENABLED : ToggleIgnoreResult.DISABLED;
     }
 
     public void playRequestReceivedSound(Player player) {
@@ -395,11 +402,11 @@ public final class TeleportRequestManager implements Listener {
             return exactMatch;
         }
 
-        String playerNameLower = playerName.toLowerCase();
+        String playerNameLower = playerName.toLowerCase(Locale.ROOT);
         return Bukkit.getOnlinePlayers().stream()
             .map(Player.class::cast)
             .filter(filter)
-            .filter(player -> player.getName().toLowerCase().startsWith(playerNameLower))
+            .filter(player -> player.getName().toLowerCase(Locale.ROOT).startsWith(playerNameLower))
             .findFirst();
     }
 
@@ -750,7 +757,7 @@ public final class TeleportRequestManager implements Listener {
         placeholders.put("requester", request.requesterName());
         placeholders.put("target", request.targetName());
         placeholders.put("seconds", String.valueOf(timeoutSeconds));
-        placeholders.put("type", request.type().name().toLowerCase());
+        placeholders.put("type", request.type().name().toLowerCase(Locale.ROOT));
         return placeholders;
     }
 
@@ -888,16 +895,24 @@ public final class TeleportRequestManager implements Listener {
         }
     }
 
-    private void saveIgnoringRequests() {
+    private boolean saveIgnoringRequests() {
         FileConfiguration ignoreConfig = new YamlConfiguration();
         for (UUID uuid : ignoringRequests) {
             ignoreConfig.set("ignored." + uuid, true);
         }
         try {
             AtomicYamlWriter.save(ignoreConfig, ignoreFile);
+            return true;
         } catch (Exception e) {
             plugin.getLogger().warning("保存 teleport-ignore.yml 失败: " + e.getMessage());
+            return false;
         }
+    }
+
+    public enum ToggleIgnoreResult {
+        ENABLED,
+        DISABLED,
+        SAVE_FAILED
     }
 
     public enum CreateRequestStatus {

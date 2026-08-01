@@ -21,6 +21,13 @@ public class SeenCommand extends BaseCommand {
             return true;
         }
 
+        Player onlineTarget = Bukkit.getPlayerExact(args[0]);
+        if (onlineTarget != null && VanishCommand.isVanished(onlineTarget)
+            && !player.hasPermission(VanishCommand.SEE_PERMISSION)) {
+            player.sendMessage(getLang().getPrefixedString("messages.player-not-found", Map.of("player", args[0])));
+            return true;
+        }
+
         OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
         if (!target.hasPlayedBefore() && !target.isOnline()) {
             player.sendMessage(getLang().getPrefixedString("messages.player-not-found", Map.of("player", args[0])));

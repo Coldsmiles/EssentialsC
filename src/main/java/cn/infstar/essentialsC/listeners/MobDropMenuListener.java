@@ -53,6 +53,7 @@ public class MobDropMenuListener implements Listener {
         try {
             AtomicYamlWriter.save(config, plugin.getDataFolder().toPath().resolve("config.yml").toFile());
         } catch (Exception e) {
+            config.set("mob-drops.enderman.allow-drops", !newValue);
             player.sendMessage(EssentialsC.getLangManager().getPrefixedString("messages.mobdrop-save-failed",
                 Map.of("error", e.getMessage())));
             return;
