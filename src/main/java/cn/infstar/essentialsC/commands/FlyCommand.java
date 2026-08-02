@@ -10,15 +10,13 @@ public class FlyCommand extends BaseCommand {
     
     @Override
     protected boolean execute(Player player, String[] args) {
-        boolean currentFlyState = player.getAllowFlight();
+        boolean currentFlyState = plugin.getPlayerStateManager().isFlyEnabled(player);
         
         if (currentFlyState) {
-            player.setAllowFlight(false);
-            player.setFlying(false);
+            plugin.getPlayerStateManager().disableFly(player);
             player.sendMessage(getLang().getPrefixedString("messages.fly-disabled"));
         } else {
-            player.setAllowFlight(true);
-            player.setFlying(true);
+            plugin.getPlayerStateManager().enableFly(player);
             player.sendMessage(getLang().getPrefixedString("messages.fly-enabled"));
         }
         

@@ -4,95 +4,108 @@ import cn.infstar.essentialsC.EssentialsC;
 import cn.infstar.essentialsC.ModuleManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerListPingEvent;
 
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.Map;
 
 public final class MaintenanceListener implements Listener {
 
     private final EssentialsC plugin;
+    private final MaintenanceManager maintenanceManager;
+    private final MaintenancePermissionResolver permissionResolver;
 
-    public MaintenanceListener(EssentialsC plugin) {
+    public MaintenanceListener(EssentialsC plugin, MaintenanceManager maintenanceManager) {
         this.plugin = plugin;
+        this.maintenanceManager = maintenanceManager;
+        this.permissionResolver = MaintenancePermissionResolverFactory.create(plugin);
     }
 
     @EventHandler
     public void onServerListPing(ServerListPingEvent event) {
-        MaintenanceManager maintenanceManager = plugin.getMaintenanceManager();
         if (!plugin.getModuleManager().isEnabled(ModuleManager.MAINTENANCE)
-            || maintenanceManager == null
             || !maintenanceManager.isEnabled()
             || !maintenanceManager.isMotdEnabled()) {
             return;
         }
 
-        event.setMotd(maintenanceManager.getMotd());
+        event.motd(maintenanceManager.getMotd());
     }
 
-    @EventHandler
-    public void onPlayerLogin(PlayerLoginEvent event) {
-        MaintenanceManager maintenanceManager = plugin.getMaintenanceManager();
-        if (!plugin.getModuleManager().isEnabled(ModuleManager.MAINTENANCE)
-            || maintenanceManager == null
-            || !maintenanceManager.isEnabled()) {
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerPreLogin(AsyncPlayerPreLoginEvent event) {
+        if (event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) {
             return;
         }
 
-        if (maintenanceManager.canJoin(event.getPlayer())) {
+        MaintenanceManager.AccessSnapshot snapshot = maintenanceManager.getAccessSnapshot();
+        if (!snapshot.enabled() || snapshot.isWhitelisted(event.getUniqueId(), event.getName())) {
             return;
         }
 
-        event.disallow(PlayerLoginEvent.Result.KICK_OTHER, maintenanceManager.getKickMessage());
-        notifyBlockedLogin(event, maintenanceManager);
+        if (permissionResolver == null) {
+            return;
+        }
+
+        MaintenancePermissionResolver.PermissionResult permissionResult = permissionResolver
+            .checkPermission(event.getUniqueId(), snapshot.bypassPermission());
+        if (permissionResult != MaintenancePermissionResolver.PermissionResult.DENIED) {
+            return;
+        }
+
+        event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, snapshot.kickMessage());
+        notifyBlockedLogin(event.getName(), event.getUniqueId().toString(), event.getAddress(), snapshot);
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        MaintenanceManager maintenanceManager = plugin.getMaintenanceManager();
-        if (!plugin.getModuleManager().isEnabled(ModuleManager.MAINTENANCE) || maintenanceManager == null) {
+        if (!plugin.getModuleManager().isEnabled(ModuleManager.MAINTENANCE)) {
             return;
         }
 
-        maintenanceManager.addBossBarPlayer(event.getPlayer());
+        Player player = event.getPlayer();
+        if (maintenanceManager.isEnabled() && !maintenanceManager.canJoin(player)) {
+            MaintenanceManager.AccessSnapshot snapshot = maintenanceManager.getAccessSnapshot();
+            player.kick(snapshot.kickMessage());
+            InetSocketAddress socketAddress = player.getAddress();
+            notifyBlockedLogin(player.getName(), player.getUniqueId().toString(),
+                socketAddress == null ? null : socketAddress.getAddress(), snapshot);
+            return;
+        }
+
+        maintenanceManager.addBossBarPlayer(player);
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        MaintenanceManager maintenanceManager = plugin.getMaintenanceManager();
-        if (maintenanceManager != null) {
-            maintenanceManager.removeBossBarPlayer(event.getPlayer());
-        }
+        maintenanceManager.removeBossBarPlayer(event.getPlayer());
     }
 
-    private void notifyBlockedLogin(PlayerLoginEvent event, MaintenanceManager maintenanceManager) {
-        if (!maintenanceManager.isNotifyEnabled()) {
+    private void notifyBlockedLogin(String playerName, String uniqueId, InetAddress inetAddress,
+                                    MaintenanceManager.AccessSnapshot snapshot) {
+        if (!snapshot.notifyEnabled()) {
             return;
         }
 
-        String address = EssentialsC.getLangManager().getString("maintenance.status.address-hidden");
-        if (maintenanceManager.shouldIncludeAddressInNotification()) {
-            InetAddress inetAddress = event.getAddress();
-            if (inetAddress != null) {
-                address = inetAddress.getHostAddress();
-            }
-        }
+        String visibleAddress = snapshot.includeAddress() && inetAddress != null ? inetAddress.getHostAddress() : null;
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            String address = visibleAddress == null
+                ? EssentialsC.getLangManager().getString("maintenance.status.address-hidden")
+                : visibleAddress;
+            var message = EssentialsC.getLangManager().getPrefixedComponent("maintenance.messages.login-blocked",
+                Map.of("player", playerName, "uuid", uniqueId, "address", address));
 
-        String message = EssentialsC.getLangManager().getPrefixedString("maintenance.messages.login-blocked",
-            Map.of(
-                "player", event.getPlayer().getName(),
-                "uuid", event.getPlayer().getUniqueId().toString(),
-                "address", address
-            ));
-
-        for (Player player : plugin.getServer().getOnlinePlayers()) {
-            if (player.hasPermission(maintenanceManager.getNotifyPermission())) {
-                player.sendMessage(message);
+            for (Player onlinePlayer : plugin.getServer().getOnlinePlayers()) {
+                if (onlinePlayer.hasPermission(snapshot.notifyPermission())) {
+                    onlinePlayer.sendMessage(message);
+                }
             }
-        }
+        });
     }
 }

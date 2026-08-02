@@ -5,9 +5,24 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    groups:
+      gradle-dependencies:
+        patterns:
+          - "*"
+    ignore:
+      # 最低 Paper API 由版本兼容架构固定管理，不能自动升级为最新服务端版本。
+      - dependency-name: "io.papermc.paper:paper-api"
+      # 稳定发布不接受 paperweight 快照版本。
+      - dependency-name: "io.papermc.paperweight.userdev"
+        versions:
+          - "*-SNAPSHOT"
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        patterns:
+          - "*"

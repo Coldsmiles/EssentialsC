@@ -2,17 +2,19 @@ package cn.infstar.essentialsC.maintenance;
 
 import cn.infstar.essentialsC.EssentialsC;
 import cn.infstar.essentialsC.util.AtomicYamlWriter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -23,11 +25,14 @@ import java.util.UUID;
 public final class MaintenanceManager {
 
     private static final int CURRENT_CONFIG_VERSION = 1;
+    private static final LegacyComponentSerializer LEGACY_AMPERSAND = LegacyComponentSerializer.legacyAmpersand();
+    private static final LegacyComponentSerializer LEGACY_SECTION = LegacyComponentSerializer.legacySection();
 
     private final EssentialsC plugin;
     private final File configFile;
     private FileConfiguration config;
     private BossBar bossBar;
+    private volatile AccessSnapshot accessSnapshot = AccessSnapshot.disabled();
 
     public MaintenanceManager(EssentialsC plugin) {
         this.plugin = plugin;
@@ -40,7 +45,7 @@ public final class MaintenanceManager {
             plugin.saveResource("maintenance.yml", false);
         }
 
-        config = YamlConfiguration.loadConfiguration(configFile);
+        config = loadConfiguration();
         config.addDefault("config-version", CURRENT_CONFIG_VERSION);
         config.addDefault("enabled", false);
         config.addDefault("bypass-permission", "essentialsc.maintenance.bypass");
@@ -58,6 +63,7 @@ public final class MaintenanceManager {
         config.addDefault("bossbar.style", "SOLID");
         config.addDefault("bossbar.progress", 1.0D);
         config.options().copyDefaults(true);
+        publishAccessSnapshot();
         refreshBossBar();
         if (isEnabled()) {
             kickUnauthorizedPlayers();
@@ -78,6 +84,7 @@ public final class MaintenanceManager {
             config.set("enabled", previous);
             return OperationResult.SAVE_FAILED;
         }
+        publishAccessSnapshot();
         refreshBossBar();
         if (enabled) {
             kickUnauthorizedPlayers();
@@ -103,6 +110,10 @@ public final class MaintenanceManager {
 
     public boolean canJoin(Player player) {
         return player != null && (player.hasPermission(getBypassPermission()) || isWhitelisted(player));
+    }
+
+    public AccessSnapshot getAccessSnapshot() {
+        return accessSnapshot;
     }
 
     public boolean isWhitelisted(Player player) {
@@ -170,11 +181,11 @@ public final class MaintenanceManager {
         return config.getBoolean("motd.enabled", true);
     }
 
-    public String getMotd() {
+    public Component getMotd() {
         return colorizeLines(config.getStringList("motd.lines"));
     }
 
-    public String getKickMessage() {
+    public Component getKickMessage() {
         return colorizeLines(config.getStringList("kick-message"));
     }
 
@@ -185,7 +196,7 @@ public final class MaintenanceManager {
         }
 
         bossBar = plugin.getServer().createBossBar(
-            colorize(config.getString("bossbar.title", "&c服务器正在维护")),
+            LEGACY_SECTION.serialize(colorize(config.getString("bossbar.title", "&c服务器正在维护"))),
             readBossBarColor(),
             readBossBarStyle()
         );
@@ -211,15 +222,16 @@ public final class MaintenanceManager {
     }
 
     private void kickUnauthorizedPlayers() {
-        String message = getKickMessage();
+        Component message = getKickMessage();
         for (Player player : List.copyOf(plugin.getServer().getOnlinePlayers())) {
             if (!canJoin(player)) {
-                player.kick(LegacyComponentSerializer.legacySection().deserialize(message));
+                player.kick(message);
             }
         }
     }
 
     public void shutdown() {
+        accessSnapshot = AccessSnapshot.disabled();
         clearBossBar();
     }
 
@@ -299,6 +311,7 @@ public final class MaintenanceManager {
             config.set(path, previousEntries);
             return OperationResult.SAVE_FAILED;
         }
+        publishAccessSnapshot();
         refreshBossBar();
         if (isEnabled()) {
             kickUnauthorizedPlayers();
@@ -344,18 +357,36 @@ public final class MaintenanceManager {
         return normalizeEntry(input).toLowerCase(Locale.ROOT);
     }
 
-    private String colorizeLines(List<String> lines) {
+    private Component colorizeLines(List<String> lines) {
         if (lines == null || lines.isEmpty()) {
-            return "";
+            return Component.empty();
         }
 
-        return String.join("\n", lines.stream()
-            .map(this::colorize)
-            .toList());
+        return colorize(String.join("\n", lines));
     }
 
-    private String colorize(String text) {
-        return ChatColor.translateAlternateColorCodes('&', text == null ? "" : text);
+    private Component colorize(String text) {
+        return LEGACY_AMPERSAND.deserialize(text == null ? "" : text);
+    }
+
+    private void publishAccessSnapshot() {
+        Set<UUID> whitelistUuids = new LinkedHashSet<>();
+        for (String value : getWhitelistUuids()) {
+            UUID uuid = parseUuid(value);
+            if (uuid != null) {
+                whitelistUuids.add(uuid);
+            }
+        }
+        accessSnapshot = new AccessSnapshot(
+            isEnabled(),
+            getBypassPermission(),
+            whitelistUuids,
+            getWhitelistNames(),
+            getKickMessage(),
+            isNotifyEnabled(),
+            getNotifyPermission(),
+            shouldIncludeAddressInNotification()
+        );
     }
 
     private boolean save() {
@@ -365,6 +396,40 @@ public final class MaintenanceManager {
         } catch (Exception e) {
             plugin.getLogger().warning("保存 maintenance.yml 失败: " + e.getMessage());
             return false;
+        }
+    }
+
+    private YamlConfiguration loadConfiguration() {
+        YamlConfiguration loaded = new YamlConfiguration();
+        loaded.options().parseComments(true);
+        try {
+            loaded.load(configFile);
+        } catch (IOException | InvalidConfigurationException exception) {
+            plugin.getLogger().severe("加载 maintenance.yml 失败: " + exception.getMessage());
+            throw new IllegalStateException("无法加载 maintenance.yml，请修复配置格式后重试。", exception);
+        }
+        return loaded;
+    }
+
+    public record AccessSnapshot(boolean enabled, String bypassPermission, Set<UUID> whitelistUuids,
+                                 Set<String> whitelistNames, Component kickMessage, boolean notifyEnabled,
+                                 String notifyPermission, boolean includeAddress) {
+
+        public AccessSnapshot {
+            bypassPermission = bypassPermission == null ? "" : bypassPermission;
+            whitelistUuids = Set.copyOf(whitelistUuids);
+            whitelistNames = Set.copyOf(whitelistNames);
+            kickMessage = kickMessage == null ? Component.empty() : kickMessage;
+            notifyPermission = notifyPermission == null ? "" : notifyPermission;
+        }
+
+        public boolean isWhitelisted(UUID uniqueId, String playerName) {
+            return whitelistUuids.contains(uniqueId)
+                || whitelistNames.contains(playerName == null ? "" : playerName.trim().toLowerCase(Locale.ROOT));
+        }
+
+        private static AccessSnapshot disabled() {
+            return new AccessSnapshot(false, "", Set.of(), Set.of(), Component.empty(), false, "", false);
         }
     }
 

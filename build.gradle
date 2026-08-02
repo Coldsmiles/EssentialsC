@@ -1,6 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.language.jvm.tasks.ProcessResources
 import org.gradle.api.tasks.testing.Test
+import java.util.zip.ZipFile
 
 plugins {
     id 'java'
@@ -21,6 +22,7 @@ repositories {
 
 dependencies {
     paperweight.paperDevBundle('1.21.11-R0.1-SNAPSHOT')
+    compileOnly 'net.luckperms:api:5.5'
     implementation project(':compat-api')
     implementation 'com.google.code.gson:gson:2.11.0'
     testImplementation platform('org.junit:junit-bom:5.13.4')
@@ -34,8 +36,11 @@ java {
 
 paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.getMOJANG_PRODUCTION()
 
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
+allprojects {
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.compilerArgs.addAll(['-Xlint:deprecation', '-Werror'])
+    }
 }
 
 tasks.withType(ProcessResources).configureEach {
@@ -77,6 +82,39 @@ tasks.named('shadowJar', ShadowJar).configure {
 
 tasks.named('assemble').configure {
     dependsOn(tasks.named('shadowJar'))
+}
+
+tasks.register('verifyJava21Bytecode') {
+    group = 'verification'
+    description = '验证最终插件中的全部 class 均可由 Java 21 加载。'
+    dependsOn(tasks.named('shadowJar'))
+
+    doLast {
+        def artifact = tasks.named('shadowJar', ShadowJar).get().archiveFile.get().asFile
+        def unsupportedClasses = []
+        new ZipFile(artifact).withCloseable { zip ->
+            zip.entries().each { entry ->
+                if (!entry.directory && entry.name.endsWith('.class')) {
+                    zip.getInputStream(entry).withCloseable { input ->
+                        byte[] header = input.readNBytes(8)
+                        if (header.length == 8) {
+                            int majorVersion = ((header[6] & 0xff) << 8) | (header[7] & 0xff)
+                            if (majorVersion > 65) {
+                                unsupportedClasses.add("${entry.name} (class ${majorVersion})")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (!unsupportedClasses.isEmpty()) {
+            throw new GradleException("检测到无法由 Java 21 加载的类:\n" + unsupportedClasses.join('\n'))
+        }
+    }
+}
+
+tasks.named('check').configure {
+    dependsOn(tasks.named('verifyJava21Bytecode'))
 }
 
 def registerTestServerDeployTask = { String taskName, String serverPath, String serverName ->

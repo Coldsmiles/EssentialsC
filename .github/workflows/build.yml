@@ -36,3 +36,44 @@ jobs:
 
       - name: 构建插件
         run: ./gradlew clean build --no-daemon
+
+      - name: 上传测试产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: EssentialsC-test-build
+          path: build/libs/EssentialsC-*.jar
+          if-no-files-found: error
+
+  paper-smoke-test:
+    name: Paper ${{ matrix.paper }} / Java ${{ matrix.java }}
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - paper: '1.21.11'
+            java: '21'
+          - paper: '26.1.2'
+            java: '25'
+          - paper: '26.2'
+            java: '25'
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Java ${{ matrix.java }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: temurin
+
+      - name: 下载插件产物
+        uses: actions/download-artifact@v4
+        with:
+          name: EssentialsC-test-build
+          path: build/libs
+
+      - name: 启动 Paper 并验证插件
+        run: bash scripts/smoke-test-paper.sh '${{ matrix.paper }}'

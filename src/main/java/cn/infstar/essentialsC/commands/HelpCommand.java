@@ -43,9 +43,8 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
                 sendNoPermission(sender, "essentialsc.command.reload");
                 return true;
             }
-            plugin.reloadConfig();
-            EssentialsC.getLangManager().reload();
             plugin.getFeatureConfigManager().reload();
+            EssentialsC.getLangManager().reload();
             plugin.getModuleManager().reload();
             CommandRegistry.clearInitializationFailures();
             plugin.reloadRuntimeModules();
@@ -65,9 +64,8 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
                     sendNoPermission(sender, "essentialsc.command.reload");
                     return true;
                 }
-                plugin.reloadConfig();
-                EssentialsC.getLangManager().reload();
                 plugin.getFeatureConfigManager().reload();
+                EssentialsC.getLangManager().reload();
                 plugin.getModuleManager().reload();
                 CommandRegistry.clearInitializationFailures();
                 plugin.reloadRuntimeModules();
@@ -95,7 +93,7 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
 
             if (subCommand.equals("version") || subCommand.equals("v")) {
                 player.sendMessage(getLang().getPrefixedString("messages.version",
-                    Map.of("version", plugin.getDescription().getVersion())));
+                    Map.of("version", plugin.getPluginMeta().getVersion())));
                 player.sendMessage(getLang().getPrefixedString("messages.paper-version",
                     Map.of("version", Bukkit.getVersion())));
                 return true;
@@ -108,7 +106,7 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
         }
 
         LangManager lang = getLang();
-        String version = plugin.getDescription().getVersion();
+        String version = plugin.getPluginMeta().getVersion();
 
         sendPrefixed(player, lang.getString("help.title"));
         sendPrefixed(player, lang.getString("help.version", Map.of("version", version)));

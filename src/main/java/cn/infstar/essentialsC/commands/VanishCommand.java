@@ -3,10 +3,12 @@ package cn.infstar.essentialsC.commands;
 import cn.infstar.essentialsC.EssentialsC;
 import cn.infstar.essentialsC.util.AtomicYamlWriter;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -53,7 +55,13 @@ public class VanishCommand extends BaseCommand {
         if (!stateFile.exists()) {
             return;
         }
-        FileConfiguration state = YamlConfiguration.loadConfiguration(stateFile);
+        YamlConfiguration state = new YamlConfiguration();
+        try {
+            state.load(stateFile);
+        } catch (IOException | InvalidConfigurationException exception) {
+            plugin.getLogger().severe("加载 vanished-players.yml 失败: " + exception.getMessage());
+            throw new IllegalStateException("无法加载 vanished-players.yml，请修复文件格式后重试。", exception);
+        }
         for (String value : state.getStringList("players")) {
             try {
                 vanishedPlayers.add(UUID.fromString(value));
@@ -74,15 +82,22 @@ public class VanishCommand extends BaseCommand {
         }
     }
 
-    public static void restoreVisibility(EssentialsC plugin, Player player, boolean notify) {
+    public static boolean restoreVisibility(EssentialsC plugin, Player player, boolean notify) {
         if (!vanishedPlayers.remove(player.getUniqueId())) {
-            return;
+            return true;
+        }
+        if (!saveState(plugin)) {
+            vanishedPlayers.add(player.getUniqueId());
+            if (notify) {
+                player.sendMessage(EssentialsC.getLangManager().getPrefixedString("messages.vanish-save-failed"));
+            }
+            return false;
         }
         showPlayerToAll(plugin, player);
-        saveState(plugin);
         if (notify) {
             player.sendMessage(EssentialsC.getLangManager().getPrefixedString("messages.vanish-permission-removed"));
         }
+        return true;
     }
 
     public static void applyHiddenState(EssentialsC plugin, Player player) {

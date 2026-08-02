@@ -1,8 +1,9 @@
 package cn.infstar.essentialsC.tpsbar;
 
 import cn.infstar.essentialsC.EssentialsC;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
@@ -26,6 +27,8 @@ import java.util.UUID;
 
 public final class TpsBarManager implements Listener, TpsBarService {
 
+    private static final LegacyComponentSerializer LEGACY_SECTION = LegacyComponentSerializer.legacySection();
+    private static final PlainTextComponentSerializer PLAIN_TEXT = PlainTextComponentSerializer.plainText();
     private static final double MAX_TPS = 20.0D;
     private static final int UPDATE_INTERVAL_TICKS = 20;
     private static final BarStyle BAR_STYLE = BarStyle.SEGMENTED_20;
@@ -282,11 +285,11 @@ public final class TpsBarManager implements Listener, TpsBarService {
     }
 
     private String buildTitle(double tps, double mspt, int ping) {
-        return ChatColor.translateAlternateColorCodes('&', applyPlaceholders(titleFormat, Map.of(
+        return applyPlaceholders(titleFormat, Map.of(
             "tps_1m", formatDouble(tps),
             "mspt", formatDouble(mspt),
             "ping", Integer.toString(ping)
-        )));
+        ));
     }
 
     private BarColor resolveBarColor(double tps, double mspt, int ping) {
@@ -317,7 +320,7 @@ public final class TpsBarManager implements Listener, TpsBarService {
     }
 
     private String prefixed(String message) {
-        return EssentialsC.getLangManager().getPrefix() + ChatColor.translateAlternateColorCodes('&', message);
+        return EssentialsC.getLangManager().getPrefix() + message;
     }
 
     private String applyPlaceholders(String text, Map<String, String> placeholders) {
@@ -329,7 +332,7 @@ public final class TpsBarManager implements Listener, TpsBarService {
     }
 
     private String stripColor(String message) {
-        return ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', message));
+        return PLAIN_TEXT.serialize(LEGACY_SECTION.deserialize(message == null ? "" : message));
     }
 
     private String formatDouble(double value) {

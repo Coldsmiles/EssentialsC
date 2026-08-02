@@ -2,7 +2,6 @@ package cn.infstar.essentialsC.listeners;
 
 import cn.infstar.essentialsC.EssentialsC;
 import cn.infstar.essentialsC.commands.MobDropCommand;
-import cn.infstar.essentialsC.util.AtomicYamlWriter;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -19,7 +18,6 @@ public class MobDropMenuListener implements Listener {
 
     public MobDropMenuListener(EssentialsC plugin) {
         this.plugin = plugin;
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     @EventHandler
@@ -40,6 +38,12 @@ public class MobDropMenuListener implements Listener {
         }
 
         if (event.getRawSlot() == MobDropCommand.getEndermanSlot()) {
+            if (!player.hasPermission("essentialsc.mobdrops.enderman")) {
+                player.sendMessage(EssentialsC.getLangManager().getPrefixedString("messages.no-permission",
+                    Map.of("permission", "essentialsc.mobdrops.enderman")));
+                player.closeInventory();
+                return;
+            }
             toggleEndermanDrops(player);
             Bukkit.getScheduler().runTaskLater(plugin, () -> MobDropCommand.openMobDropMenu(plugin, player), 2L);
         }
@@ -48,14 +52,10 @@ public class MobDropMenuListener implements Listener {
     private void toggleEndermanDrops(Player player) {
         FileConfiguration config = plugin.getConfig();
         boolean newValue = !config.getBoolean("mob-drops.enderman.allow-drops", true);
-        config.set("mob-drops.enderman.allow-drops", newValue);
-
-        try {
-            AtomicYamlWriter.save(config, plugin.getDataFolder().toPath().resolve("config.yml").toFile());
-        } catch (Exception e) {
-            config.set("mob-drops.enderman.allow-drops", !newValue);
+        if (!plugin.getFeatureConfigManager().updateMainConfigValue(
+            "mob-drops.enderman.allow-drops", newValue)) {
             player.sendMessage(EssentialsC.getLangManager().getPrefixedString("messages.mobdrop-save-failed",
-                Map.of("error", e.getMessage())));
+                Map.of("error", "无法写入 config.yml")));
             return;
         }
 

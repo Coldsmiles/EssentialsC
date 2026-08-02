@@ -3,6 +3,7 @@ package cn.infstar.essentialsC.commands;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.MenuType;
 
 public class StonecutterCommand extends BaseCommand {
 
@@ -12,7 +13,7 @@ public class StonecutterCommand extends BaseCommand {
 
     @Override
     protected boolean execute(Player player, String[] args) {
-        player.openStonecutter(null, true);
+        player.openInventory(MenuType.STONECUTTER.builder().checkReachable(false).build(player));
         playBlockShortcutSound(player, Material.STONECUTTER, Sound.UI_STONECUTTER_SELECT_RECIPE);
         return true;
     }

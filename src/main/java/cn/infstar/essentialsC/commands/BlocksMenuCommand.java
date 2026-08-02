@@ -31,7 +31,7 @@ public class BlocksMenuCommand extends BaseCommand implements Listener {
     private static final class BlocksMenuHolder implements InventoryHolder {
         private final Inventory inventory;
 
-        private BlocksMenuHolder(String title) {
+        private BlocksMenuHolder(Component title) {
             this.inventory = Bukkit.createInventory(this, MENU_SIZE, title);
         }
 
@@ -44,7 +44,6 @@ public class BlocksMenuCommand extends BaseCommand implements Listener {
     public BlocksMenuCommand() {
         super("essentialsc.command.blocks");
         addConfigDefaults();
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.blockKey = new NamespacedKey(plugin, "block_key");
     }
 
@@ -55,7 +54,7 @@ public class BlocksMenuCommand extends BaseCommand implements Listener {
     }
 
     private void openMenu(Player player) {
-        Inventory menu = new BlocksMenuHolder(getLang().getString("blocks-menu.title")).getInventory();
+        Inventory menu = new BlocksMenuHolder(getLang().getComponent("blocks-menu.title")).getInventory();
 
         FileConfiguration menuConfig = plugin.getFeatureConfigManager().getBlocksMenuConfig();
         var sectionsConfig = menuConfig.getConfigurationSection("sections");

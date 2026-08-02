@@ -74,9 +74,10 @@
 
 1. 从 [Releases](https://github.com/Coldsmiles/EssentialsC/releases) 下载所需版本。
 2. 将插件放入服务端的 `plugins/` 目录。
-3. 启动一次服务端以生成配置文件。
-4. 按需修改 `plugins/EssentialsC/` 下的配置文件与 `lang/` 语言文件。
-5. 如有需要，使用权限插件为玩家授权。
+3. 建议安装 LuckPerms；维护模式会优先通过其缓存异步检查登录权限，未安装时会在玩家加入后立即复核。
+4. 启动一次服务端以生成配置文件。
+5. 按需修改 `plugins/EssentialsC/` 下的配置文件与 `lang/` 语言文件。
+6. 使用权限插件为玩家分配所需权限。
 
 ## 配置说明
 
@@ -112,6 +113,8 @@ SkinBridge 默认关闭。使用前需启用 `modules.yml` 中的 `modules.skin-
   - TPSBar 文本
 
 主配置当前使用 `config-version: 2`。SkinBridge 直接配置在 `config.yml` 中，便捷菜单配置仍保存在独立文件中。
+
+版本变化与升级说明见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 权限示例
 

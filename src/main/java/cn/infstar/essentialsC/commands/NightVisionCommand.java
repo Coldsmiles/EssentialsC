@@ -1,19 +1,12 @@
 package cn.infstar.essentialsC.commands;
 
-import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.persistence.PersistentDataType;
 
 public class NightVisionCommand extends BaseCommand {
 
-    private final NamespacedKey enabledKey;
-
     public NightVisionCommand() {
         super("essentialsc.command.nightvision");
-        this.enabledKey = new NamespacedKey(plugin, "nightvision_enabled");
     }
 
     @Override
@@ -26,15 +19,11 @@ public class NightVisionCommand extends BaseCommand {
         }
 
         if (targetState) {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 0, false, false, false));
-            player.getPersistentDataContainer().set(enabledKey, PersistentDataType.BYTE, (byte) 1);
+            plugin.getPlayerStateManager().enableNightVision(player);
             playShortcutSound(player, Sound.BLOCK_BEACON_POWER_SELECT);
             player.sendMessage(getLang().getPrefixedString("messages.nightvision-enabled"));
         } else {
-            if (currentState) {
-                player.removePotionEffect(PotionEffectType.NIGHT_VISION);
-                player.getPersistentDataContainer().remove(enabledKey);
-            }
+            plugin.getPlayerStateManager().disableNightVision(player);
             playShortcutSound(player, Sound.BLOCK_BEACON_DEACTIVATE);
             player.sendMessage(getLang().getPrefixedString("messages.nightvision-disabled"));
         }
@@ -55,12 +44,6 @@ public class NightVisionCommand extends BaseCommand {
     }
 
     private boolean isPluginNightVisionEnabled(Player player) {
-        Byte value = player.getPersistentDataContainer().get(enabledKey, PersistentDataType.BYTE);
-        boolean enabled = value != null && value == (byte) 1;
-        if (enabled && !player.hasPotionEffect(PotionEffectType.NIGHT_VISION)) {
-            player.getPersistentDataContainer().remove(enabledKey);
-            return false;
-        }
-        return enabled;
+        return plugin.getPlayerStateManager().isNightVisionEnabled(player);
     }
 }

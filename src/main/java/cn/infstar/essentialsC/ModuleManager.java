@@ -1,10 +1,12 @@
 package cn.infstar.essentialsC;
 
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -47,7 +49,15 @@ public final class ModuleManager {
             plugin.saveResource("modules.yml", false);
         }
 
-        modulesConfig = YamlConfiguration.loadConfiguration(modulesFile);
+        YamlConfiguration loaded = new YamlConfiguration();
+        loaded.options().parseComments(true);
+        try {
+            loaded.load(modulesFile);
+        } catch (IOException | InvalidConfigurationException exception) {
+            plugin.getLogger().severe("加载 modules.yml 失败: " + exception.getMessage());
+            throw new IllegalStateException("无法加载 modules.yml，请修复配置格式后重试。", exception);
+        }
+        modulesConfig = loaded;
         modulesConfig.addDefault("config-version", CURRENT_CONFIG_VERSION);
         for (Map.Entry<String, Boolean> module : DEFAULT_MODULES.entrySet()) {
             modulesConfig.addDefault(path(module.getKey()), module.getValue());
