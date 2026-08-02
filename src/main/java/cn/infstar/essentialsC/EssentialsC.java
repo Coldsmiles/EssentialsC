@@ -2,6 +2,7 @@ package cn.infstar.essentialsC;
 
 import cn.infstar.essentialsC.admin.AdminModeManager;
 import cn.infstar.essentialsC.commands.BaseCommand;
+import cn.infstar.essentialsC.commands.BlocksMenuCommand;
 import cn.infstar.essentialsC.commands.CommandRegistry;
 import cn.infstar.essentialsC.commands.HelpCommand;
 import cn.infstar.essentialsC.commands.PaperCommand;
@@ -13,6 +14,7 @@ import cn.infstar.essentialsC.listeners.ShulkerBoxListener;
 import cn.infstar.essentialsC.listeners.VanishListener;
 import cn.infstar.essentialsC.maintenance.MaintenanceListener;
 import cn.infstar.essentialsC.maintenance.MaintenanceManager;
+import cn.infstar.essentialsC.player.PlayerStateManager;
 import cn.infstar.essentialsC.skinbridge.SkinBridgeManager;
 import cn.infstar.essentialsC.teleport.TeleportRequestManager;
 import cn.infstar.essentialsC.tpsbar.TpsBarManager;
@@ -40,9 +42,11 @@ public final class EssentialsC extends JavaPlugin {
     private AdminModeManager adminModeManager;
     private MaintenanceManager maintenanceManager;
     private TeleportRequestManager teleportRequestManager;
+    private PlayerStateManager playerStateManager;
     private MaintenanceListener maintenanceListener;
     private TpsBarService tpsBarManager;
     private ShulkerBoxListener shulkerBoxListener;
+    private BlocksMenuCommand blocksMenuCommandListener;
     private JeiRecipeSyncListener jeiRecipeSyncListener;
     private MobDropListener mobDropListener;
     private MobDropMenuListener mobDropMenuListener;
@@ -53,9 +57,9 @@ public final class EssentialsC extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        featureConfigManager = new FeatureConfigManager(this);
         langManager = new LangManager(this);
         moduleManager = new ModuleManager(this);
-        featureConfigManager = new FeatureConfigManager(this);
 
         reloadRuntimeModules();
         registerCommands();
@@ -76,6 +80,9 @@ public final class EssentialsC extends JavaPlugin {
         }
         if (teleportRequestManager != null) {
             teleportRequestManager.shutdown();
+        }
+        if (playerStateManager != null) {
+            playerStateManager.shutdown();
         }
         if (skinBridgeManager != null) {
             skinBridgeManager.shutdown();
@@ -116,6 +123,10 @@ public final class EssentialsC extends JavaPlugin {
         return teleportRequestManager;
     }
 
+    public PlayerStateManager getPlayerStateManager() {
+        return playerStateManager;
+    }
+
     public TpsBarService getTpsBarManager() {
         return tpsBarManager;
     }
@@ -137,6 +148,10 @@ public final class EssentialsC extends JavaPlugin {
     }
 
     private void refreshCorePlayerFeatures() {
+        if (playerStateManager == null) {
+            playerStateManager = new PlayerStateManager(this);
+            getServer().getPluginManager().registerEvents(playerStateManager, this);
+        }
         if (vanishListener == null) {
             vanishListener = new VanishListener(this);
             getServer().getPluginManager().registerEvents(vanishListener, this);
@@ -189,7 +204,7 @@ public final class EssentialsC extends JavaPlugin {
             maintenanceManager.reload();
         }
         if (maintenanceListener == null) {
-            maintenanceListener = new MaintenanceListener(this);
+            maintenanceListener = new MaintenanceListener(this, maintenanceManager);
             getServer().getPluginManager().registerEvents(maintenanceListener, this);
         }
         setModuleStatus("维护模式", true, maintenanceManager.isEnabled() ? "当前开启" : "当前关闭");
@@ -227,6 +242,10 @@ public final class EssentialsC extends JavaPlugin {
 
     private void refreshBlocks() {
         if (!moduleManager.isEnabled(ModuleManager.BLOCKS)) {
+            if (blocksMenuCommandListener != null) {
+                HandlerList.unregisterAll(blocksMenuCommandListener);
+                blocksMenuCommandListener = null;
+            }
             if (shulkerBoxListener != null) {
                 shulkerBoxListener.shutdown();
                 HandlerList.unregisterAll(shulkerBoxListener);
@@ -239,6 +258,13 @@ public final class EssentialsC extends JavaPlugin {
         if (shulkerBoxListener == null) {
             shulkerBoxListener = new ShulkerBoxListener(this);
             getServer().getPluginManager().registerEvents(shulkerBoxListener, this);
+        }
+        if (blocksMenuCommandListener == null) {
+            BaseCommand command = CommandRegistry.getCommand("blocks");
+            if (command instanceof BlocksMenuCommand blocksMenuCommand) {
+                blocksMenuCommandListener = blocksMenuCommand;
+                getServer().getPluginManager().registerEvents(blocksMenuCommandListener, this);
+            }
         }
         setModuleStatus("便捷方块", true, "命令和潜影盒监听器已启用");
     }
@@ -283,6 +309,7 @@ public final class EssentialsC extends JavaPlugin {
         }
         if (mobDropMenuListener == null) {
             mobDropMenuListener = new MobDropMenuListener(this);
+            getServer().getPluginManager().registerEvents(mobDropMenuListener, this);
         }
         setModuleStatus("生物掉落", true, "末影人掉落控制已启用");
     }
@@ -323,11 +350,13 @@ public final class EssentialsC extends JavaPlugin {
         unregisterListener(adminModeManager);
         unregisterListener(maintenanceListener);
         unregisterListener(shulkerBoxListener);
+        unregisterListener(blocksMenuCommandListener);
         unregisterListener(jeiRecipeSyncListener);
         unregisterListener(mobDropListener);
         unregisterListener(mobDropMenuListener);
         unregisterListener(vanishListener);
         unregisterListener(teleportRequestManager);
+        unregisterListener(playerStateManager);
         unregisterListener(skinBridgeManager);
         if (tpsBarManager instanceof Listener listener) {
             unregisterListener(listener);
@@ -350,7 +379,7 @@ public final class EssentialsC extends JavaPlugin {
             .count();
         long disabledCount = moduleStatus.size() - enabledCount;
 
-        getLogger().info("EssentialsC v" + getDescription().getVersion()
+        getLogger().info("EssentialsC v" + getPluginMeta().getVersion()
             + " 已启用 | 模块: " + enabledCount + " 启用, " + disabledCount + " 关闭");
 
         if (!getConfig().getBoolean("debug", false)) {

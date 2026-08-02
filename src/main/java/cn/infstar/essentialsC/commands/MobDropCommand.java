@@ -22,7 +22,7 @@ public class MobDropCommand extends BaseCommand {
     public static final class MobDropMenuHolder implements InventoryHolder {
         private final Inventory inventory;
 
-        public MobDropMenuHolder(String title) {
+        public MobDropMenuHolder(Component title) {
             this.inventory = Bukkit.createInventory(this, MENU_SIZE, title);
         }
 
@@ -49,7 +49,7 @@ public class MobDropCommand extends BaseCommand {
             ? "mobdrops-menu.status.enabled"
             : "mobdrops-menu.status.disabled");
 
-        Inventory menu = new MobDropMenuHolder(lang.getString("mobdrops-menu.title")).getInventory();
+        Inventory menu = new MobDropMenuHolder(lang.getComponent("mobdrops-menu.title")).getInventory();
 
         ItemStack endermanItem = new ItemStack(Material.ENDER_PEARL);
         ItemMeta endermanMeta = endermanItem.getItemMeta();

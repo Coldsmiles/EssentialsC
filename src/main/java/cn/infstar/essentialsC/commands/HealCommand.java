@@ -26,7 +26,7 @@ public class HealCommand extends BaseCommand {
             return true;
         }
 
-        Player target = Bukkit.getPlayer(args[0]);
+        Player target = Bukkit.getPlayerExact(args[0]);
         if (target == null) {
             player.sendMessage(getLang().getPrefixedString("messages.player-not-found", Map.of("player", args[0])));
             return true;

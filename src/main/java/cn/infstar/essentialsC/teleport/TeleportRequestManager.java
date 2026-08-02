@@ -8,12 +8,9 @@ import cn.infstar.essentialsC.api.event.TeleportRequestSendEvent;
 import cn.infstar.essentialsC.api.event.TeleportWarmupCancelledEvent;
 import cn.infstar.essentialsC.api.event.TeleportWarmupEvent;
 import cn.infstar.essentialsC.commands.VanishCommand;
-import cn.infstar.essentialsC.util.AtomicYamlWriter;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -25,7 +22,6 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.io.File;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayDeque;
@@ -57,8 +53,7 @@ public final class TeleportRequestManager implements Listener {
     private final Set<UUID> warmupDamagedPlayers = new HashSet<>();
     private final Set<UUID> invulnerablePlayers = new HashSet<>();
     private final Set<UUID> ignoringRequests = new HashSet<>();
-    private final File ignoreFile;
-    private final File cooldownFile;
+    private final TeleportStateStore stateStore;
     private BukkitTask cleanupTask;
 
     private int timeoutSeconds;
@@ -82,10 +77,11 @@ public final class TeleportRequestManager implements Listener {
 
     public TeleportRequestManager(EssentialsC plugin) {
         this.plugin = plugin;
-        this.ignoreFile = new File(plugin.getDataFolder(), "teleport-ignore.yml");
-        this.cooldownFile = new File(plugin.getDataFolder(), "teleport-cooldowns.yml");
+        this.stateStore = new TeleportStateStore(plugin);
         reload();
-        loadCooldowns();
+        TeleportStateStore.CooldownState cooldownState = stateStore.loadCooldowns();
+        sendCooldowns.putAll(cooldownState.send());
+        acceptCooldowns.putAll(cooldownState.accept());
         cleanupTask = Bukkit.getScheduler().runTaskTimer(plugin, this::cleanupExpiredState, 1200L, 1200L);
     }
 
@@ -131,7 +127,8 @@ public final class TeleportRequestManager implements Listener {
         warmupSound = plugin.getConfig().getString("tpa.sounds.warmup", "block.note_block.banjo");
         cancelSound = plugin.getConfig().getString("tpa.sounds.cancelled", "entity.item.break");
         completeSound = plugin.getConfig().getString("tpa.sounds.complete", "entity.enderman.teleport");
-        loadIgnoringRequests();
+        ignoringRequests.clear();
+        ignoringRequests.addAll(stateStore.loadIgnoringRequests());
     }
 
     public void shutdown() {
@@ -139,13 +136,13 @@ public final class TeleportRequestManager implements Listener {
             cleanupTask.cancel();
             cleanupTask = null;
         }
-        saveCooldowns();
+        stateStore.saveCooldowns(sendCooldowns, acceptCooldowns);
         requests.clear();
         sendCooldowns.clear();
         acceptCooldowns.clear();
         cancelAllWarmups();
         clearAllInvulnerability();
-        saveIgnoringRequests();
+        stateStore.saveIgnoringRequests(ignoringRequests);
     }
 
     public CreateRequestResult createRequest(Player requester, Player target, TeleportRequest.Type type) {
@@ -335,13 +332,7 @@ public final class TeleportRequestManager implements Listener {
     }
 
     public boolean isVanished(Player player) {
-        if (VanishCommand.isVanished(player)) {
-            return true;
-        }
-        return player.hasMetadata("vanished") && player.getMetadata("vanished").stream()
-            .map(metadata -> metadata.asBoolean())
-            .findFirst()
-            .orElse(false);
+        return VanishCommand.isVanished(player);
     }
 
     public ToggleIgnoreResult toggleIgnoringRequests(Player player) {
@@ -354,7 +345,7 @@ public final class TeleportRequestManager implements Listener {
             ignoringRequests.add(uuid);
             nowIgnoring = true;
         }
-        if (!saveIgnoringRequests()) {
+        if (!stateStore.saveIgnoringRequests(ignoringRequests)) {
             if (nowIgnoring) {
                 ignoringRequests.remove(uuid);
             } else {
@@ -822,91 +813,7 @@ public final class TeleportRequestManager implements Listener {
         long now = System.currentTimeMillis();
         sendCooldowns.values().removeIf(expiresAt -> expiresAt <= now);
         acceptCooldowns.values().removeIf(expiresAt -> expiresAt <= now);
-        saveCooldowns();
-    }
-
-    private void loadCooldowns() {
-        if (!cooldownFile.exists()) {
-            return;
-        }
-        FileConfiguration cooldownConfig = YamlConfiguration.loadConfiguration(cooldownFile);
-        loadCooldownMap(cooldownConfig, "send", sendCooldowns);
-        loadCooldownMap(cooldownConfig, "accept", acceptCooldowns);
-    }
-
-    private void loadCooldownMap(FileConfiguration config, String path, Map<UUID, Long> destination) {
-        if (!config.isConfigurationSection(path)) {
-            return;
-        }
-        long now = System.currentTimeMillis();
-        for (String key : config.getConfigurationSection(path).getKeys(false)) {
-            try {
-                UUID uuid = UUID.fromString(key);
-                long expiresAt = config.getLong(path + "." + key, 0L);
-                if (expiresAt > now) {
-                    destination.put(uuid, expiresAt);
-                }
-            } catch (IllegalArgumentException ignored) {
-                plugin.getLogger().warning("忽略无效的 TPA 冷却记录 UUID: " + key);
-            }
-        }
-    }
-
-    private void saveCooldowns() {
-        FileConfiguration cooldownConfig = new YamlConfiguration();
-        long now = System.currentTimeMillis();
-        saveCooldownMap(cooldownConfig, "send", sendCooldowns, now);
-        saveCooldownMap(cooldownConfig, "accept", acceptCooldowns, now);
-        try {
-            AtomicYamlWriter.save(cooldownConfig, cooldownFile);
-        } catch (Exception exception) {
-            plugin.getLogger().warning("保存 teleport-cooldowns.yml 失败: " + exception.getMessage());
-        }
-    }
-
-    private void saveCooldownMap(FileConfiguration config, String path, Map<UUID, Long> source, long now) {
-        source.forEach((uuid, expiresAt) -> {
-            if (expiresAt > now) {
-                config.set(path + "." + uuid, expiresAt);
-            }
-        });
-    }
-
-    private void loadIgnoringRequests() {
-        ignoringRequests.clear();
-        if (!ignoreFile.exists()) {
-            return;
-        }
-
-        FileConfiguration ignoreConfig = YamlConfiguration.loadConfiguration(ignoreFile);
-        if (!ignoreConfig.isConfigurationSection("ignored")) {
-            return;
-        }
-
-        for (String key : ignoreConfig.getConfigurationSection("ignored").getKeys(false)) {
-            if (!ignoreConfig.getBoolean("ignored." + key, false)) {
-                continue;
-            }
-            try {
-                ignoringRequests.add(UUID.fromString(key));
-            } catch (IllegalArgumentException ignored) {
-                plugin.getLogger().warning("忽略无效的 TPA 忽略记录 UUID: " + key);
-            }
-        }
-    }
-
-    private boolean saveIgnoringRequests() {
-        FileConfiguration ignoreConfig = new YamlConfiguration();
-        for (UUID uuid : ignoringRequests) {
-            ignoreConfig.set("ignored." + uuid, true);
-        }
-        try {
-            AtomicYamlWriter.save(ignoreConfig, ignoreFile);
-            return true;
-        } catch (Exception e) {
-            plugin.getLogger().warning("保存 teleport-ignore.yml 失败: " + e.getMessage());
-            return false;
-        }
+        stateStore.saveCooldowns(sendCooldowns, acceptCooldowns);
     }
 
     public enum ToggleIgnoreResult {

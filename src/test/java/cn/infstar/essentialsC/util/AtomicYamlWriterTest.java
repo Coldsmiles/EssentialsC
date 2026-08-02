@@ -58,4 +58,19 @@ class AtomicYamlWriterTest {
 
         assertTrue(YamlConfiguration.loadConfiguration(target.toFile()).getBoolean("written"));
     }
+
+    @Test
+    void preservesParsedChineseComments() throws Exception {
+        Path target = temporaryDirectory.resolve("commented.yml");
+        YamlConfiguration configuration = new YamlConfiguration();
+        configuration.options().parseComments(true);
+        configuration.loadFromString("# 中文配置注释\nenabled: false\n");
+        configuration.set("enabled", true);
+
+        AtomicYamlWriter.save(configuration, target.toFile());
+
+        String saved = Files.readString(target, StandardCharsets.UTF_8);
+        assertTrue(saved.contains("# 中文配置注释"));
+        assertTrue(saved.contains("enabled: true"));
+    }
 }

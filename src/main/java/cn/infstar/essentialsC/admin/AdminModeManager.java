@@ -1,7 +1,6 @@
 package cn.infstar.essentialsC.admin;
 
 import cn.infstar.essentialsC.EssentialsC;
-import cn.infstar.essentialsC.util.AtomicYamlWriter;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
@@ -15,7 +14,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -28,8 +26,7 @@ public final class AdminModeManager implements Listener {
     private static final float VANILLA_FLY_SPEED = 0.1F;
 
     private final EssentialsC plugin;
-    private final File dataFile;
-    private final YamlConfiguration data;
+    private final AdminModeStore store;
     private final Set<UUID> activePlayers = new HashSet<>();
 
     private BukkitTask actionBarTask;
@@ -37,8 +34,7 @@ public final class AdminModeManager implements Listener {
     public AdminModeManager(EssentialsC plugin) {
         this.plugin = plugin;
         addConfigDefaults();
-        this.dataFile = new File(plugin.getDataFolder(), "admin-mode.yml");
-        this.data = YamlConfiguration.loadConfiguration(dataFile);
+        this.store = new AdminModeStore(plugin);
     }
 
     public void reload() {
@@ -82,29 +78,32 @@ public final class AdminModeManager implements Listener {
             actionBarTask.cancel();
             actionBarTask = null;
         }
-        saveData();
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        String playerPath = getPlayerPath(player);
-        if (!data.getBoolean(playerPath + ".active", false)) {
+        YamlConfiguration data = store.load(player.getUniqueId());
+        if (data == null) {
+            sendLangMessage(player, "admin-mode.messages.save-failed");
+            return;
+        }
+        if (!data.getBoolean("active", false)) {
             return;
         }
 
-        saveProfile(player, playerPath + ".admin");
-        if (!saveData()) {
+        saveProfile(player, data, "admin");
+        if (!saveData(player, data)) {
             activePlayers.add(player.getUniqueId());
             startActionBarTask();
             sendLangMessage(player, "admin-mode.messages.save-failed");
             return;
         }
-        restoreNormalProfile(player);
-        data.set(playerPath + ".active", false);
-        if (!saveData()) {
-            data.set(playerPath + ".active", true);
-            loadProfile(player, playerPath + ".admin");
+        restoreNormalProfile(player, data);
+        data.set("active", false);
+        if (!saveData(player, data)) {
+            data.set("active", true);
+            loadProfile(player, data, "admin");
             activePlayers.add(player.getUniqueId());
             startActionBarTask();
             sendLangMessage(player, "admin-mode.messages.save-failed");
@@ -122,17 +121,21 @@ public final class AdminModeManager implements Listener {
     }
 
     private void enable(Player player) {
-        String playerPath = getPlayerPath(player);
-        player.closeInventory();
-        saveProfile(player, playerPath + ".normal");
-        data.set(playerPath + ".active", true);
-        if (!saveData()) {
+        YamlConfiguration data = store.load(player.getUniqueId());
+        if (data == null) {
             sendLangMessage(player, "admin-mode.messages.save-failed");
-            data.set(playerPath + ".active", false);
+            return;
+        }
+        player.closeInventory();
+        saveProfile(player, data, "normal");
+        data.set("active", true);
+        if (!saveData(player, data)) {
+            sendLangMessage(player, "admin-mode.messages.save-failed");
+            data.set("active", false);
             return;
         }
 
-        if (!loadProfile(player, playerPath + ".admin")) {
+        if (!loadProfile(player, data, "admin")) {
             clearInventory(player);
         }
 
@@ -149,22 +152,28 @@ public final class AdminModeManager implements Listener {
     }
 
     private boolean disable(Player player, boolean notify) {
-        String playerPath = getPlayerPath(player);
-        player.closeInventory();
-        saveProfile(player, playerPath + ".admin");
-        data.set(playerPath + ".active", true);
-        if (!saveData()) {
+        YamlConfiguration data = store.load(player.getUniqueId());
+        if (data == null) {
             if (notify) {
                 sendLangMessage(player, "admin-mode.messages.save-failed");
             }
             return false;
         }
-        restoreNormalProfile(player);
+        player.closeInventory();
+        saveProfile(player, data, "admin");
+        data.set("active", true);
+        if (!saveData(player, data)) {
+            if (notify) {
+                sendLangMessage(player, "admin-mode.messages.save-failed");
+            }
+            return false;
+        }
+        restoreNormalProfile(player, data);
 
-        data.set(playerPath + ".active", false);
-        if (!saveData()) {
-            data.set(playerPath + ".active", true);
-            loadProfile(player, playerPath + ".admin");
+        data.set("active", false);
+        if (!saveData(player, data)) {
+            data.set("active", true);
+            loadProfile(player, data, "admin");
             activePlayers.add(player.getUniqueId());
             if (notify) {
                 sendLangMessage(player, "admin-mode.messages.save-failed");
@@ -181,9 +190,8 @@ public final class AdminModeManager implements Listener {
         return true;
     }
 
-    private void restoreNormalProfile(Player player) {
-        String playerPath = getPlayerPath(player);
-        if (!loadProfile(player, playerPath + ".normal")) {
+    private void restoreNormalProfile(Player player, YamlConfiguration data) {
+        if (!loadProfile(player, data, "normal")) {
             clearInventory(player);
             player.setGameMode(GameMode.SURVIVAL);
             player.setAllowFlight(false);
@@ -192,7 +200,7 @@ public final class AdminModeManager implements Listener {
         }
     }
 
-    private void saveProfile(Player player, String path) {
+    private void saveProfile(Player player, YamlConfiguration data, String path) {
         PlayerInventory inventory = player.getInventory();
         data.set(path + ".storage", Arrays.asList(inventory.getStorageContents()));
         data.set(path + ".armor", Arrays.asList(inventory.getArmorContents()));
@@ -213,24 +221,24 @@ public final class AdminModeManager implements Listener {
         data.set(path + ".fire-ticks", player.getFireTicks());
     }
 
-    private boolean loadProfile(Player player, String path) {
+    private boolean loadProfile(Player player, YamlConfiguration data, String path) {
         if (!data.contains(path)) {
             return false;
         }
 
         PlayerInventory inventory = player.getInventory();
         clearInventory(player);
-        inventory.setStorageContents(readItemArray(path + ".storage", inventory.getStorageContents().length));
-        inventory.setArmorContents(readItemArray(path + ".armor", inventory.getArmorContents().length));
-        inventory.setExtraContents(readItemArray(path + ".extra", inventory.getExtraContents().length));
+        inventory.setStorageContents(readItemArray(data, path + ".storage", inventory.getStorageContents().length));
+        inventory.setArmorContents(readItemArray(data, path + ".armor", inventory.getArmorContents().length));
+        inventory.setExtraContents(readItemArray(data, path + ".extra", inventory.getExtraContents().length));
         inventory.setHeldItemSlot(clampHeldSlot(data.getInt(path + ".held-slot", inventory.getHeldItemSlot())));
-        player.setItemOnCursor(readItem(path + ".cursor"));
+        player.setItemOnCursor(readItem(data, path + ".cursor"));
 
-        player.setGameMode(readGameMode(path + ".game-mode", player.getGameMode()));
+        player.setGameMode(readGameMode(data, path + ".game-mode", player.getGameMode()));
         player.setAllowFlight(data.getBoolean(path + ".allow-flight", player.getAllowFlight()));
         player.setFlying(data.getBoolean(path + ".flying", false) && player.getAllowFlight());
         player.setFlySpeed(clampFlySpeed(data.getDouble(path + ".fly-speed", VANILLA_FLY_SPEED)));
-        player.setHealth(readHealth(player, path + ".health"));
+        player.setHealth(readHealth(player, data, path + ".health"));
         player.setFoodLevel(clampFoodLevel(data.getInt(path + ".food-level", player.getFoodLevel())));
         player.setSaturation(clampSaturation(data.getDouble(path + ".saturation", player.getSaturation())));
         player.setExhaustion(clampExhaustion(data.getDouble(path + ".exhaustion", player.getExhaustion())));
@@ -241,7 +249,7 @@ public final class AdminModeManager implements Listener {
         return true;
     }
 
-    private ItemStack[] readItemArray(String path, int size) {
+    private ItemStack[] readItemArray(YamlConfiguration data, String path, int size) {
         ItemStack[] items = new ItemStack[size];
         List<?> list = data.getList(path);
         if (list == null) {
@@ -257,7 +265,7 @@ public final class AdminModeManager implements Listener {
         return items;
     }
 
-    private GameMode readGameMode(String path, GameMode fallback) {
+    private GameMode readGameMode(YamlConfiguration data, String path, GameMode fallback) {
         try {
             return GameMode.valueOf(data.getString(path, fallback.name()));
         } catch (IllegalArgumentException ignored) {
@@ -265,7 +273,7 @@ public final class AdminModeManager implements Listener {
         }
     }
 
-    private double readHealth(Player player, String path) {
+    private double readHealth(Player player, YamlConfiguration data, String path) {
         double maxHealth = player.getAttribute(Attribute.MAX_HEALTH) != null
             ? player.getAttribute(Attribute.MAX_HEALTH).getValue()
             : player.getHealth();
@@ -276,7 +284,7 @@ public final class AdminModeManager implements Listener {
         return Math.min(Math.max(1.0D, health), maxHealth);
     }
 
-    private ItemStack readItem(String path) {
+    private ItemStack readItem(YamlConfiguration data, String path) {
         Object value = data.get(path);
         if (value instanceof ItemStack itemStack) {
             return itemStack;
@@ -363,22 +371,12 @@ public final class AdminModeManager implements Listener {
         return (float) Math.max(0.0D, Math.min(1.0D, exp));
     }
 
-    private String getPlayerPath(Player player) {
-        return "players." + player.getUniqueId();
-    }
-
     private void sendLangMessage(Player player, String path) {
         player.sendMessage(EssentialsC.getLangManager().getPrefixedString(path));
     }
 
-    private boolean saveData() {
-        try {
-            AtomicYamlWriter.save(data, dataFile);
-            return true;
-        } catch (Exception e) {
-            plugin.getLogger().warning("保存 admin-mode.yml 失败: " + e.getMessage());
-            return false;
-        }
+    private boolean saveData(Player player, YamlConfiguration data) {
+        return store.save(player.getUniqueId(), data);
     }
 
     private void addConfigDefaults() {

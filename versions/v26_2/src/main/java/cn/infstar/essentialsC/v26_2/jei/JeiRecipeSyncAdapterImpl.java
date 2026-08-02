@@ -1,6 +1,7 @@
 package cn.infstar.essentialsC.v26_2.jei;
 
 import cn.infstar.essentialsC.compat.jei.JeiRecipeSyncAdapter;
+import cn.infstar.essentialsC.compat.jei.RecipeGrouping;
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -48,20 +49,17 @@ public final class JeiRecipeSyncAdapterImpl implements JeiRecipeSyncAdapter {
 
         var list = new ArrayList<FabricRecipeEntry>();
         var seen = new HashSet<RecipeSerializer<?>>();
+        var groupedRecipes = RecipeGrouping.groupBy(
+            recipeMap.values(), holder -> holder.value().getSerializer());
 
         for (RecipeSerializer<?> serializer : BuiltInRegistries.RECIPE_SERIALIZER) {
             if (!seen.add(serializer)) {
                 continue;
             }
 
-            List<RecipeHolder<?>> recipes = new ArrayList<>();
-            for (RecipeHolder<?> holder : recipeMap.values()) {
-                if (holder.value().getSerializer() == serializer) {
-                    recipes.add(holder);
-                }
-            }
+            List<RecipeHolder<?>> recipes = groupedRecipes.get(serializer);
 
-            if (!recipes.isEmpty()) {
+            if (recipes != null && !recipes.isEmpty()) {
                 RecipeSerializer<?> entrySerializer = recipes.get(0).value().getSerializer();
                 list.add(new FabricRecipeEntry(entrySerializer, recipes));
             }
