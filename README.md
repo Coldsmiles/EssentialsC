@@ -45,6 +45,15 @@
 - `/essc admin` 管理模式切换
 - `/maintenance` `(/maint)` 维护模式管理
 
+### 控制台命令
+
+- `/essc help`、`/essc version`、`/essc reload`
+- `/maintenance [on|off|status|reload|add|remove|list]`，也可通过 `/essc maintenance ...` 执行
+- `/seen [玩家]`、`/heal [玩家]`、`/feed [玩家]`、`/tpsbar [玩家]`
+- `/essc skin [status|refresh] [玩家]`
+
+依赖发送者位置、背包或玩家交互状态的命令仅允许在游戏内执行。控制台执行玩家状态命令时必须明确提供目标玩家。
+
 ### 其它功能
 
 - Shift + 右键快捷打开潜影盒

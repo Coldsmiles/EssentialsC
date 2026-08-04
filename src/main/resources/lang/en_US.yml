@@ -1,11 +1,12 @@
 # English language file
-# HuskHomes-inspired style: MiniMessage, green success, red errors, gray details.
+# MiniMessage format with green success, red errors, and gray details.
 
-prefix: ''
+prefix: '<#00FB9A><bold>[EssentialsC]</bold></#00FB9A><gray>: </gray>'
 
 messages:
   no-permission: '<#FF3300>Error:</#FF3300> <#FF7E5E>You do not have permission to use this command.</#FF7E5E> <gray>Required: {permission}</gray>'
   player-only: '<#FF3300>Error:</#FF3300> <#FF7E5E>This command can only be run by players.</#FF7E5E>'
+  console-name: 'Console'
   config-reloaded: '<#00FB9A>Configuration reloaded.</#00FB9A>'
   version: '<#00FB9A>EssentialsC v{version}</#00FB9A>'
   paper-version: '<gray>Running on Paper {version}</gray>'
@@ -49,9 +50,11 @@ messages:
   heal-self: '<#00FB9A>Your health and hunger have been restored.</#00FB9A>'
   heal-other: '<#00FB9A>You healed <bold>{player}</bold>.</#00FB9A>'
   heal-by-other: '<#00FB9A>You were healed by <bold>{admin}</bold>.</#00FB9A>'
+  heal-usage-console: '<#FF3300>Error:</#FF3300> <#FF7E5E>Usage: /heal [player]</#FF7E5E>'
   feed-self: '<#00FB9A>Your hunger has been restored.</#00FB9A>'
   feed-other: '<#00FB9A>You fed <bold>{player}</bold>.</#00FB9A>'
   feed-by-other: '<#00FB9A>You were fed by <bold>{admin}</bold>.</#00FB9A>'
+  feed-usage-console: '<#FF3300>Error:</#FF3300> <#FF7E5E>Usage: /feed [player]</#FF7E5E>'
   repair-hand-success: '<#00FB9A>Repaired the item in your hand.</#00FB9A>'
   repair-all-success: '<#00FB9A>Repaired <bold>{count}</bold> item(s).</#00FB9A>'
   repair-not-damaged: '<#FF3300>Error:</#FF3300> <#FF7E5E>This item is not damaged.</#FF7E5E>'
@@ -76,6 +79,8 @@ help:
   footer: '<gray>Each command requires the corresponding permission.</gray>'
 
   commands:
+    reload: '<white>/essc reload</white> <gray>- Reload plugin configuration</gray>'
+    version: '<white>/essc version</white> <gray>- View plugin and server versions</gray>'
     workbench: '<white>/workbench</white> <gray>- Open a crafting table</gray>'
     anvil: '<white>/anvil</white> <gray>- Open an anvil</gray>'
     enchantingtable: '<white>/enchantingtable</white> <gray>- Open an enchanting table</gray>'
@@ -91,10 +96,10 @@ help:
     fly: '<white>/fly</white> <gray>- Toggle flight mode</gray>'
     nightvision: '<white>/nightvision</white> <gray>- Toggle night vision</gray>'
     glow: '<white>/glow</white> <gray>- Toggle glowing</gray>'
-    heal: '<white>/heal</white> <gray>- Restore health and hunger</gray>'
+    heal: '<white>/heal [player]</white> <gray>- Restore health and hunger</gray>'
     vanish: '<white>/vanish</white> <gray>- Toggle vanish mode</gray>'
-    seen: '<white>/seen</white> <gray>- View player information</gray>'
-    feed: '<white>/feed</white> <gray>- Restore hunger</gray>'
+    seen: '<white>/seen [player]</white> <gray>- View player information</gray>'
+    feed: '<white>/feed [player]</white> <gray>- Restore hunger</gray>'
     repair: '<white>/repair</white> <gray>- Repair held or all items</gray>'
     tpa: '<white>/tpa [player]</white> <gray>- Request to teleport to a player</gray>'
     tpahere: '<white>/tpahere [player]</white> <gray>- Request a player teleport to you</gray>'

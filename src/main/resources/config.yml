@@ -29,11 +29,11 @@ mob-drops:
     # 允许末影人掉落搬运的方块。
     allow-drops: true
 
-# TPA 传送请求，行为参考 HuskHomes。
+# TPA 传送请求
 tpa:
   # 请求有效时间，单位为秒。
   timeout-seconds: 60
-  # 每名接收者最多保留的待处理请求数；参考 EssentialsX，超出时移除最早请求。
+  # 每名接收者最多保留的待处理请求数；超出时移除最早请求。
   max-pending-requests: 5
 
   # 位置规则

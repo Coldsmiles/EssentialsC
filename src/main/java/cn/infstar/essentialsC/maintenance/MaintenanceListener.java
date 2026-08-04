@@ -45,7 +45,9 @@ public final class MaintenanceListener implements Listener {
         }
 
         MaintenanceManager.AccessSnapshot snapshot = maintenanceManager.getAccessSnapshot();
-        if (!snapshot.enabled() || snapshot.isWhitelisted(event.getUniqueId(), event.getName())) {
+        if (!snapshot.enabled()
+            || snapshot.isWhitelisted(event.getUniqueId(), event.getName())
+            || maintenanceManager.isOperator(event.getUniqueId())) {
             return;
         }
 

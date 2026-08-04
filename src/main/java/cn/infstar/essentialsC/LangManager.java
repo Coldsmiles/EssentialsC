@@ -21,6 +21,9 @@ import java.util.regex.Pattern;
 public class LangManager {
 
     private static final Pattern HEX_COLOR_PATTERN = Pattern.compile("(?i)&#([0-9a-f]{6})");
+    private static final Pattern MINI_MESSAGE_TAG_PATTERN = Pattern.compile(
+        "(?<!\\\\)(</?)([A-Za-z][A-Za-z0-9_-]*)(?=[:>])"
+    );
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
     private static final LegacyComponentSerializer LEGACY_AMPERSAND = LegacyComponentSerializer.legacyAmpersand();
     private static final LegacyComponentSerializer LEGACY_SECTION = LegacyComponentSerializer.legacySection();
@@ -161,17 +164,24 @@ public class LangManager {
         langFile.setDefaults(selectedDefaults);
     }
 
-    private String applyPlaceholders(String value, Map<String, String> placeholders) {
+    static String applyPlaceholders(String value, Map<String, String> placeholders) {
         String result = value;
+        boolean miniMessage = looksLikeMiniMessage(value);
         for (Map.Entry<String, String> entry : placeholders.entrySet()) {
-            result = result.replace("{" + entry.getKey() + "}", escapeMiniMessageReplacement(entry.getValue()));
+            String replacement = miniMessage
+                ? escapeMiniMessageReplacement(entry.getValue())
+                : entry.getValue();
+            result = result.replace("{" + entry.getKey() + "}", replacement == null ? "" : replacement);
         }
         return result;
     }
 
-    private String escapeMiniMessageReplacement(String value) {
+    static String escapeMiniMessageReplacement(String value) {
         if (value == null) {
             return "";
+        }
+        if (value.indexOf('§') >= 0) {
+            return MINI_MESSAGE.serialize(LEGACY_SECTION.deserialize(value));
         }
         return value.replace("\\", "\\\\").replace("<", "\\<");
     }
@@ -213,7 +223,7 @@ public class LangManager {
         }
         if (looksLikeMiniMessage(text)) {
             try {
-                return MINI_MESSAGE.deserialize(text);
+                return MINI_MESSAGE.deserialize(normalizeMiniMessageTags(text));
             } catch (RuntimeException ignored) {
                 // 配置中 MiniMessage 语法错误时回退到旧颜色码解析，避免消息完全不可用。
             }
@@ -221,8 +231,20 @@ public class LangManager {
         return LEGACY_SECTION.deserialize(translateColorCodes(text));
     }
 
-    private boolean looksLikeMiniMessage(String text) {
+    private static boolean looksLikeMiniMessage(String text) {
         int open = text.indexOf('<');
         return open >= 0 && text.indexOf('>', open) > open;
+    }
+
+    static String normalizeMiniMessageTags(String text) {
+        Matcher matcher = MINI_MESSAGE_TAG_PATTERN.matcher(text);
+        StringBuilder result = new StringBuilder();
+        while (matcher.find()) {
+            matcher.appendReplacement(result, Matcher.quoteReplacement(
+                matcher.group(1) + matcher.group(2).toLowerCase(java.util.Locale.ROOT)
+            ));
+        }
+        matcher.appendTail(result);
+        return result.toString();
     }
 }

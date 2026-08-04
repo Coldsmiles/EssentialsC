@@ -49,12 +49,17 @@ public abstract class BaseCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        return dispatch(sender, args);
+    }
+
+    final boolean dispatch(CommandSender sender, String[] args) {
+        if (!sender.hasPermission(permission)) {
+            sender.sendMessage(getLang().getPrefixedString("messages.no-permission",
+                Map.of("permission", permission)));
+            return true;
+        }
+
         if (sender instanceof Player player) {
-            if (!player.hasPermission(permission)) {
-                player.sendMessage(getLang().getPrefixedString("messages.no-permission",
-                    Map.of("permission", permission)));
-                return true;
-            }
             return execute(player, args);
         }
 

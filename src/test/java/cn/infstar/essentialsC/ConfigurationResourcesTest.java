@@ -4,6 +4,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.Test;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -40,6 +42,9 @@ class ConfigurationResourcesTest {
             if (resourcePath.equals("paper-plugin.yml")) {
                 assertEquals("1.21.11", configuration.getString("api-version"));
             }
+            if (resourcePath.startsWith("lang/")) {
+                assertTrue(!configuration.getString("prefix", "").isBlank());
+            }
         }
     }
 
@@ -49,6 +54,25 @@ class ConfigurationResourcesTest {
         YamlConfiguration english = loadResource("lang/en_US.yml");
 
         assertEquals(chinese.getKeys(true), english.getKeys(true));
+    }
+
+    @Test
+    void miniMessageTagNamesAreNormalized() {
+        assertEquals("<gray>文本</gray>", LangManager.normalizeMiniMessageTags("<GRAY>文本</GRAY>"));
+        assertEquals("\\<GRAY>", LangManager.normalizeMiniMessageTags("\\<GRAY>"));
+    }
+
+    @Test
+    void legacyFormattingCanBeNestedInMiniMessage() {
+        String message = LangManager.applyPlaceholders(
+            "<gray>维护状态: {status}</gray>",
+            java.util.Map.of("status", "§a开启")
+        );
+        String rendered = PlainTextComponentSerializer.plainText().serialize(
+            MiniMessage.miniMessage().deserialize(message)
+        );
+
+        assertEquals("维护状态: 开启", rendered);
     }
 
     private YamlConfiguration loadResource(String resourcePath) throws Exception {

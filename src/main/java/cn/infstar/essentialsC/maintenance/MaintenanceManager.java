@@ -12,6 +12,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,13 +31,18 @@ public final class MaintenanceManager {
 
     private final EssentialsC plugin;
     private final File configFile;
+    private final BukkitTask operatorCacheTask;
     private FileConfiguration config;
     private BossBar bossBar;
     private volatile AccessSnapshot accessSnapshot = AccessSnapshot.disabled();
+    private volatile Set<UUID> operatorUuids = Set.of();
 
     public MaintenanceManager(EssentialsC plugin) {
         this.plugin = plugin;
         this.configFile = new File(plugin.getDataFolder(), "maintenance.yml");
+        refreshOperatorCache();
+        this.operatorCacheTask = plugin.getServer().getScheduler()
+            .runTaskTimer(plugin, this::refreshOperatorCache, 20L, 20L);
         reload();
     }
 
@@ -109,7 +115,11 @@ public final class MaintenanceManager {
     }
 
     public boolean canJoin(Player player) {
-        return player != null && (player.hasPermission(getBypassPermission()) || isWhitelisted(player));
+        return player != null && (player.isOp() || player.hasPermission(getBypassPermission()) || isWhitelisted(player));
+    }
+
+    public boolean isOperator(UUID uniqueId) {
+        return uniqueId != null && operatorUuids.contains(uniqueId);
     }
 
     public AccessSnapshot getAccessSnapshot() {
@@ -231,8 +241,18 @@ public final class MaintenanceManager {
     }
 
     public void shutdown() {
+        operatorCacheTask.cancel();
         accessSnapshot = AccessSnapshot.disabled();
+        operatorUuids = Set.of();
         clearBossBar();
+    }
+
+    private void refreshOperatorCache() {
+        Set<UUID> operators = new LinkedHashSet<>();
+        for (org.bukkit.OfflinePlayer operator : plugin.getServer().getOperators()) {
+            operators.add(operator.getUniqueId());
+        }
+        operatorUuids = Set.copyOf(operators);
     }
 
     private void clearBossBar() {

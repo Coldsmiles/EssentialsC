@@ -38,7 +38,12 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
 
     @Override
     protected boolean executeConsole(CommandSender sender, String[] args) {
-        if (args.length > 0 && args[0].equalsIgnoreCase("reload")) {
+        if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
+            sendConsoleHelp(sender);
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("reload")) {
             if (!sender.hasPermission("essentialsc.command.reload")) {
                 sendNoPermission(sender, "essentialsc.command.reload");
                 return true;
@@ -51,8 +56,60 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
             sender.sendMessage(getLang().getPrefixedString("messages.config-reloaded"));
             return true;
         }
-        sender.sendMessage(getLang().getPrefixedString("messages.player-only"));
+
+        if (args[0].equalsIgnoreCase("version") || args[0].equalsIgnoreCase("v")) {
+            sender.sendMessage(getLang().getPrefixedString("messages.version",
+                Map.of("version", plugin.getPluginMeta().getVersion())));
+            sender.sendMessage(getLang().getPrefixedString("messages.paper-version",
+                Map.of("version", Bukkit.getVersion())));
+            return true;
+        }
+
+        String actualCommand = getActualCommand(args[0]);
+        BaseCommand targetCommand = CommandRegistry.getCommand(actualCommand);
+        if (actualCommand != null && targetCommand != null) {
+            return targetCommand.dispatch(sender, Arrays.copyOfRange(args, 1, args.length));
+        }
+
+        sender.sendMessage(getLang().getPrefixedString("messages.unknown-subcommand",
+            Map.of("command", args[0])));
+        sender.sendMessage(getLang().getPrefixedString("messages.help-usage"));
         return true;
+    }
+
+    private void sendConsoleHelp(CommandSender sender) {
+        LangManager lang = getLang();
+        sendPrefixed(sender, lang.getString("help.title"));
+        sendPrefixed(sender, lang.getString("help.version",
+            Map.of("version", plugin.getPluginMeta().getVersion())));
+        sender.sendMessage("");
+
+        sendPrefixed(sender, lang.getString("help.section-other"));
+        if (sender.hasPermission("essentialsc.command.reload")) {
+            sendPrefixed(sender, lang.getString("help.commands.reload"));
+        }
+        sendPrefixed(sender, lang.getString("help.commands.version"));
+        if (CommandRegistry.isAvailable("seen") && sender.hasPermission("essentialsc.command.seen")) {
+            sendPrefixed(sender, lang.getString("help.commands.seen"));
+        }
+        if (CommandRegistry.isAvailable("heal") && sender.hasPermission("essentialsc.command.heal")) {
+            sendPrefixed(sender, lang.getString("help.commands.heal"));
+        }
+        if (CommandRegistry.isAvailable("feed") && sender.hasPermission("essentialsc.command.feed")) {
+            sendPrefixed(sender, lang.getString("help.commands.feed"));
+        }
+        if (CommandRegistry.isAvailable("skin") && sender.hasPermission("essentialsc.command.skin")) {
+            sendPrefixed(sender, lang.getString("help.commands.skin"));
+        }
+        if (CommandRegistry.isAvailable("tpsbar") && sender.hasPermission("essentialsc.command.tpsbar")) {
+            sendPrefixed(sender, lang.getString("help.commands.tpsbar"));
+        }
+        if (CommandRegistry.isAvailable("maintenance")
+            && sender.hasPermission("essentialsc.command.maintenance")) {
+            sendPrefixed(sender, lang.getString("help.commands.maintenance"));
+        }
+        sender.sendMessage("");
+        sendPrefixed(sender, lang.getString("help.footer"));
     }
 
     private boolean handleCommand(CommandSender sender, Player player, String[] args) {
@@ -246,7 +303,7 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
     }
 
     private void sendPrefixed(CommandSender sender, String message) {
-        sender.sendMessage(message);
+        sender.sendMessage(getLang().getPrefix() + message);
     }
 
     private void sendPrefixedLines(CommandSender sender, String message) {

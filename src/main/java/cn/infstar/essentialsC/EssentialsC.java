@@ -448,7 +448,8 @@ public final class EssentialsC extends JavaPlugin {
         @Override
         public Collection<String> suggest(CommandSourceStack commandSourceStack, String[] args) {
             if (executor instanceof TabCompleter completer) {
-                return completer.onTabComplete(commandSourceStack.getSender(), commandAdapter, name, args);
+                String[] completionArgs = args.length == 0 ? new String[]{""} : args;
+                return completer.onTabComplete(commandSourceStack.getSender(), commandAdapter, name, completionArgs);
             }
             return List.of();
         }

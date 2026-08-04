@@ -63,17 +63,37 @@ public class TpsBarCommand extends BaseCommand implements TabCompleter {
 
     @Override
     protected boolean executeConsole(CommandSender sender, String[] args) {
-        sender.sendMessage(getLang().getPrefixedString("messages.player-only"));
+        TpsBarService tpsBarService = plugin.getTpsBarManager();
+        if (tpsBarService == null) {
+            sender.sendMessage(getLang().getPrefixedString("messages.module-disabled"));
+            return true;
+        }
+        if (args.length != 1) {
+            sender.sendMessage(tpsBarService.getUsageMessage());
+            return true;
+        }
+        if (!sender.hasPermission("essentialsc.command.tpsbar.others")) {
+            sender.sendMessage(getLang().getPrefixedString("messages.no-permission",
+                Map.of("permission", "essentialsc.command.tpsbar.others")));
+            return true;
+        }
+
+        Player target = Bukkit.getPlayerExact(args[0]);
+        if (target == null) {
+            sender.sendMessage(tpsBarService.getPlayerNotFoundMessage(args[0]));
+            return true;
+        }
+
+        boolean enabled = tpsBarService.toggle(target);
+        sender.sendMessage(getLang().getPrefixedString(enabled
+            ? "tpsbar.messages.enabled-other"
+            : "tpsbar.messages.disabled-other", Map.of("player", target.getName())));
         return true;
     }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
-        if (args.length != 1 || !(sender instanceof Player player)) {
-            return List.of();
-        }
-
-        if (!player.hasPermission("essentialsc.command.tpsbar.others")) {
+        if (args.length != 1 || !sender.hasPermission("essentialsc.command.tpsbar.others")) {
             return List.of();
         }
 

@@ -109,7 +109,7 @@ public class ShulkerBoxListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) {
             return;
@@ -117,6 +117,10 @@ public class ShulkerBoxListener implements Listener {
 
         Player player = event.getPlayer();
         if (!player.isSneaking() || !player.hasPermission("essentialsc.shulkerbox.open")) {
+            return;
+        }
+
+        if (event.useItemInHand() == org.bukkit.event.Event.Result.DENY) {
             return;
         }
 

@@ -1,11 +1,12 @@
 # 简体中文语言文件
-# 文本风格参考 HuskHomes：MiniMessage、绿色成功、红色错误、灰色说明。
+# 支持 MiniMessage 格式，默认使用绿色成功、红色错误和灰色说明。
 
-prefix: ''
+prefix: '<#00FB9A><bold>[EssentialsC]</bold></#00FB9A><gray>: </gray>'
 
 messages:
   no-permission: '<#FF3300>错误:</#FF3300> <#FF7E5E>你没有权限执行此命令.</#FF7E5E> <gray>需要权限: {permission}</gray>'
   player-only: '<#FF3300>错误:</#FF3300> <#FF7E5E>此命令只能由玩家执行.</#FF7E5E>'
+  console-name: '控制台'
   config-reloaded: '<#00FB9A>配置已重载.</#00FB9A>'
   version: '<#00FB9A>EssentialsC v{version}</#00FB9A>'
   paper-version: '<gray>当前运行于 Paper {version}</gray>'
@@ -49,9 +50,11 @@ messages:
   heal-self: '<#00FB9A>你的生命值和饥饿值已恢复.</#00FB9A>'
   heal-other: '<#00FB9A>你已治疗玩家 <bold>{player}</bold>.</#00FB9A>'
   heal-by-other: '<#00FB9A>管理员 <bold>{admin}</bold> 治疗了你.</#00FB9A>'
+  heal-usage-console: '<#FF3300>错误:</#FF3300> <#FF7E5E>用法: /heal [玩家]</#FF7E5E>'
   feed-self: '<#00FB9A>你的饥饿值已恢复.</#00FB9A>'
   feed-other: '<#00FB9A>你已喂饱玩家 <bold>{player}</bold>.</#00FB9A>'
   feed-by-other: '<#00FB9A>管理员 <bold>{admin}</bold> 喂饱了你.</#00FB9A>'
+  feed-usage-console: '<#FF3300>错误:</#FF3300> <#FF7E5E>用法: /feed [玩家]</#FF7E5E>'
   repair-hand-success: '<#00FB9A>手中物品已修复.</#00FB9A>'
   repair-all-success: '<#00FB9A>已修复 <bold>{count}</bold> 个物品.</#00FB9A>'
   repair-not-damaged: '<#FF3300>错误:</#FF3300> <#FF7E5E>该物品没有损坏.</#FF7E5E>'
@@ -76,6 +79,8 @@ help:
   footer: '<gray>每个命令都需要对应权限.</gray>'
 
   commands:
+    reload: '<white>/essc reload</white> <gray>- 重载插件配置</gray>'
+    version: '<white>/essc version</white> <gray>- 查看插件与服务端版本</gray>'
     workbench: '<white>/workbench</white> <gray>- 打开工作台</gray>'
     anvil: '<white>/anvil</white> <gray>- 打开铁砧</gray>'
     enchantingtable: '<white>/enchantingtable</white> <gray>- 打开附魔台</gray>'
@@ -91,10 +96,10 @@ help:
     fly: '<white>/fly</white> <gray>- 切换飞行模式</gray>'
     nightvision: '<white>/nightvision</white> <gray>- 切换夜视</gray>'
     glow: '<white>/glow</white> <gray>- 切换发光</gray>'
-    heal: '<white>/heal</white> <gray>- 恢复生命值和饥饿值</gray>'
+    heal: '<white>/heal [玩家]</white> <gray>- 恢复生命值和饥饿值</gray>'
     vanish: '<white>/vanish</white> <gray>- 切换隐身模式</gray>'
-    seen: '<white>/seen</white> <gray>- 查看玩家信息</gray>'
-    feed: '<white>/feed</white> <gray>- 恢复饥饿值</gray>'
+    seen: '<white>/seen [玩家]</white> <gray>- 查看玩家信息</gray>'
+    feed: '<white>/feed [玩家]</white> <gray>- 恢复饥饿值</gray>'
     repair: '<white>/repair</white> <gray>- 修复手中或全部物品</gray>'
     tpa: '<white>/tpa [玩家]</white> <gray>- 请求传送到玩家身边</gray>'
     tpahere: '<white>/tpahere [玩家]</white> <gray>- 请求玩家传送到你身边</gray>'

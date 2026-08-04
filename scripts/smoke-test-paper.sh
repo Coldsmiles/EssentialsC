@@ -31,7 +31,7 @@ printf 'online-mode=false\nserver-port=0\nenable-query=false\n' > "$workspace/se
 server_pid=$!
 
 for _ in $(seq 1 120); do
-  if grep -Fq 'EssentialsC v1.4.0 已启用' "$workspace/server.log"; then
+  if grep -Fq 'EssentialsC v1.3.0 已启用' "$workspace/server.log"; then
     if grep -Eq 'UnsupportedClassVersionError|Error occurred while enabling EssentialsC|Could not load.*EssentialsC' "$workspace/server.log"; then
       cat "$workspace/server.log"
       exit 1
