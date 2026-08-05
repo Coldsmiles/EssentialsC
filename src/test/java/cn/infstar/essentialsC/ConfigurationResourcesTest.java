@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -54,6 +55,16 @@ class ConfigurationResourcesTest {
         YamlConfiguration english = loadResource("lang/en_US.yml");
 
         assertEquals(chinese.getKeys(true), english.getKeys(true));
+    }
+
+    @Test
+    void retiredJeiFeatureIsAbsentFromResources() throws Exception {
+        assertFalse(loadResource("config.yml").contains("jei-sync", true));
+        assertFalse(loadResource("modules.yml").contains("modules.jei-sync", true));
+        assertFalse(loadResource("lang/zh_CN.yml").contains("messages.jei-sync-fabric", true));
+        assertFalse(loadResource("lang/zh_CN.yml").contains("messages.jei-sync-neoforge", true));
+        assertFalse(loadResource("lang/en_US.yml").contains("messages.jei-sync-fabric", true));
+        assertFalse(loadResource("lang/en_US.yml").contains("messages.jei-sync-neoforge", true));
     }
 
     @Test

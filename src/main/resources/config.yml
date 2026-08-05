@@ -17,16 +17,10 @@ admin-mode:
   actionbar:
     interval-ticks: 40
 
-# JEI 配方同步修复；是否加载由 modules.yml 控制。
-jei-sync:
-  # 玩家加入后延迟多少 tick 检测客户端品牌。
-  brand-check-delay-ticks: 20
-  send-player-message: true
-
 # 生物掉落
 mob-drops:
   enderman:
-    # 允许末影人掉落搬运的方块。
+    # 控制该生物死亡时是否掉落物品（经验值正常掉落）；当前仅支持末影人。
     allow-drops: true
 
 # TPA 传送请求

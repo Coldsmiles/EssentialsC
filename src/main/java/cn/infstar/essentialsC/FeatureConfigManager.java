@@ -44,6 +44,7 @@ public final class FeatureConfigManager {
         boolean mainChanged = mainConfig != loadedMainConfig;
         mainChanged |= migrateLegacyMainConfig(mainConfig);
         mainChanged |= migrateLegacyDebugSettings(mainConfig);
+        mainChanged |= removeRetiredJeiSettings(mainConfig);
         if (mainConfig.getInt("config-version", 0) != MAIN_CONFIG_VERSION) {
             mainConfig.set("config-version", MAIN_CONFIG_VERSION);
             mainChanged = true;
@@ -132,6 +133,16 @@ public final class FeatureConfigManager {
         mainConfig.set("jei-sync.debug", null);
         mainConfig.set("skin-bridge.debug", null);
         plugin.getLogger().info("已将独立功能调试开关合并到 config.yml 的全局 debug。");
+        return true;
+    }
+
+    private boolean removeRetiredJeiSettings(FileConfiguration mainConfig) {
+        if (!mainConfig.contains("jei-sync", true)) {
+            return false;
+        }
+
+        mainConfig.set("jei-sync", null);
+        plugin.getLogger().info("已从 config.yml 移除停用的 JEI 配方同步配置。");
         return true;
     }
 

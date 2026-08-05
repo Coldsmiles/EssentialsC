@@ -4,6 +4,14 @@ set -euo pipefail
 paper_version="${1:?必须提供 Paper 版本}"
 workspace="$(mktemp -d)"
 server_pid=""
+plugin_jar="$(find build/libs -maxdepth 1 -type f -name 'EssentialsC-*.jar' -print -quit)"
+if [[ -z "$plugin_jar" ]]; then
+  echo "未找到 EssentialsC 构建产物。" >&2
+  exit 1
+fi
+plugin_filename="$(basename "$plugin_jar")"
+plugin_version="${plugin_filename#EssentialsC-}"
+plugin_version="${plugin_version%.jar}"
 
 cleanup() {
   if [[ -n "$server_pid" ]] && kill -0 "$server_pid" 2>/dev/null; then
@@ -20,7 +28,7 @@ download_url="$(curl --fail --silent --show-error --location "$metadata_url" \
 
 curl --fail --silent --show-error --location "$download_url" --output "$workspace/paper.jar"
 mkdir -p "$workspace/plugins"
-cp build/libs/EssentialsC-*.jar "$workspace/plugins/EssentialsC.jar"
+cp "$plugin_jar" "$workspace/plugins/EssentialsC.jar"
 printf 'eula=true\n' > "$workspace/eula.txt"
 printf 'online-mode=false\nserver-port=0\nenable-query=false\n' > "$workspace/server.properties"
 
@@ -31,7 +39,7 @@ printf 'online-mode=false\nserver-port=0\nenable-query=false\n' > "$workspace/se
 server_pid=$!
 
 for _ in $(seq 1 120); do
-  if grep -Fq 'EssentialsC v1.3.0 已启用' "$workspace/server.log"; then
+  if grep -Fq "EssentialsC v${plugin_version} 已启用" "$workspace/server.log"; then
     if grep -Eq 'UnsupportedClassVersionError|Error occurred while enabling EssentialsC|Could not load.*EssentialsC' "$workspace/server.log"; then
       cat "$workspace/server.log"
       exit 1

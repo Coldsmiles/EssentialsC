@@ -7,7 +7,6 @@ import cn.infstar.essentialsC.commands.CommandRegistry;
 import cn.infstar.essentialsC.commands.HelpCommand;
 import cn.infstar.essentialsC.commands.PaperCommand;
 import cn.infstar.essentialsC.commands.VanishCommand;
-import cn.infstar.essentialsC.listeners.JeiRecipeSyncListener;
 import cn.infstar.essentialsC.listeners.MobDropListener;
 import cn.infstar.essentialsC.listeners.MobDropMenuListener;
 import cn.infstar.essentialsC.listeners.ShulkerBoxListener;
@@ -23,7 +22,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.plugin.java.JavaPlugin;
 import io.papermc.paper.command.brigadier.BasicCommand;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
@@ -47,7 +45,6 @@ public final class EssentialsC extends JavaPlugin {
     private TpsBarService tpsBarManager;
     private ShulkerBoxListener shulkerBoxListener;
     private BlocksMenuCommand blocksMenuCommandListener;
-    private JeiRecipeSyncListener jeiRecipeSyncListener;
     private MobDropListener mobDropListener;
     private MobDropMenuListener mobDropMenuListener;
     private VanishListener vanishListener;
@@ -95,7 +92,6 @@ public final class EssentialsC extends JavaPlugin {
         }
         VanishCommand.clearAll(this);
         unregisterRuntimeListeners();
-        unregisterPluginChannels();
         getLogger().info("EssentialsC 已禁用。");
     }
 
@@ -142,7 +138,6 @@ public final class EssentialsC extends JavaPlugin {
         refreshMaintenance();
         refreshTpsBar();
         refreshBlocks();
-        refreshJeiSync();
         refreshMobDrops();
         refreshSkinBridge();
     }
@@ -269,24 +264,6 @@ public final class EssentialsC extends JavaPlugin {
         setModuleStatus("便捷方块", true, "命令和潜影盒监听器已启用");
     }
 
-    private void refreshJeiSync() {
-        if (jeiRecipeSyncListener != null) {
-            HandlerList.unregisterAll(jeiRecipeSyncListener);
-            jeiRecipeSyncListener = null;
-        }
-        unregisterPluginChannels();
-
-        if (!moduleManager.isEnabled(ModuleManager.JEI_SYNC)) {
-            setModuleStatus("JEI 同步", false, "已禁用");
-            return;
-        }
-
-        registerPluginChannels();
-        jeiRecipeSyncListener = new JeiRecipeSyncListener(this);
-        getServer().getPluginManager().registerEvents(jeiRecipeSyncListener, this);
-        setModuleStatus("JEI 同步", true, "插件消息通道已注册");
-    }
-
     private void refreshMobDrops() {
         if (!moduleManager.isEnabled(ModuleManager.MOB_DROPS)) {
             if (mobDropListener != null) {
@@ -334,24 +311,11 @@ public final class EssentialsC extends JavaPlugin {
         setModuleStatus("皮肤桥接", true, skinBridgeManager.getModuleDetail());
     }
 
-    private void registerPluginChannels() {
-        Messenger messenger = getServer().getMessenger();
-        messenger.registerOutgoingPluginChannel(this, "fabric:recipe_sync");
-        messenger.registerOutgoingPluginChannel(this, "neoforge:recipe_content");
-    }
-
-    private void unregisterPluginChannels() {
-        Messenger messenger = getServer().getMessenger();
-        messenger.unregisterOutgoingPluginChannel(this, "fabric:recipe_sync");
-        messenger.unregisterOutgoingPluginChannel(this, "neoforge:recipe_content");
-    }
-
     private void unregisterRuntimeListeners() {
         unregisterListener(adminModeManager);
         unregisterListener(maintenanceListener);
         unregisterListener(shulkerBoxListener);
         unregisterListener(blocksMenuCommandListener);
-        unregisterListener(jeiRecipeSyncListener);
         unregisterListener(mobDropListener);
         unregisterListener(mobDropMenuListener);
         unregisterListener(vanishListener);

@@ -68,9 +68,6 @@ messages:
   shulkerbox-unstack-first: '<#FF3300>Error:</#FF3300> <#FF7E5E>Please unstack the shulker box before quick opening it.</#FF7E5E>'
   shulkerbox-open-failed: '<#FF3300>Error:</#FF3300> <#FF7E5E>Failed to open the shulker box. Please try again.</#FF7E5E>'
   shulkerbox-session-invalid: '<#FF3300>Error:</#FF3300> <#FF7E5E>The shulker box session became invalid. Saving was stopped to prevent item duplication.</#FF7E5E>'
-  jei-sync-fabric: '<#00FB9A>Synchronizing recipes for your <bold>Fabric</bold> client…</#00FB9A>'
-  jei-sync-neoforge: '<#00FB9A>Synchronizing recipes for your <bold>NeoForge</bold> client…</#00FB9A>'
-
 help:
   title: '<#00FB9A><bold>EssentialsC</bold></#00FB9A> <gray>Command Help</gray>'
   version: '<gray>Plugin version: <white>{version}</white></gray>'

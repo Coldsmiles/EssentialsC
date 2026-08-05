@@ -20,8 +20,3 @@ plugins {
 }
 
 rootProject.name = 'EssentialsC'
-
-include 'compat-api'
-include 'versions:v1_21_11'
-include 'versions:v26_1_2'
-include 'versions:v26_2'

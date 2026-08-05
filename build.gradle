@@ -10,7 +10,8 @@ plugins {
 }
 
 group = 'cn.infstar'
-version = providers.gradleProperty('pluginVersion').orElse('1.3.0').get()
+def pluginVersion = providers.gradleProperty('pluginVersion').orElse('1.3.0').get()
+version = pluginVersion
 
 repositories {
     mavenCentral()
@@ -23,7 +24,6 @@ repositories {
 dependencies {
     paperweight.paperDevBundle('1.21.11-R0.1-SNAPSHOT')
     compileOnly 'net.luckperms:api:5.5'
-    implementation project(':compat-api')
     implementation 'com.google.code.gson:gson:2.11.0'
     testImplementation platform('org.junit:junit-bom:5.13.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -52,9 +52,9 @@ tasks.withType(Test).configureEach {
 }
 
 tasks.named('processResources', ProcessResources).configure {
-    inputs.property('version', project.version)
+    inputs.property('version', pluginVersion)
     filesMatching('paper-plugin.yml') {
-        expand('version': project.version)
+        expand('version': pluginVersion)
     }
 }
 
@@ -65,19 +65,9 @@ tasks.named('jar').configure {
 tasks.named('shadowJar', ShadowJar).configure {
     group = 'build'
     description = '构建包含全部运行期可开关模块的 EssentialsC 插件。'
-    archiveFileName.set("EssentialsC-${project.version}.jar")
+    archiveFileName.set("EssentialsC-${pluginVersion}.jar")
     configurations = [project.configurations.runtimeClasspath]
     relocate 'com.google.gson', 'cn.infstar.essentialsC.libs.gson'
-
-    [
-        project(':versions:v1_21_11'),
-        project(':versions:v26_1_2'),
-        project(':versions:v26_2')
-    ].each { adapterProject ->
-        def adapterJar = adapterProject.tasks.named('jar')
-        dependsOn(adapterJar)
-        from(adapterJar.flatMap { it.archiveFile }.map { archiveFile -> zipTree(archiveFile) })
-    }
 }
 
 tasks.named('assemble').configure {
@@ -137,5 +127,5 @@ def registerTestServerDeployTask = { String taskName, String serverPath, String 
 }
 
 registerTestServerDeployTask('deployToPaper12111', 'test-server/paper-1.21.11', 'Paper 1.21.11')
-registerTestServerDeployTask('deployToPaper2612', 'test-server/paper-26.1.2', 'Paper 26.1.2')
 registerTestServerDeployTask('deployToPaper262', 'test-server/paper-26.2', 'Paper 26.2')
+registerTestServerDeployTask('deployToLeaves262', 'test-server/leaves-26.2', 'Leaves 26.2')

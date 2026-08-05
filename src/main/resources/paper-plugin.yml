@@ -155,7 +155,7 @@ permissions:
     description: 允许通过 Shift+右键快捷打开潜影盒
     default: op
   essentialsc.mobdrops.enderman:
-    description: 允许控制末影人掉落方块
+    description: 允许控制末影人死亡时是否掉落物品
     default: op
   essentialsc.*:
     description: 授予 EssentialsC 的全部权限

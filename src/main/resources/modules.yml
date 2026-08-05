@@ -18,9 +18,6 @@ modules:
   tpsbar:
     # 插件版 TPSBar。检测到服务端原生命令时会自动避免冲突。
     enabled: true
-  jei-sync:
-    # Fabric / NeoForge JEI 配方同步兼容修复。
-    enabled: true
   mob-drops:
     # 末影人掉落控制菜单和监听器；具体掉落状态可在游戏内切换。
     enabled: false

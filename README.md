@@ -11,7 +11,7 @@
 
 - 最低支持版本为 `Paper 1.21.11`
 - 已适配 `Paper 26.2`
-- 主插件使用 `Java 21`，Paper 26.x 版本适配模块使用对应服务端要求的 Java 工具链
+- 插件统一使用 Paper 公共 API 和 Java 21 字节码，无需按服务端版本拆分构建
 - 配置按职责拆分：主行为与 SkinBridge、模块开关、菜单布局、维护模式和语言文本分别管理
 - 支持运行期模块开关，避免为不同功能组合构建多个插件版本
 
@@ -61,7 +61,6 @@
 - 管理模式独立背包、装备栏与状态切换
 - 维护模式：替换 MOTD、登录拦截、白名单放行和管理员拦截通知
 - Enderman 掉落方块控制
-- JEI 配方同步修复
 
 ## 模块配置
 
@@ -72,7 +71,6 @@
 | `blocks` | 开启 | 便捷方块命令、`/essc blocks` 菜单、潜影盒快捷打开 |
 | `admin-mode` | 开启 | `/essc admin` 管理模式与独立状态保存 |
 | `tpsbar` | 开启 | 插件版 TPSBar，检测到服务端原生命令时自动避免冲突 |
-| `jei-sync` | 开启 | Fabric / NeoForge JEI 配方同步修复 |
 | `mob-drops` | 关闭 | 末影人掉落控制，默认关闭以保留过去标准版行为 |
 | `maintenance` | 开启 | 维护模式命令、MOTD 替换、登录拦截、白名单和拦截通知 |
 | `skin-bridge` | 关闭 | 查询外置 Yggdrasil profile，并通过 MineSkin 与 Paper Profile API 同步皮肤 |
@@ -97,7 +95,6 @@ SkinBridge 默认关闭。使用前需启用 `modules.yml` 中的 `modules.skin-
 - `config.yml`
   - 语言选择
   - 管理模式行为
-  - JEI 同步开关
   - 掉落控制
   - TPSBar 模式
   - TPA 请求、预热、冷却和音效
@@ -190,8 +187,8 @@ Windows 可使用：
 ./gradlew shadowJar
 ./gradlew build
 ./gradlew deployToPaper12111
-./gradlew deployToPaper2612
 ./gradlew deployToPaper262
+./gradlew deployToLeaves262
 ```
 
 ## 本地测试服
@@ -201,16 +198,15 @@ Windows 可使用：
 | 测试服 | 端口 | 部署任务 | 启动脚本 |
 | --- | --- | --- | --- |
 | Paper 1.21.11 | `25566` | `deployToPaper12111` | `test-server/paper-1.21.11/start.bat` |
-| Paper 26.1.2 | `25565` | `deployToPaper2612` | `test-server/paper-26.1.2/start.bat` |
-| Paper 26.2 | 以本地配置为准 | `deployToPaper262` | `test-server/paper-26.2/start.bat` |
+| Paper 26.2 | `25567` | `deployToPaper262` | `test-server/paper-26.2/start.bat` |
+| Leaves 26.2 | `25568` | `deployToLeaves262` | `test-server/leaves-26.2/start.bat` |
 
-IDEA 运行配置会在启动测试服前自动执行对应部署任务。部署任务会替换 `EssentialsC*.jar`，并删除 `plugins/EssentialsC` 数据目录，以便测试新增默认配置和语言文本。
+IDEA 运行配置会先构建插件，再由启动脚本复制最新 JAR，并保留插件数据以便测试升级流程。手动执行部署任务会替换 `EssentialsC*.jar` 并删除 `plugins/EssentialsC` 数据目录，用于测试全新安装及默认配置生成。
 
 ## 开发说明
 
 - 使用 `paperweight-userdev` 进行 Paper 开发
 - 使用 Paper Lifecycle Command API 注册命令，避免直接反射 Bukkit CommandMap
-- 涉及 NMS 的功能通过 `compat-api` + `versions/v<版本>` 适配模块隔离，主插件只依赖稳定接口；当前包含 `1.21.11`、`26.1.2`、`26.2`
 - 运行时通过 `modules.yml` 控制模块加载，命令始终注册并按模块状态执行门禁
 - 普通 push/PR 会执行构建与测试，版本标签继续生成 GitHub Release
 

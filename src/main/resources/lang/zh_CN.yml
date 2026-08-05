@@ -68,9 +68,6 @@ messages:
   shulkerbox-unstack-first: '<#FF3300>错误:</#FF3300> <#FF7E5E>请先将潜影盒拆分为单个后再快捷打开.</#FF7E5E>'
   shulkerbox-open-failed: '<#FF3300>错误:</#FF3300> <#FF7E5E>潜影盒打开失败，请稍后重试.</#FF7E5E>'
   shulkerbox-session-invalid: '<#FF3300>错误:</#FF3300> <#FF7E5E>潜影盒会话异常，已停止保存以避免物品复制.</#FF7E5E>'
-  jei-sync-fabric: '<#00FB9A>正在为 <bold>Fabric</bold> 客户端同步配方…</#00FB9A>'
-  jei-sync-neoforge: '<#00FB9A>正在为 <bold>NeoForge</bold> 客户端同步配方…</#00FB9A>'
-
 help:
   title: '<#00FB9A><bold>EssentialsC</bold></#00FB9A> <gray>命令帮助</gray>'
   version: '<gray>插件版本: <white>{version}</white></gray>'
