@@ -1,5 +1,5 @@
 # EssentialsC 主配置
-# 其他配置：modules.yml、maintenance.yml、blocks-menu.yml
+# 其他配置：modules.yml、blocks-menu.yml
 # 消息与颜色：lang/<语言>.yml
 # 修改后使用 /essc reload 重载；命令注册状态发生变化时建议重启服务器。
 

@@ -107,7 +107,6 @@ help:
     skin: '<white>/essc skin [status|refresh] [玩家]</white> <gray>- 查看或刷新皮肤桥接状态</gray>'
     admin: '<white>/essc admin</white> <gray>- 切换管理模式</gray>'
     tpsbar: '<white>/tpsbar [玩家]</white> <gray>- 切换 TPS 状态栏</gray>'
-    maintenance: '<white>/maintenance [on|off|status|reload|add|remove|list]</white> <gray>- 管理维护模式</gray>'
 
 tpa:
   messages:
@@ -259,25 +258,3 @@ mobdrops-menu:
     name: '<#00FB9A>末影人掉落</#00FB9A>'
     status: '<gray>当前状态: {status}</gray>'
     toggle: '<gray>点击切换</gray>'
-
-maintenance:
-  status:
-    enabled: '<#FF7E5E>开启</#FF7E5E>'
-    disabled: '<#00FB9A>关闭</#00FB9A>'
-    address-hidden: '已隐藏'
-  messages:
-    enabled: '<#00FB9A>维护模式已开启.</#00FB9A>'
-    disabled: '<#FF7E5E>维护模式已关闭.</#FF7E5E>'
-    reloaded: '<#00FB9A>维护模式配置已重载.</#00FB9A>'
-    save-failed: '<#FF3300>错误:</#FF3300> <#FF7E5E>维护模式配置保存失败，操作未生效.</#FF7E5E>'
-    status: '<gray>维护模式当前状态: {status} | 白名单: <white>{whitelist_count}</white></gray>'
-    usage: '<#FF3300>错误:</#FF3300> <#FF7E5E>用法: /maintenance [on|off|status|reload|add|remove|list]</#FF7E5E>'
-    add-usage: '<#FF3300>错误:</#FF3300> <#FF7E5E>用法: /maintenance add [玩家|UUID]</#FF7E5E>'
-    remove-usage: '<#FF3300>错误:</#FF3300> <#FF7E5E>用法: /maintenance remove [玩家|UUID]</#FF7E5E>'
-    whitelist-added: '<#00FB9A>已将 {player} 加入维护白名单.</#00FB9A>'
-    whitelist-removed: '<#00FB9A>已将 {player} 移出维护白名单.</#00FB9A>'
-    whitelist-exists: '<#FFC43B>{player} 已在维护白名单中.</#FFC43B>'
-    whitelist-missing: '<#FF3300>错误:</#FF3300> <#FF7E5E>{player} 不在维护白名单中.</#FF7E5E>'
-    whitelist-empty: '<gray>维护白名单为空.</gray>'
-    whitelist-list: '<gray>维护白名单 ({count}): <white>{entries}</white></gray>'
-    login-blocked: '<#FFC43B>{player} 被维护模式拦截.</#FFC43B> <gray>UUID: {uuid} | IP: {address}</gray>'

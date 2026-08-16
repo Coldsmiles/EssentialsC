@@ -48,7 +48,6 @@ public final class CommandRegistry {
         registerCore("tpignore", "essentialsc.command.tpignore", TpIgnoreCommand::new);
         register("tpsbar", "essentialsc.command.tpsbar", ModuleManager.TPSBAR, TpsBarCommand::new);
         register("mobdrops", "essentialsc.mobdrops.enderman", ModuleManager.MOB_DROPS, MobDropCommand::new);
-        register("maintenance", "essentialsc.command.maintenance", ModuleManager.MAINTENANCE, MaintenanceCommand::new, "maint");
         registerSubCommand("admin", "essentialsc.command.admin", ModuleManager.ADMIN_MODE, AdminCommand::new);
         registerSubCommand("skin", "essentialsc.command.skin", ModuleManager.SKIN_BRIDGE, SkinBridgeCommand::new);
     }

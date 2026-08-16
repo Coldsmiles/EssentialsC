@@ -104,10 +104,6 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
         if (CommandRegistry.isAvailable("tpsbar") && sender.hasPermission("essentialsc.command.tpsbar")) {
             sendPrefixed(sender, lang.getString("help.commands.tpsbar"));
         }
-        if (CommandRegistry.isAvailable("maintenance")
-            && sender.hasPermission("essentialsc.command.maintenance")) {
-            sendPrefixed(sender, lang.getString("help.commands.maintenance"));
-        }
         sender.sendMessage("");
         sendPrefixed(sender, lang.getString("help.footer"));
     }
@@ -282,10 +278,6 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
             otherCommands.append(lang.getString("help.commands.tpsbar")).append("\n");
             hasOtherCommands = true;
         }
-        if (CommandRegistry.isAvailable("maintenance") && player.hasPermission("essentialsc.command.maintenance")) {
-            otherCommands.append(lang.getString("help.commands.maintenance")).append("\n");
-            hasOtherCommands = true;
-        }
 
         if (hasOtherCommands) {
             sendPrefixed(player, lang.getString("help.section-other"));
@@ -367,8 +359,6 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
                 {"tpignore", "essentialsc.command.tpignore"},
                 {"skin", "essentialsc.command.skin"},
                 {"tpsbar", "essentialsc.command.tpsbar"},
-                {"maintenance", "essentialsc.command.maintenance"},
-                {"maint", "essentialsc.command.maintenance"},
                 {"mobdrops", "essentialsc.mobdrops.enderman"},
                 {"admin", "essentialsc.command.admin"},
                 {"version", null},
@@ -451,10 +441,6 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
                 return players;
             }
 
-            if ((subCmd.equals("maintenance") || subCmd.equals("maint"))
-                && sender.hasPermission("essentialsc.command.maintenance")) {
-                return completeMaintenanceArgs(args[1]);
-            }
         }
 
         if (args.length == 3 && args[0].equalsIgnoreCase("skin")
@@ -499,14 +485,4 @@ public class HelpCommand extends BaseCommand implements TabCompleter {
         return completions;
     }
 
-    private List<String> completeMaintenanceArgs(String partialInput) {
-        List<String> completions = new ArrayList<>();
-        String partial = partialInput.toLowerCase();
-        for (String option : List.of("on", "off", "status", "reload", "add", "remove", "list")) {
-            if (option.startsWith(partial)) {
-                completions.add(option);
-            }
-        }
-        return completions;
-    }
 }

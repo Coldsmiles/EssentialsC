@@ -1,6 +1,6 @@
 name: EssentialsC
 description: 高版本基础工具箱
-version: ${version}
+version: 1.3.1
 
 main: cn.infstar.essentialsC.EssentialsC
 api-version: '1.21.11'

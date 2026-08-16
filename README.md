@@ -2,8 +2,8 @@
 
 轻量、现代、面向 Paper 服务端的基础功能插件，灵感来自 CMI，但更聚焦于常用能力与模块化构建。
 
-[![Version](https://img.shields.io/github/v/release/Coldsmiles/EssentialsC?style=flat-square)](https://github.com/Coldsmiles/EssentialsC/releases)
-[![License](https://img.shields.io/github/license/Coldsmiles/EssentialsC?style=flat-square)](LICENSE)
+[![Version](https://img.shields.io/github/v/release/InfstarMC/EssentialsC?style=flat-square)](https://github.com/InfstarMC/EssentialsC/releases)
+[![License](https://img.shields.io/github/license/InfstarMC/EssentialsC?style=flat-square)](LICENSE)
 [![Paper](https://img.shields.io/badge/Paper-1.21.11%2B-blue?style=flat-square)](https://papermc.io/)
 [![Java](https://img.shields.io/badge/Java-21-orange?style=flat-square)](https://adoptium.net/)
 
@@ -12,7 +12,7 @@
 - 最低支持版本为 `Paper 1.21.11`
 - 已适配 `Paper 26.2`
 - 插件统一使用 Paper 公共 API 和 Java 21 字节码，无需按服务端版本拆分构建
-- 配置按职责拆分：主行为与 SkinBridge、模块开关、菜单布局、维护模式和语言文本分别管理
+- 配置按职责拆分：主行为与 SkinBridge、模块开关、菜单布局和语言文本分别管理
 - 支持运行期模块开关，避免为不同功能组合构建多个插件版本
 
 ## 主要功能
@@ -43,12 +43,10 @@
 - `/seen` `(/info)`
 - `/tpsbar`
 - `/essc admin` 管理模式切换
-- `/maintenance` `(/maint)` 维护模式管理
 
 ### 控制台命令
 
 - `/essc help`、`/essc version`、`/essc reload`
-- `/maintenance [on|off|status|reload|add|remove|list]`，也可通过 `/essc maintenance ...` 执行
 - `/seen [玩家]`、`/heal [玩家]`、`/feed [玩家]`、`/tpsbar [玩家]`
 - `/essc skin [status|refresh] [玩家]`
 
@@ -59,7 +57,6 @@
 - Shift + 右键快捷打开潜影盒
 - 潜影盒交互保护，尽量避免刷物品、吞物品和嵌套放入问题
 - 管理模式独立背包、装备栏与状态切换
-- 维护模式：替换 MOTD、登录拦截、白名单放行和管理员拦截通知
 - Enderman 掉落方块控制
 
 ## 模块配置
@@ -72,19 +69,19 @@
 | `admin-mode` | 开启 | `/essc admin` 管理模式与独立状态保存 |
 | `tpsbar` | 开启 | 插件版 TPSBar，检测到服务端原生命令时自动避免冲突 |
 | `mob-drops` | 关闭 | 末影人掉落控制，默认关闭以保留过去标准版行为 |
-| `maintenance` | 开启 | 维护模式命令、MOTD 替换、登录拦截、白名单和拦截通知 |
 | `skin-bridge` | 关闭 | 查询外置 Yggdrasil profile，并通过 MineSkin 与 Paper Profile API 同步皮肤 |
 
 修改模块开关后使用 `/essc reload` 即可刷新运行期服务、监听器和命令门禁。可选模块命令始终注册，模块关闭时会返回统一的停用提示，因此无需为了启用命令重启服务器。
 
 ## 安装说明
 
-1. 从 [Releases](https://github.com/Coldsmiles/EssentialsC/releases) 下载所需版本。
+1. 从 [Releases](https://github.com/InfstarMC/EssentialsC/releases) 下载所需版本。
 2. 将插件放入服务端的 `plugins/` 目录。
-3. 建议安装 LuckPerms；维护模式会优先通过其缓存异步检查登录权限，未安装时会在玩家加入后立即复核。
-4. 启动一次服务端以生成配置文件。
-5. 按需修改 `plugins/EssentialsC/` 下的配置文件与 `lang/` 语言文件。
-6. 使用权限插件为玩家分配所需权限。
+3. 启动一次服务端以生成配置文件。
+4. 按需修改 `plugins/EssentialsC/` 下的配置文件与 `lang/` 语言文件。
+5. 使用权限插件为玩家分配所需权限。
+
+维护功能建议独立安装 [Maintenance](https://github.com/kennytv/Maintenance)。EssentialsC 不再内置维护模式，也不要求安装该插件。
 
 ## 配置说明
 
@@ -103,14 +100,6 @@ SkinBridge 默认关闭。使用前需启用 `modules.yml` 中的 `modules.skin-
   - 功能模块开关
 - `blocks-menu.yml`
   - 便捷菜单分区、槽位、材质和权限
-- `maintenance.yml`
-  - 维护模式状态
-  - 维护 MOTD
-  - 维护踢出提示
-  - 维护 BossBar
-  - 绕过权限
-  - 维护白名单
-  - 拦截通知权限
 - `lang/zh_CN.yml`、`lang/en_US.yml`
   - 命令反馈
   - 帮助信息
@@ -151,13 +140,10 @@ essentialsc.tpa.bypass-cooldown
 essentialsc.tpa.warmup.3
 essentialsc.command.admin
 essentialsc.command.tpsbar
-essentialsc.command.maintenance
 essentialsc.command.skin
 essentialsc.command.skin.status
 essentialsc.command.skin.refresh
 essentialsc.command.skin.others
-essentialsc.maintenance.bypass
-essentialsc.maintenance.notify
 essentialsc.shulkerbox.open
 essentialsc.mobdrops.enderman
 essentialsc.*
@@ -168,7 +154,7 @@ essentialsc.*
 ## 从源码构建
 
 ```bash
-git clone https://github.com/Coldsmiles/EssentialsC.git
+git clone https://github.com/InfstarMC/EssentialsC.git
 cd EssentialsC
 ./gradlew build
 ```
@@ -216,5 +202,5 @@ IDEA 运行配置会先构建插件，再由启动脚本复制最新 JAR，并�
 
 ## 仓库
 
-- GitHub: <https://github.com/Coldsmiles/EssentialsC>
+- GitHub: <https://github.com/InfstarMC/EssentialsC>
 - Gitea: <https://git.infstar.cn/InfStarMC/EssentialsC>

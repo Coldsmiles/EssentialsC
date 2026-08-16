@@ -1,7 +1,7 @@
 # EssentialsC 模块配置
 #
 # modules.yml 用于控制功能模块是否在运行时加载。
-# 各功能的详细设置位于 config.yml、maintenance.yml 与 blocks-menu.yml。
+# 各功能的详细设置位于 config.yml 与 blocks-menu.yml。
 #
 # 修改模块开关后可使用 /essc reload 刷新运行期服务和监听器。
 # 直连命令的完整热增删仍建议通过重启服务器完成。
@@ -21,9 +21,6 @@ modules:
   mob-drops:
     # 末影人掉落控制菜单和监听器；具体掉落状态可在游戏内切换。
     enabled: false
-  maintenance:
-    # 维护模式。开启维护后可替换 MOTD，并阻止无绕过权限的玩家进入。
-    enabled: true
   skin-bridge:
     # 查询外置 Yggdrasil profile，并通过 MineSkin 与 Paper Profile API 同步皮肤。
     enabled: false

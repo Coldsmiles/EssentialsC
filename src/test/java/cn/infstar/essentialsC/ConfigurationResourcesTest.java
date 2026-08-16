@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ConfigurationResourcesTest {
@@ -22,7 +23,6 @@ class ConfigurationResourcesTest {
     @ValueSource(strings = {
         "config.yml",
         "modules.yml",
-        "maintenance.yml",
         "blocks-menu.yml",
         "paper-plugin.yml",
         "lang/zh_CN.yml",
@@ -65,6 +65,20 @@ class ConfigurationResourcesTest {
         assertFalse(loadResource("lang/zh_CN.yml").contains("messages.jei-sync-neoforge", true));
         assertFalse(loadResource("lang/en_US.yml").contains("messages.jei-sync-fabric", true));
         assertFalse(loadResource("lang/en_US.yml").contains("messages.jei-sync-neoforge", true));
+    }
+
+    @Test
+    void retiredMaintenanceFeatureIsAbsentFromResources() throws Exception {
+        assertNull(getClass().getClassLoader().getResource("maintenance.yml"));
+        assertFalse(loadResource("modules.yml").contains("modules.maintenance", true));
+        assertFalse(loadResource("paper-plugin.yml").contains("dependencies.server.LuckPerms", true));
+        assertFalse(loadResource("paper-plugin.yml").contains("permissions.essentialsc.command.maintenance", true));
+        assertFalse(loadResource("paper-plugin.yml").contains("permissions.essentialsc.maintenance.bypass", true));
+        assertFalse(loadResource("paper-plugin.yml").contains("permissions.essentialsc.maintenance.notify", true));
+        assertFalse(loadResource("lang/zh_CN.yml").contains("maintenance", true));
+        assertFalse(loadResource("lang/en_US.yml").contains("maintenance", true));
+        assertNull(cn.infstar.essentialsC.commands.CommandRegistry.resolveCommandName("maintenance"));
+        assertNull(cn.infstar.essentialsC.commands.CommandRegistry.resolveCommandName("maint"));
     }
 
     @Test

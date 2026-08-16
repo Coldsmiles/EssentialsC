@@ -11,8 +11,6 @@ import cn.infstar.essentialsC.listeners.MobDropListener;
 import cn.infstar.essentialsC.listeners.MobDropMenuListener;
 import cn.infstar.essentialsC.listeners.ShulkerBoxListener;
 import cn.infstar.essentialsC.listeners.VanishListener;
-import cn.infstar.essentialsC.maintenance.MaintenanceListener;
-import cn.infstar.essentialsC.maintenance.MaintenanceManager;
 import cn.infstar.essentialsC.player.PlayerStateManager;
 import cn.infstar.essentialsC.skinbridge.SkinBridgeManager;
 import cn.infstar.essentialsC.teleport.TeleportRequestManager;
@@ -38,10 +36,8 @@ public final class EssentialsC extends JavaPlugin {
     private ModuleManager moduleManager;
     private FeatureConfigManager featureConfigManager;
     private AdminModeManager adminModeManager;
-    private MaintenanceManager maintenanceManager;
     private TeleportRequestManager teleportRequestManager;
     private PlayerStateManager playerStateManager;
-    private MaintenanceListener maintenanceListener;
     private TpsBarService tpsBarManager;
     private ShulkerBoxListener shulkerBoxListener;
     private BlocksMenuCommand blocksMenuCommandListener;
@@ -71,9 +67,6 @@ public final class EssentialsC extends JavaPlugin {
         }
         if (adminModeManager != null) {
             adminModeManager.shutdown();
-        }
-        if (maintenanceManager != null) {
-            maintenanceManager.shutdown();
         }
         if (teleportRequestManager != null) {
             teleportRequestManager.shutdown();
@@ -111,10 +104,6 @@ public final class EssentialsC extends JavaPlugin {
         return featureConfigManager;
     }
 
-    public MaintenanceManager getMaintenanceManager() {
-        return maintenanceManager;
-    }
-
     public TeleportRequestManager getTeleportRequestManager() {
         return teleportRequestManager;
     }
@@ -135,7 +124,6 @@ public final class EssentialsC extends JavaPlugin {
         moduleStatus.clear();
         refreshCorePlayerFeatures();
         refreshAdminMode();
-        refreshMaintenance();
         refreshTpsBar();
         refreshBlocks();
         refreshMobDrops();
@@ -177,32 +165,6 @@ public final class EssentialsC extends JavaPlugin {
             adminModeManager.reload();
         }
         setModuleStatus("管理模式", true, "监听器已注册");
-    }
-
-    private void refreshMaintenance() {
-        if (!moduleManager.isEnabled(ModuleManager.MAINTENANCE)) {
-            if (maintenanceManager != null) {
-                maintenanceManager.shutdown();
-                maintenanceManager = null;
-            }
-            if (maintenanceListener != null) {
-                HandlerList.unregisterAll(maintenanceListener);
-                maintenanceListener = null;
-            }
-            setModuleStatus("维护模式", false, "已禁用");
-            return;
-        }
-
-        if (maintenanceManager == null) {
-            maintenanceManager = new MaintenanceManager(this);
-        } else {
-            maintenanceManager.reload();
-        }
-        if (maintenanceListener == null) {
-            maintenanceListener = new MaintenanceListener(this, maintenanceManager);
-            getServer().getPluginManager().registerEvents(maintenanceListener, this);
-        }
-        setModuleStatus("维护模式", true, maintenanceManager.isEnabled() ? "当前开启" : "当前关闭");
     }
 
     private void refreshTpsBar() {
@@ -313,7 +275,6 @@ public final class EssentialsC extends JavaPlugin {
 
     private void unregisterRuntimeListeners() {
         unregisterListener(adminModeManager);
-        unregisterListener(maintenanceListener);
         unregisterListener(shulkerBoxListener);
         unregisterListener(blocksMenuCommandListener);
         unregisterListener(mobDropListener);

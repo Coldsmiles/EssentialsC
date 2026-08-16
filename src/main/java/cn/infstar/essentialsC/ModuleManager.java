@@ -19,7 +19,6 @@ public final class ModuleManager {
     public static final String ADMIN_MODE = "admin-mode";
     public static final String TPSBAR = "tpsbar";
     public static final String MOB_DROPS = "mob-drops";
-    public static final String MAINTENANCE = "maintenance";
     public static final String SKIN_BRIDGE = "skin-bridge";
 
     private static final Map<String, Boolean> DEFAULT_MODULES = new LinkedHashMap<>();
@@ -29,7 +28,6 @@ public final class ModuleManager {
         DEFAULT_MODULES.put(ADMIN_MODE, true);
         DEFAULT_MODULES.put(TPSBAR, true);
         DEFAULT_MODULES.put(MOB_DROPS, false);
-        DEFAULT_MODULES.put(MAINTENANCE, true);
         DEFAULT_MODULES.put(SKIN_BRIDGE, false);
     }
 
@@ -57,21 +55,25 @@ public final class ModuleManager {
             throw new IllegalStateException("无法加载 modules.yml，请修复配置格式后重试。", exception);
         }
         modulesConfig = loaded;
-        boolean removedJeiSync = modulesConfig.contains("modules.jei-sync", true);
-        if (removedJeiSync) {
-            modulesConfig.set("modules.jei-sync", null);
+        boolean removedRetiredModules = false;
+        for (String retiredModule : new String[]{"jei-sync", "maintenance"}) {
+            String retiredPath = "modules." + retiredModule;
+            if (modulesConfig.contains(retiredPath, true)) {
+                modulesConfig.set(retiredPath, null);
+                removedRetiredModules = true;
+            }
         }
         modulesConfig.addDefault("config-version", CURRENT_CONFIG_VERSION);
         for (Map.Entry<String, Boolean> module : DEFAULT_MODULES.entrySet()) {
             modulesConfig.addDefault(path(module.getKey()), module.getValue());
         }
         modulesConfig.options().copyDefaults(true);
-        if (removedJeiSync) {
+        if (removedRetiredModules) {
             try {
                 AtomicYamlWriter.save(modulesConfig, modulesFile);
-                plugin.getLogger().info("已从 modules.yml 移除停用的 JEI 配方同步配置。");
+                plugin.getLogger().info("已从 modules.yml 移除退役功能的配置项。");
             } catch (IOException exception) {
-                plugin.getLogger().warning("清理 modules.yml 中的 JEI 配置失败: " + exception.getMessage());
+                plugin.getLogger().warning("清理 modules.yml 中的退役配置失败: " + exception.getMessage());
             }
         }
     }

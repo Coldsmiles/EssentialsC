@@ -107,7 +107,6 @@ help:
     skin: '<white>/essc skin [status|refresh] [player]</white> <gray>- View or refresh SkinBridge status</gray>'
     admin: '<white>/essc admin</white> <gray>- Toggle admin mode</gray>'
     tpsbar: '<white>/tpsbar [player]</white> <gray>- Toggle TPS boss bar</gray>'
-    maintenance: '<white>/maintenance [on|off|status|reload|add|remove|list]</white> <gray>- Manage maintenance mode</gray>'
 
 tpa:
   messages:
@@ -259,25 +258,3 @@ mobdrops-menu:
     name: '<#00FB9A>Enderman Drops</#00FB9A>'
     status: '<gray>Current status: {status}</gray>'
     toggle: '<gray>Click to toggle</gray>'
-
-maintenance:
-  status:
-    enabled: '<#FF7E5E>Enabled</#FF7E5E>'
-    disabled: '<#00FB9A>Disabled</#00FB9A>'
-    address-hidden: 'hidden'
-  messages:
-    enabled: '<#00FB9A>Maintenance mode enabled.</#00FB9A>'
-    disabled: '<#FF7E5E>Maintenance mode disabled.</#FF7E5E>'
-    reloaded: '<#00FB9A>Maintenance configuration reloaded.</#00FB9A>'
-    save-failed: '<#FF3300>Error:</#FF3300> <#FF7E5E>Failed to save maintenance configuration; no changes were applied.</#FF7E5E>'
-    status: '<gray>Maintenance mode status: {status} | Whitelist: <white>{whitelist_count}</white></gray>'
-    usage: '<#FF3300>Error:</#FF3300> <#FF7E5E>Usage: /maintenance [on|off|status|reload|add|remove|list]</#FF7E5E>'
-    add-usage: '<#FF3300>Error:</#FF3300> <#FF7E5E>Usage: /maintenance add [player|uuid]</#FF7E5E>'
-    remove-usage: '<#FF3300>Error:</#FF3300> <#FF7E5E>Usage: /maintenance remove [player|uuid]</#FF7E5E>'
-    whitelist-added: '<#00FB9A>Added {player} to the maintenance whitelist.</#00FB9A>'
-    whitelist-removed: '<#00FB9A>Removed {player} from the maintenance whitelist.</#00FB9A>'
-    whitelist-exists: '<#FFC43B>{player} is already on the maintenance whitelist.</#FFC43B>'
-    whitelist-missing: '<#FF3300>Error:</#FF3300> <#FF7E5E>{player} is not on the maintenance whitelist.</#FF7E5E>'
-    whitelist-empty: '<gray>The maintenance whitelist is empty.</gray>'
-    whitelist-list: '<gray>Maintenance whitelist ({count}): <white>{entries}</white></gray>'
-    login-blocked: '<#FFC43B>{player} was blocked by maintenance mode.</#FFC43B> <gray>UUID: {uuid} | IP: {address}</gray>'
