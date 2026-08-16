@@ -18,7 +18,13 @@ cleanup() {
     kill -TERM "$server_pid" 2>/dev/null || true
     wait "$server_pid" 2>/dev/null || true
   fi
-  rm -rf "$workspace"
+  for _ in 1 2 3; do
+    if rm -rf "$workspace"; then
+      return
+    fi
+    sleep 1
+  done
+  echo "警告：无法完全清理临时测试目录 $workspace" >&2
 }
 trap cleanup EXIT
 
@@ -34,7 +40,7 @@ printf 'online-mode=false\nserver-port=0\nenable-query=false\n' > "$workspace/se
 
 (
   cd "$workspace"
-  java -Xms512M -Xmx1G -jar paper.jar --nogui > server.log 2>&1
+  exec java -Xms512M -Xmx1G -jar paper.jar --nogui > server.log 2>&1
 ) &
 server_pid=$!
 
